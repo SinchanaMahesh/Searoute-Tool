@@ -3,15 +3,18 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MessageCircle, Mic, Search, MapPin, Calendar, Users, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const HeroSection = () => {
   const [isListening, setIsListening] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [destination, setDestination] = useState('');
+  const [departureDate, setDepartureDate] = useState('');
+  const [guests, setGuests] = useState('2');
+  const navigate = useNavigate();
 
   const handleVoiceSearch = () => {
     setIsListening(!isListening);
-    // Voice recognition would be implemented here
     if (!isListening) {
       setTimeout(() => {
         setIsListening(false);
@@ -22,9 +25,18 @@ const HeroSection = () => {
 
   const handleChatSearch = () => {
     if (searchQuery.trim()) {
-      // This would integrate with the chat widget or navigate to search
-      console.log('Starting AI chat with:', searchQuery);
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}&type=chat`);
     }
+  };
+
+  const handleTraditionalSearch = () => {
+    const searchParams = new URLSearchParams();
+    if (destination) searchParams.append('destination', destination);
+    if (departureDate) searchParams.append('departure', departureDate);
+    if (guests) searchParams.append('guests', guests);
+    searchParams.append('type', 'traditional');
+    
+    navigate(`/search?${searchParams.toString()}`);
   };
 
   const quickPrompts = [
@@ -114,7 +126,7 @@ const HeroSection = () => {
                       className="bg-ocean-blue hover:bg-deep-navy text-white disabled:opacity-50"
                     >
                       <MessageCircle className="w-4 h-4 mr-2" />
-                      Chat
+                      Search
                     </Button>
                   </div>
                 </div>
@@ -153,73 +165,74 @@ const HeroSection = () => {
                 </div>
               </div>
 
-              {/* Toggle for Advanced Search */}
-              <div className="mt-6 pt-6 border-t border-border-gray text-center">
-                <Button
-                  variant="ghost"
-                  onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
-                  className="text-slate-gray hover:text-ocean-blue"
-                >
-                  <Search className="w-4 h-4 mr-2" />
-                  {showAdvancedSearch ? 'Hide' : 'Show'} Traditional Search
-                </Button>
-              </div>
-
-              {/* Secondary Traditional Search (Collapsible) */}
-              {showAdvancedSearch && (
-                <div className="mt-6 pt-6 border-t border-border-gray animate-fade-in">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    {/* Destination */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-charcoal flex items-center">
-                        <MapPin className="w-4 h-4 mr-1 text-ocean-blue" />
-                        Destination
-                      </label>
-                      <Input 
-                        placeholder="Caribbean, Mediterranean..."
-                        className="border-0 bg-light-gray focus:bg-white"
-                      />
-                    </div>
-                    
-                    {/* Dates */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-charcoal flex items-center">
-                        <Calendar className="w-4 h-4 mr-1 text-ocean-blue" />
-                        Departure
-                      </label>
-                      <Input 
-                        type="date"
-                        className="border-0 bg-light-gray focus:bg-white"
-                      />
-                    </div>
-                    
-                    {/* Guests */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-charcoal flex items-center">
-                        <Users className="w-4 h-4 mr-1 text-ocean-blue" />
-                        Guests
-                      </label>
-                      <select className="w-full px-3 py-2 bg-light-gray rounded-lg border-0 focus:bg-white focus:outline-none focus:ring-2 focus:ring-ocean-blue">
-                        <option>2 Guests</option>
-                        <option>3 Guests</option>
-                        <option>4 Guests</option>
-                        <option>5+ Guests</option>
-                      </select>
-                    </div>
-                    
-                    {/* Search Button */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-transparent">Search</label>
-                      <Button 
-                        className="w-full h-10 bg-sunset-orange hover:bg-orange-600 text-white rounded-lg transition-all duration-200"
-                      >
-                        <Search className="w-4 h-4 mr-2" />
-                        Search
-                      </Button>
-                    </div>
+              {/* Traditional Search - Always Visible */}
+              <div className="mt-8 pt-6 border-t border-border-gray">
+                <div className="text-center mb-4">
+                  <h3 className="text-lg font-medium text-charcoal mb-2">Or search traditionally</h3>
+                  <p className="text-sm text-slate-gray">Use our classic search form</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  {/* Destination */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-charcoal flex items-center">
+                      <MapPin className="w-4 h-4 mr-1 text-ocean-blue" />
+                      Destination
+                    </label>
+                    <Input 
+                      placeholder="Caribbean, Mediterranean..."
+                      value={destination}
+                      onChange={(e) => setDestination(e.target.value)}
+                      className="border-0 bg-light-gray focus:bg-white"
+                    />
+                  </div>
+                  
+                  {/* Dates */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-charcoal flex items-center">
+                      <Calendar className="w-4 h-4 mr-1 text-ocean-blue" />
+                      Departure
+                    </label>
+                    <Input 
+                      type="date"
+                      value={departureDate}
+                      onChange={(e) => setDepartureDate(e.target.value)}
+                      className="border-0 bg-light-gray focus:bg-white"
+                    />
+                  </div>
+                  
+                  {/* Guests */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-charcoal flex items-center">
+                      <Users className="w-4 h-4 mr-1 text-ocean-blue" />
+                      Guests
+                    </label>
+                    <select 
+                      value={guests}
+                      onChange={(e) => setGuests(e.target.value)}
+                      className="w-full px-3 py-2 bg-light-gray rounded-lg border-0 focus:bg-white focus:outline-none focus:ring-2 focus:ring-ocean-blue"
+                    >
+                      <option value="1">1 Guest</option>
+                      <option value="2">2 Guests</option>
+                      <option value="3">3 Guests</option>
+                      <option value="4">4 Guests</option>
+                      <option value="5+">5+ Guests</option>
+                    </select>
+                  </div>
+                  
+                  {/* Search Button */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-transparent">Search</label>
+                    <Button 
+                      onClick={handleTraditionalSearch}
+                      className="w-full h-10 bg-sunset-orange hover:bg-orange-600 text-white rounded-lg transition-all duration-200"
+                    >
+                      <Search className="w-4 h-4 mr-2" />
+                      Search
+                    </Button>
                   </div>
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
