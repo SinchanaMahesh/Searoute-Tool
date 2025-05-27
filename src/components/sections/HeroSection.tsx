@@ -9,13 +9,17 @@ import { MessageCircle, Mic, Search, Sparkles, CalendarIcon, MapPin, Clock } fro
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import type { DateRange } from 'react-day-picker';
 
 const HeroSection = () => {
   const [isListening, setIsListening] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDestination, setSelectedDestination] = useState('');
   const [selectedLength, setSelectedLength] = useState('');
-  const [dateRange, setDateRange] = useState<{from?: Date; to?: Date}>({});
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: new Date(new Date().setMonth(new Date().getMonth() + 3))
+  });
   const navigate = useNavigate();
 
   const handleVoiceSearch = () => {
@@ -38,7 +42,7 @@ const HeroSection = () => {
     let parts = [];
     if (selectedDestination) parts.push(selectedDestination);
     if (selectedLength) parts.push(`${selectedLength} cruise`);
-    if (dateRange.from) {
+    if (dateRange?.from) {
       if (dateRange.to) {
         parts.push(`from ${format(dateRange.from, 'MMM dd')} to ${format(dateRange.to, 'MMM dd')}`);
       } else {
@@ -91,10 +95,7 @@ const HeroSection = () => {
           <div className="space-y-4">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight">
               <span className="block bg-gradient-to-r from-seafoam-green to-coral-pink bg-clip-text text-transparent">
-                Discover Your Perfect
-              </span>
-              <span className="block bg-gradient-to-r from-seafoam-green to-coral-pink bg-clip-text text-transparent">
-                Human Experience
+                Discover Your Perfect Human Experience
               </span>
             </h1>
             <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed">
