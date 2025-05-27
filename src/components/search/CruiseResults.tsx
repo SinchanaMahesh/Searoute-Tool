@@ -98,6 +98,13 @@ const CruiseResults = ({ cruises, isLoading, onCruiseHover, sortBy, onSortChange
 
 // Individual Cruise Card Component
 const CruiseCard = ({ cruise, onHover }: { cruise: Cruise; onHover: (cruiseId: string | null) => void }) => {
+  const handleViewDetails = () => {
+    // Navigate to cruise details page or open external link
+    // For now, we'll create a details URL pattern
+    const detailsUrl = `/cruise/${cruise.id}`;
+    window.open(detailsUrl, '_blank');
+  };
+
   return (
     <div 
       className="bg-white rounded-lg border border-border-gray overflow-hidden hover:shadow-level-2 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
@@ -163,6 +170,13 @@ const CruiseCard = ({ cruise, onHover }: { cruise: Cruise; onHover: (cruiseId: s
               <span className="font-medium text-charcoal">{cruise.route}</span> • {cruise.ports.length} ports
             </div>
 
+            {/* Ports List */}
+            <div className="text-sm text-slate-gray">
+              <span className="font-medium text-charcoal">Ports: </span>
+              {cruise.ports.slice(0, 4).join(' → ')}
+              {cruise.ports.length > 4 && ` → +${cruise.ports.length - 4} more`}
+            </div>
+
             <div className="flex items-center gap-2">
               <div className="flex items-center">
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -195,9 +209,17 @@ const CruiseCard = ({ cruise, onHover }: { cruise: Cruise; onHover: (cruiseId: s
                 )}
               </div>
               
-              <div className="text-right">
-                <div className="text-lg font-bold text-sunset-orange">${cruise.priceFrom}</div>
-                <div className="text-xs text-slate-gray">per person</div>
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <div className="text-lg font-bold text-sunset-orange">${cruise.priceFrom}</div>
+                  <div className="text-xs text-slate-gray">per person</div>
+                </div>
+                <Button 
+                  onClick={handleViewDetails}
+                  className="bg-ocean-blue hover:bg-deep-navy text-white"
+                >
+                  View Details
+                </Button>
               </div>
             </div>
           </div>
