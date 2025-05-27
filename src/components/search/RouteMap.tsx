@@ -1,6 +1,7 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { Cruise } from '@/pages/Search';
+import { Maximize2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface RouteMapProps {
   cruises: Cruise[];
@@ -11,6 +12,7 @@ const RouteMap = ({ cruises, hoveredCruise }: RouteMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<any>(null);
   const [mapboxToken, setMapboxToken] = useState('');
+  const [isLargeView, setIsLargeView] = useState(false);
   const hoveredCruiseData = cruises.find(c => c.id === hoveredCruise);
 
   useEffect(() => {
@@ -166,15 +168,27 @@ const RouteMap = ({ cruises, hoveredCruise }: RouteMapProps) => {
     <div className="h-full bg-gradient-to-br from-blue-50 to-blue-100 relative overflow-hidden">
       {/* Map Header */}
       <div className="absolute top-0 left-0 right-0 bg-white/90 backdrop-blur-sm p-3 border-b border-border-gray z-10">
-        <h3 className="font-semibold text-charcoal text-sm">Route Visualization</h3>
-        <p className="text-xs text-slate-gray">
-          {hoveredCruiseData 
-            ? `Viewing route for ${hoveredCruiseData.shipName}` 
-            : 'Hover over a cruise to see its route'}
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold text-charcoal text-sm">Route Visualization</h3>
+            <p className="text-xs text-slate-gray">
+              {hoveredCruiseData 
+                ? `Viewing route for ${hoveredCruiseData.shipName}` 
+                : 'Hover over a cruise to see its route'}
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsLargeView(true)}
+            className="text-ocean-blue border-ocean-blue hover:bg-ocean-blue hover:text-white"
+          >
+            <Maximize2 className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
-      {/* Mapbox Token Input (if not set) */}
+      {/* Mapbox Token Input */}
       {!mapboxToken && (
         <div className="absolute inset-0 pt-16 flex items-center justify-center bg-white/95">
           <div className="p-6 max-w-md text-center">
@@ -198,12 +212,12 @@ const RouteMap = ({ cruises, hoveredCruise }: RouteMapProps) => {
 
       {/* Map Container */}
       {mapboxToken && (
-        <div ref={mapRef} className="absolute inset-0 pt-16" />
+        <div ref={mapRef} className="absolute inset-0 pt-16 pb-24" />
       )}
 
       {/* Fallback Map for Demo */}
       {!mapboxToken && (
-        <div className="absolute inset-0 pt-16">
+        <div className="absolute inset-0 pt-16 pb-24">
           <svg viewBox="0 0 400 200" className="w-full h-full">
             {/* Ocean Background */}
             <rect width="400" height="200" fill="#e0f2fe" />
@@ -232,7 +246,6 @@ const RouteMap = ({ cruises, hoveredCruise }: RouteMapProps) => {
             <circle cx="220" cy="110" r="3" fill="#0ea5e9" />
             <text x="225" y="105" fontSize="8" fill="#0f172a">Nassau</text>
 
-            {/* Route line when cruise is hovered */}
             {hoveredCruiseData && (
               <g>
                 <path
@@ -252,8 +265,8 @@ const RouteMap = ({ cruises, hoveredCruise }: RouteMapProps) => {
         </div>
       )}
 
-      {/* Cruise Details Placeholder */}
-      <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-border-gray p-4">
+      {/* Cruise Details - Fixed at bottom */}
+      <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-border-gray p-4 z-10">
         {hoveredCruiseData ? (
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -273,6 +286,30 @@ const RouteMap = ({ cruises, hoveredCruise }: RouteMapProps) => {
           </div>
         )}
       </div>
+
+      {/* Large View Modal */}
+      {isLargeView && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg w-full h-full max-w-6xl max-h-[90vh] flex flex-col">
+            <div className="p-4 border-b border-border-gray flex justify-between items-center">
+              <h3 className="font-semibold text-charcoal">Route Map - Large View</h3>
+              <Button
+                variant="outline"
+                onClick={() => setIsLargeView(false)}
+                className="text-slate-gray"
+              >
+                Close
+              </Button>
+            </div>
+            <div className="flex-1 relative">
+              {/* Large map container would go here */}
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
+                <p className="text-slate-gray">Large map view would be rendered here</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/layout/Header';
@@ -40,7 +39,7 @@ const Search = () => {
   const [searchParams] = useSearchParams();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState({
-    priceRange: [0, 20000], // Increased range to include all cruises
+    priceRange: [0, 20000],
     duration: [],
     departurePorts: [],
     cruiseLines: [],
@@ -155,8 +154,8 @@ const Search = () => {
       <Header />
       
       <div className="pt-20 h-screen flex">
-        {/* Left Pane - Chat Interface and Map */}
-        <div className="w-1/3 border-r border-border-gray bg-white flex flex-col">
+        {/* Left Pane - Fixed */}
+        <div className="w-1/3 border-r border-border-gray bg-white flex flex-col fixed h-full top-20 left-0">
           {/* Chat Interface Section */}
           <div className="flex-1 border-b border-border-gray">
             <SearchResultsChat 
@@ -167,7 +166,7 @@ const Search = () => {
           </div>
           
           {/* Map Section */}
-          <div className="h-80">
+          <div className="h-96">
             <RouteMap 
               cruises={filteredCruises}
               hoveredCruise={hoveredCruise}
@@ -175,10 +174,10 @@ const Search = () => {
           </div>
         </div>
 
-        {/* Right Pane - Search Results */}
-        <div className="flex-1 flex flex-col">
+        {/* Right Pane - Scrollable Results */}
+        <div className="flex-1 flex flex-col ml-[33.333333%]">
           {/* Filter Header */}
-          <div className="bg-white border-b border-border-gray p-4">
+          <div className="bg-white border-b border-border-gray p-4 sticky top-20 z-10">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-charcoal">
@@ -200,7 +199,7 @@ const Search = () => {
           </div>
 
           {/* Results Area */}
-          <div className="flex-1 relative">
+          <div className="flex-1 relative overflow-hidden">
             <CruiseResults 
               cruises={filteredCruises}
               isLoading={isLoading}

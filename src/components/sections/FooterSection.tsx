@@ -16,7 +16,7 @@ const FooterSection = () => {
               <div className="w-10 h-10 bg-ocean-blue rounded-lg flex items-center justify-center">
                 <Anchor className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl font-bold">CruiseAI</span>
+              <span className="text-xl font-bold">Cruise & Vacations</span>
             </div>
             <p className="text-white/80 leading-relaxed">
               Discover your perfect cruise with AI-powered search and personalized recommendations.
@@ -61,7 +61,7 @@ const FooterSection = () => {
             </ul>
           </div>
 
-          {/* Contact & Support */}
+          {/* Contact & Support + About */}
           <div className="space-y-6">
             <h4 className="font-semibold text-lg">Contact & Support</h4>
             <div className="space-y-4 text-white/80">
@@ -71,11 +71,14 @@ const FooterSection = () => {
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-seafoam-green" />
-                <span>support@cruiseai.com</span>
+                <span>support@cruisevacations.com</span>
               </div>
               <div className="flex items-center gap-3">
                 <MapPin className="w-4 h-4 text-seafoam-green" />
                 <span>Miami, Florida</span>
+              </div>
+              <div className="pt-4">
+                <a href="/about" className="hover:text-seafoam-green transition-colors">About Us</a>
               </div>
             </div>
             <div className="space-y-3">
@@ -107,7 +110,7 @@ const FooterSection = () => {
               <a href="#" className="hover:text-white transition-colors">Accessibility</a>
             </div>
             <div>
-              © 2024 CruiseAI. All rights reserved.
+              © 2024 Cruise & Vacations. All rights reserved.
             </div>
           </div>
         </div>

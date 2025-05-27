@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Cruise } from '@/pages/Search';
 import { Star, Heart, Share, GitCompare } from 'lucide-react';
@@ -14,6 +13,28 @@ interface CruiseResultsProps {
 }
 
 const CruiseResults = ({ cruises, isLoading, onCruiseHover, sortBy, onSortChange }: CruiseResultsProps) => {
+  // Memoize the sorted cruises to prevent continuous re-sorting
+  const sortedCruises = useMemo(() => {
+    return [...cruises].sort((a, b) => {
+      switch (sortBy) {
+        case 'price':
+          return a.priceFrom - b.priceFrom;
+        case 'duration':
+          return a.duration - b.duration;
+        case 'rating':
+          return b.rating - a.rating;
+        case 'departure':
+          return new Date(a.departureDate).getTime() - new Date(b.departureDate).getTime();
+        default:
+          return 0;
+      }
+    });
+  }, [cruises, sortBy]);
+
+  const handleSortChange = useCallback((value: string) => {
+    onSortChange(value);
+  }, [onSortChange]);
+
   if (isLoading) {
     return (
       <div className="p-6">
@@ -40,21 +61,6 @@ const CruiseResults = ({ cruises, isLoading, onCruiseHover, sortBy, onSortChange
     );
   }
 
-  const sortedCruises = [...cruises].sort((a, b) => {
-    switch (sortBy) {
-      case 'price':
-        return a.priceFrom - b.priceFrom;
-      case 'duration':
-        return a.duration - b.duration;
-      case 'rating':
-        return b.rating - a.rating;
-      case 'departure':
-        return new Date(a.departureDate).getTime() - new Date(b.departureDate).getTime();
-      default:
-        return 0;
-    }
-  });
-
   return (
     <div className="h-full flex flex-col">
       {/* Sort Controls */}
@@ -65,7 +71,7 @@ const CruiseResults = ({ cruises, isLoading, onCruiseHover, sortBy, onSortChange
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-gray">Sort by:</span>
-            <Select value={sortBy} onValueChange={onSortChange}>
+            <Select value={sortBy} onValueChange={handleSortChange}>
               <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>
@@ -190,7 +196,7 @@ const CruiseCard = ({ cruise, onHover }: { cruise: Cruise; onHover: (cruiseId: s
                   />
                 ))}
               </div>
-              <span className="text-sm font-medium text-charcoal">{cruise.rating}</span>
+              <span className="text-sm font-medium text-charcoal">{cruise.rating.toFixed(1)}</span>
               <span className="text-sm text-slate-gray">({cruise.reviewCount.toLocaleString()} reviews)</span>
             </div>
 
