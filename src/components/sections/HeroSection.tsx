@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -70,12 +69,12 @@ const HeroSection = () => {
   const lengths = ['3-5 days', '6-7 days', '8-10 days', '11+ days'];
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative h-[70vh] flex items-center justify-center overflow-hidden">
       {/* Background with cruise vacation collage */}
       <div className="absolute inset-0">
-        <div className="w-full h-full bg-gradient-to-br from-ocean-blue/20 to-deep-navy/30 relative">
-          {/* Cruise vacation collage */}
-          <div className="absolute inset-0 grid grid-cols-4 grid-rows-3 gap-1 opacity-40">
+        <div className="w-full h-full bg-gradient-to-br from-ocean-blue/10 to-deep-navy/15 relative">
+          {/* Cruise vacation collage - reduced to 2 rows */}
+          <div className="absolute inset-0 grid grid-cols-4 grid-rows-2 gap-1 opacity-70">
             {/* Alaska glacier */}
             <img 
               src="https://images.unsplash.com/photo-1586861203927-800a5acdcc4d?w=400&h=300&fit=crop"
@@ -124,42 +123,18 @@ const HeroSection = () => {
               alt="Ocean waves"
               className="w-full h-full object-cover"
             />
-            {/* Santorini */}
-            <img 
-              src="https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=400&h=300&fit=crop"
-              alt="Santorini"
-              className="w-full h-full object-cover"
-            />
-            {/* Cruise deck */}
-            <img 
-              src="https://images.unsplash.com/photo-1564437657622-73a8e53c0ca7?w=400&h=300&fit=crop"
-              alt="Cruise deck"
-              className="w-full h-full object-cover"
-            />
-            {/* Tropical island */}
-            <img 
-              src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&h=300&fit=crop"
-              alt="Tropical island"
-              className="w-full h-full object-cover"
-            />
-            {/* Northern lights */}
-            <img 
-              src="https://images.unsplash.com/photo-1483347756197-71ef80e95f73?w=400&h=300&fit=crop"
-              alt="Northern lights"
-              className="w-full h-full object-cover"
-            />
           </div>
         </div>
-        <div className="absolute inset-0 bg-gradient-to-br from-ocean-blue/80 via-deep-navy/70 to-sunset-orange/60"></div>
-        <div className="absolute inset-0 bg-black/40"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-ocean-blue/40 via-deep-navy/30 to-sunset-orange/40"></div>
+        <div className="absolute inset-0 bg-black/20"></div>
       </div>
 
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-        <div className="space-y-5 animate-fade-in">
+        <div className="space-y-4 animate-fade-in">
           {/* Main Headline */}
           <div className="space-y-2">
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
+            <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
               <span className="block bg-gradient-to-r from-seafoam-green to-coral-pink bg-clip-text text-transparent">
                 Discover Your Perfect
               </span>
@@ -167,7 +142,7 @@ const HeroSection = () => {
                 Cruise Experience
               </span>
             </h1>
-            <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-sm md:text-base text-white/90 max-w-2xl mx-auto leading-relaxed">
               Describe your dream vacation in your own words. We will find the perfect cruise, 
               flights, and hotels - all in one conversation.
             </p>
@@ -175,23 +150,23 @@ const HeroSection = () => {
 
           {/* Primary AI Chat Interface */}
           <div className="max-w-3xl mx-auto">
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-level-3">
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl p-3 shadow-level-3">
               {/* AI Chat Header */}
-              <div className="flex items-center justify-center gap-2 mb-3">
-                <div className="w-6 h-6 bg-gradient-to-r from-ocean-blue to-seafoam-green rounded-full flex items-center justify-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <div className="w-5 h-5 bg-gradient-to-r from-ocean-blue to-seafoam-green rounded-full flex items-center justify-center">
                   <Sparkles className="w-3 h-3 text-white" />
                 </div>
-                <h2 className="text-base font-semibold text-charcoal">Cruise Assistant</h2>
+                <h2 className="text-sm font-semibold text-charcoal">Cruise Assistant</h2>
               </div>
 
               {/* Main Chat Input */}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <div className="relative">
                   <Input
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={isListening ? "🎤 Listening..." : "Tell me about your dream cruise..."}
-                    className="w-full h-12 text-sm pl-4 pr-24 border-2 border-ocean-blue/20 focus:border-ocean-blue rounded-xl bg-white"
+                    className="w-full h-10 text-sm pl-4 pr-24 border-2 border-ocean-blue/20 focus:border-ocean-blue rounded-xl bg-white"
                     onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                     disabled={isListening}
                   />
@@ -200,7 +175,7 @@ const HeroSection = () => {
                       variant="outline"
                       size="sm"
                       onClick={handleVoiceSearch}
-                      className={`h-8 w-8 ${
+                      className={`h-6 w-6 ${
                         isListening 
                           ? 'bg-coral-pink text-white recording-pulse border-coral-pink' 
                           : 'text-slate-gray border-border-gray hover:border-ocean-blue'
@@ -212,7 +187,7 @@ const HeroSection = () => {
                       onClick={handleSearch}
                       disabled={!searchQuery.trim() || isListening}
                       size="sm"
-                      className="h-8 bg-ocean-blue hover:bg-deep-navy text-white disabled:opacity-50"
+                      className="h-6 bg-ocean-blue hover:bg-deep-navy text-white disabled:opacity-50"
                     >
                       <Search className="w-3 h-3 mr-1" />
                       Search
@@ -239,13 +214,13 @@ const HeroSection = () => {
                 )}
 
                 {/* Quick Prompts */}
-                <div className="flex flex-wrap justify-center gap-2">
+                <div className="flex flex-wrap justify-center gap-1">
                   {quickPrompts.map((prompt, index) => (
                     <Button
                       key={index}
                       variant="outline"
                       size="sm"
-                      className="text-xs h-6 px-2 border-ocean-blue/20 text-ocean-blue hover:bg-ocean-blue hover:text-white transition-colors"
+                      className="text-xs h-5 px-2 border-ocean-blue/20 text-ocean-blue hover:bg-ocean-blue hover:text-white transition-colors"
                       onClick={() => setSearchQuery(prompt)}
                     >
                       {prompt}
@@ -254,11 +229,11 @@ const HeroSection = () => {
                 </div>
 
                 {/* Filter Options */}
-                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-ocean-blue/20">
+                <div className="grid grid-cols-3 gap-2 pt-1 border-t border-ocean-blue/20">
                   {/* Destination */}
                   <div>
                     <Select value={selectedDestination} onValueChange={setSelectedDestination}>
-                      <SelectTrigger className="h-8 text-xs">
+                      <SelectTrigger className="h-7 text-xs">
                         <div className="flex items-center gap-1">
                           <MapPin className="w-3 h-3 text-ocean-blue" />
                           <SelectValue placeholder="Destination" />
@@ -279,7 +254,7 @@ const HeroSection = () => {
                         <Button
                           variant="outline"
                           className={cn(
-                            "h-8 w-full justify-start text-left font-normal text-xs",
+                            "h-7 w-full justify-start text-left font-normal text-xs",
                             !dateRange?.from && "text-muted-foreground"
                           )}
                         >
@@ -314,7 +289,7 @@ const HeroSection = () => {
                   {/* Length */}
                   <div>
                     <Select value={selectedLength} onValueChange={setSelectedLength}>
-                      <SelectTrigger className="h-8 text-xs">
+                      <SelectTrigger className="h-7 text-xs">
                         <div className="flex items-center gap-1">
                           <Clock className="w-3 h-3 text-ocean-blue" />
                           <SelectValue placeholder="Length" />
@@ -333,21 +308,21 @@ const HeroSection = () => {
           </div>
 
           {/* Trust Indicators */}
-          <div className="flex flex-wrap justify-center items-center gap-4 text-white/70 text-xs">
+          <div className="flex flex-wrap justify-center items-center gap-3 text-white/70 text-xs">
             <div className="flex items-center gap-1">
-              <div className="w-4 h-4 bg-seafoam-green rounded-full flex items-center justify-center">
+              <div className="w-3 h-3 bg-seafoam-green rounded-full flex items-center justify-center">
                 <span className="text-xs font-bold text-white">✓</span>
               </div>
               <span>Personalized search powered by AI</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-4 h-4 bg-seafoam-green rounded-full flex items-center justify-center">
+              <div className="w-3 h-3 bg-seafoam-green rounded-full flex items-center justify-center">
                 <span className="text-xs font-bold text-white">✓</span>
               </div>
               <span>50,000+ happy travelers</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-4 h-4 bg-seafoam-green rounded-full flex items-center justify-center">
+              <div className="w-3 h-3 bg-seafoam-green rounded-full flex items-center justify-center">
                 <span className="text-xs font-bold text-white">✓</span>
               </div>
               <span>Best price guarantee</span>
@@ -357,9 +332,9 @@ const HeroSection = () => {
       </div>
 
       {/* Scroll Indicator */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white/70 animate-bounce">
-        <div className="w-4 h-6 border-2 border-white/50 rounded-full flex justify-center">
-          <div className="w-1 h-1.5 bg-white/70 rounded-full mt-1"></div>
+      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-white/70 animate-bounce">
+        <div className="w-3 h-5 border-2 border-white/50 rounded-full flex justify-center">
+          <div className="w-1 h-1 bg-white/70 rounded-full mt-1"></div>
         </div>
       </div>
     </section>
