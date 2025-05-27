@@ -40,7 +40,7 @@ const Search = () => {
   const [searchParams] = useSearchParams();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState({
-    priceRange: [500, 5000],
+    priceRange: [0, 20000], // Increased range to include all cruises
     duration: [],
     departurePorts: [],
     cruiseLines: [],
@@ -118,25 +118,37 @@ const Search = () => {
   console.log('Mapped Cruises:', cruises);
 
   const filteredCruises = cruises.filter(cruise => {
-    // Apply basic text search
-    if (query) {
+    // Apply basic text search if there's a query
+    if (query && query.trim()) {
       const searchTerm = query.toLowerCase();
       const matchesSearch = 
         cruise.route.toLowerCase().includes(searchTerm) ||
         cruise.shipName.toLowerCase().includes(searchTerm) ||
         cruise.cruiseLine.toLowerCase().includes(searchTerm) ||
-        cruise.ports.some(port => port.toLowerCase().includes(searchTerm));
+        cruise.departurePort.toLowerCase().includes(searchTerm) ||
+        cruise.ports.some(port => port.toLowerCase().includes(searchTerm)) ||
+        searchTerm.includes('deal') || // For "last minute cruise deals" queries
+        searchTerm.includes('cruise');
       
       if (!matchesSearch) return false;
     }
     
-    // Apply other filters here
+    // Apply price range filter
     if (cruise.priceFrom < filters.priceRange[0] || cruise.priceFrom > filters.priceRange[1]) {
+      return false;
+    }
+    
+    // Apply duration filter if specified
+    if (filters.duration.length > 0 && !filters.duration.includes(cruise.duration.toString())) {
       return false;
     }
     
     return true;
   });
+
+  console.log('Filtered Cruises:', filteredCruises);
+  console.log('Query:', query);
+  console.log('Filters:', filters);
 
   return (
     <div className="min-h-screen bg-light-gray">
