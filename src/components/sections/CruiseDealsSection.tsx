@@ -93,6 +93,57 @@ const CruiseDealsSection = () => {
       rating: 4.5,
       duration: "7 nights",
       type: "price-drop"
+    },
+    {
+      id: 8,
+      title: "Disney Dream",
+      subtitle: "Disney Cruise Line",
+      image: "https://images.unsplash.com/photo-1564437657622-73a8e53c0ca7?w=400",
+      price: "$1,299",
+      originalPrice: "$1,799",
+      discount: "28% OFF",
+      rating: 4.8,
+      duration: "7 nights",
+      type: "last-minute",
+      departure: "Next Month"
+    },
+    {
+      id: 9,
+      title: "Virgin Scarlet Lady",
+      subtitle: "Virgin Voyages",
+      image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400",
+      price: "$899",
+      originalPrice: "$1,199",
+      discount: "25% OFF",
+      rating: 4.6,
+      duration: "6 nights",
+      type: "last-minute",
+      departure: "This Week"
+    },
+    {
+      id: 10,
+      title: "Princess Ruby",
+      subtitle: "Princess Cruises",
+      image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400",
+      price: "$1,399",
+      originalPrice: "$1,899",
+      discount: "26% DROP",
+      rating: 4.4,
+      duration: "12 nights",
+      type: "price-drop"
+    },
+    {
+      id: 11,
+      title: "Costa Diadema",
+      subtitle: "Costa Cruises",
+      image: "https://images.unsplash.com/photo-1564437657622-73a8e53c0ca7?w=400",
+      price: "$749",
+      originalPrice: "$999",
+      discount: "25% OFF",
+      rating: 4.3,
+      duration: "8 nights",
+      type: "last-minute",
+      departure: "Next Week"
     }
   ];
 
@@ -113,7 +164,7 @@ const CruiseDealsSection = () => {
         <img 
           src={cruise.image} 
           alt={cruise.title}
-          className="w-full h-36 object-cover transition-transform duration-300 group-hover:scale-105"
+          className="w-full h-32 object-cover transition-transform duration-300 group-hover:scale-105"
         />
         <div className="absolute top-2 right-2 bg-coral-pink text-white px-2 py-1 rounded text-xs font-bold">
           {cruise.discount}
@@ -142,7 +193,7 @@ const CruiseDealsSection = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <div className="absolute bottom-4 left-4 right-4">
             <Button 
-              className="w-full bg-ocean-blue hover:bg-deep-navy text-white text-sm h-8"
+              className="w-full bg-ocean-blue hover:bg-deep-navy text-white text-sm h-7"
               onClick={(e) => {
                 e.stopPropagation();
                 handleCruiseClick(cruise.id);
@@ -167,17 +218,17 @@ const CruiseDealsSection = () => {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-base font-bold text-sunset-orange">{cruise.price}</span>
-          <span className="text-sm text-slate-gray line-through">{cruise.originalPrice}</span>
+          <span className="text-sm font-bold text-sunset-orange">{cruise.price}</span>
+          <span className="text-xs text-slate-gray line-through">{cruise.originalPrice}</span>
         </div>
       </div>
     </div>
   );
 
   const SectionRow = ({ title, items, viewAllText = "View All" }: { title: string; items: any[]; viewAllText?: string }) => (
-    <div className="mb-8">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-charcoal">{title}</h2>
+    <div className="mb-6">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-lg font-bold text-charcoal">{title}</h2>
         <Button 
           variant="ghost" 
           className="text-ocean-blue hover:text-deep-navy text-sm"
@@ -186,7 +237,7 @@ const CruiseDealsSection = () => {
           {viewAllText} →
         </Button>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 gap-3">
         {items.map((item) => (
           <CruiseCard key={item.id} cruise={item} />
         ))}
@@ -195,7 +246,7 @@ const CruiseDealsSection = () => {
   );
 
   return (
-    <section className="py-8 bg-pearl-white">
+    <section className="py-6 bg-pearl-white">
       <div className="container mx-auto px-4 lg:px-8">
         <SectionRow title="Recently Viewed" items={recentlyViewed} />
         <SectionRow title="Deals & Steals" items={dealsAndSteals} />
