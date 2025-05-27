@@ -2,12 +2,20 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MessageCircle, Mic, Search, Sparkles } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { MessageCircle, Mic, Search, Sparkles, CalendarIcon, MapPin, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 const HeroSection = () => {
   const [isListening, setIsListening] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDestination, setSelectedDestination] = useState('');
+  const [selectedLength, setSelectedLength] = useState('');
+  const [dateRange, setDateRange] = useState<{from?: Date; to?: Date}>({});
   const navigate = useNavigate();
 
   const handleVoiceSearch = () => {
@@ -26,12 +34,36 @@ const HeroSection = () => {
     }
   };
 
+  const updateSearchQuery = () => {
+    let parts = [];
+    if (selectedDestination) parts.push(selectedDestination);
+    if (selectedLength) parts.push(`${selectedLength} cruise`);
+    if (dateRange.from) {
+      if (dateRange.to) {
+        parts.push(`from ${format(dateRange.from, 'MMM dd')} to ${format(dateRange.to, 'MMM dd')}`);
+      } else {
+        parts.push(`departing ${format(dateRange.from, 'MMM dd')}`);
+      }
+    }
+    
+    if (parts.length > 0) {
+      setSearchQuery(`Find me a ${parts.join(' ')} for 2 people`);
+    }
+  };
+
+  React.useEffect(() => {
+    updateSearchQuery();
+  }, [selectedDestination, selectedLength, dateRange]);
+
   const quickPrompts = [
     "Caribbean cruise for 2",
     "Mediterranean with balcony",
     "Family cruise with kids",
     "Last minute deals"
   ];
+
+  const destinations = ['Caribbean', 'Mediterranean', 'Alaska', 'Northern Europe', 'Asia', 'Transatlantic'];
+  const lengths = ['3-5 days', '6-7 days', '8-10 days', '11+ days'];
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -58,19 +90,15 @@ const HeroSection = () => {
           {/* Main Headline */}
           <div className="space-y-4">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight">
-              Discover Your
               <span className="block bg-gradient-to-r from-seafoam-green to-coral-pink bg-clip-text text-transparent">
-                Perfect Human
+                Discover Your Perfect
               </span>
               <span className="block bg-gradient-to-r from-seafoam-green to-coral-pink bg-clip-text text-transparent">
-                Experience
-              </span>
-              <span className="block text-2xl md:text-3xl lg:text-4xl font-medium mt-2">
-                Just Ask Our AI
+                Human Experience
               </span>
             </h1>
             <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed">
-              Describe your dream vacation in your own words. Our AI will find the perfect cruise, 
+              Describe your dream vacation in your own words. We will find the perfect cruise, 
               flights, and hotels - all in one conversation.
             </p>
           </div>
@@ -83,7 +111,7 @@ const HeroSection = () => {
                 <div className="w-10 h-10 bg-gradient-to-r from-ocean-blue to-seafoam-green rounded-full flex items-center justify-center">
                   <Sparkles className="w-5 h-5 text-white" />
                 </div>
-                <h2 className="text-xl font-semibold text-charcoal">AI Cruise Assistant</h2>
+                <h2 className="text-xl font-semibold text-charcoal">Cruise Assistant</h2>
               </div>
 
               {/* Main Chat Input */}
@@ -92,7 +120,7 @@ const HeroSection = () => {
                   <Input
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={isListening ? "🎤 Listening..." : "Tell me about your dream cruise... (e.g., 'Find me a 7-day Caribbean cruise for 2 adults leaving from Miami in March')"}
+                    placeholder={isListening ? "🎤 Listening..." : "Tell me about your dream cruise..."}
                     className="w-full h-16 text-lg pl-6 pr-32 border-2 border-ocean-blue/20 focus:border-ocean-blue rounded-xl bg-white"
                     onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                     disabled={isListening}
@@ -139,7 +167,7 @@ const HeroSection = () => {
                   </div>
                 )}
 
-                {/* Quick Prompts - Smaller Design */}
+                {/* Quick Prompts */}
                 <div className="flex flex-wrap justify-center gap-2">
                   {quickPrompts.map((prompt, index) => (
                     <Button
@@ -153,6 +181,87 @@ const HeroSection = () => {
                     </Button>
                   ))}
                 </div>
+
+                {/* Filter Options */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-ocean-blue/20">
+                  {/* Destination */}
+                  <div>
+                    <label className="text-sm font-medium text-charcoal mb-2 flex items-center gap-2">
+                      <MapPin className="w-4 h-4" />
+                      Destination
+                    </label>
+                    <Select value={selectedDestination} onValueChange={setSelectedDestination}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select destination" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {destinations.map((dest) => (
+                          <SelectItem key={dest} value={dest}>{dest}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Date Range */}
+                  <div>
+                    <label className="text-sm font-medium text-charcoal mb-2 flex items-center gap-2">
+                      <CalendarIcon className="w-4 h-4" />
+                      Date Range
+                    </label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "h-10 w-full justify-start text-left font-normal",
+                            !dateRange?.from && "text-muted-foreground"
+                          )}
+                        >
+                          {dateRange?.from ? (
+                            dateRange.to ? (
+                              <>
+                                {format(dateRange.from, "LLL dd")} - {format(dateRange.to, "LLL dd")}
+                              </>
+                            ) : (
+                              format(dateRange.from, "LLL dd, y")
+                            )
+                          ) : (
+                            <span>Pick dates</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          initialFocus
+                          mode="range"
+                          defaultMonth={dateRange?.from}
+                          selected={dateRange}
+                          onSelect={setDateRange}
+                          numberOfMonths={2}
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Length */}
+                  <div>
+                    <label className="text-sm font-medium text-charcoal mb-2 flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      Length
+                    </label>
+                    <Select value={selectedLength} onValueChange={setSelectedLength}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select length" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {lengths.map((length) => (
+                          <SelectItem key={length} value={length}>{length}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -163,7 +272,7 @@ const HeroSection = () => {
               <div className="w-6 h-6 bg-seafoam-green rounded-full flex items-center justify-center">
                 <span className="text-xs font-bold text-white">✓</span>
               </div>
-              <span>AI-powered personalized search</span>
+              <span>Personalized search powered by AI</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 bg-seafoam-green rounded-full flex items-center justify-center">

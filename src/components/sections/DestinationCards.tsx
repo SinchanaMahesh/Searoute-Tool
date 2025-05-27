@@ -8,12 +8,13 @@ const DestinationCards = () => {
     {
       name: "Caribbean",
       description: "Tropical paradise with pristine beaches",
-      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400",
+      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600",
       cruiseCount: 147,
       averagePrice: "$899",
       popularPorts: ["Cozumel", "Nassau", "St. Thomas"],
       bestTime: "Year-round",
-      duration: "7-14 days"
+      duration: "7-14 days",
+      size: "large"
     },
     {
       name: "Mediterranean",
@@ -23,7 +24,8 @@ const DestinationCards = () => {
       averagePrice: "$1,299",
       popularPorts: ["Barcelona", "Rome", "Santorini"],
       bestTime: "Apr-Oct",
-      duration: "7-12 days"
+      duration: "7-12 days",
+      size: "medium"
     },
     {
       name: "Alaska",
@@ -33,27 +35,30 @@ const DestinationCards = () => {
       averagePrice: "$1,599",
       popularPorts: ["Juneau", "Ketchikan", "Skagway"],
       bestTime: "May-Sep",
-      duration: "7-14 days"
+      duration: "7-14 days",
+      size: "medium"
     },
     {
       name: "Northern Europe",
       description: "Fjords, capitals, and Viking heritage",
-      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400",
+      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300",
       cruiseCount: 56,
       averagePrice: "$1,799",
       popularPorts: ["Copenhagen", "Stockholm", "Oslo"],
       bestTime: "May-Sep",
-      duration: "7-14 days"
+      duration: "7-14 days",
+      size: "small"
     },
     {
       name: "Asia",
       description: "Ancient cultures and modern marvels",
-      image: "https://images.unsplash.com/photo-1549693578-d683be217e58?w=400",
+      image: "https://images.unsplash.com/photo-1549693578-d683be217e58?w=300",
       cruiseCount: 42,
       averagePrice: "$1,399",
       popularPorts: ["Singapore", "Hong Kong", "Tokyo"],
       bestTime: "Oct-Apr",
-      duration: "10-16 days"
+      duration: "10-16 days",
+      size: "small"
     },
     {
       name: "Transatlantic",
@@ -63,9 +68,36 @@ const DestinationCards = () => {
       averagePrice: "$999",
       popularPorts: ["Southampton", "New York", "Le Havre"],
       bestTime: "Apr-Nov",
-      duration: "6-14 days"
+      duration: "6-14 days",
+      size: "medium"
     }
   ];
+
+  const getCardClasses = (size: string) => {
+    switch (size) {
+      case 'large':
+        return 'col-span-2 row-span-2 h-96';
+      case 'medium':
+        return 'col-span-1 row-span-2 h-96';
+      case 'small':
+        return 'col-span-1 row-span-1 h-44';
+      default:
+        return 'col-span-1 row-span-1 h-44';
+    }
+  };
+
+  const getImageHeight = (size: string) => {
+    switch (size) {
+      case 'large':
+        return 'h-64';
+      case 'medium':
+        return 'h-48';
+      case 'small':
+        return 'h-28';
+      default:
+        return 'h-32';
+    }
+  };
 
   return (
     <section className="py-12 bg-white">
@@ -80,12 +112,12 @@ const DestinationCards = () => {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-3 grid-rows-4 gap-4 auto-rows-min">
           {destinations.map((destination, index) => (
-            <div key={index} className="group cursor-pointer">
-              <div className="relative overflow-hidden rounded-xl bg-white border border-border-gray hover:shadow-level-3 transition-all duration-300 hover:scale-[1.02]">
+            <div key={index} className={`group cursor-pointer ${getCardClasses(destination.size)}`}>
+              <div className="relative overflow-hidden rounded-xl bg-white border border-border-gray hover:shadow-level-3 transition-all duration-300 hover:scale-[1.02] h-full">
                 {/* Image */}
-                <div className="relative h-48 overflow-hidden">
+                <div className={`relative ${getImageHeight(destination.size)} overflow-hidden`}>
                   <img 
                     src={destination.image} 
                     alt={destination.name}
@@ -100,50 +132,52 @@ const DestinationCards = () => {
 
                   {/* Title overlay */}
                   <div className="absolute bottom-4 left-4 text-white">
-                    <h3 className="text-xl font-bold mb-1">{destination.name}</h3>
-                    <p className="text-sm opacity-90">{destination.description}</p>
+                    <h3 className={`font-bold mb-1 ${destination.size === 'large' ? 'text-2xl' : destination.size === 'medium' ? 'text-xl' : 'text-lg'}`}>{destination.name}</h3>
+                    <p className="text-sm opacity-90 line-clamp-2">{destination.description}</p>
                   </div>
                 </div>
 
-                {/* Content */}
-                <div className="p-4">
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Ship className="w-4 h-4 text-ocean-blue" />
-                      <span className="text-slate-gray">{destination.cruiseCount} cruises</span>
+                {/* Content - only show for large and medium cards */}
+                {destination.size !== 'small' && (
+                  <div className="p-4 flex-1 flex flex-col">
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Ship className="w-4 h-4 text-ocean-blue" />
+                        <span className="text-slate-gray">{destination.cruiseCount} cruises</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Calendar className="w-4 h-4 text-ocean-blue" />
+                        <span className="text-slate-gray">{destination.bestTime}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Calendar className="w-4 h-4 text-ocean-blue" />
-                      <span className="text-slate-gray">{destination.bestTime}</span>
-                    </div>
-                  </div>
 
-                  <div className="mb-4">
-                    <h4 className="text-sm font-medium text-charcoal mb-2">Popular Ports</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {destination.popularPorts.map((port, portIndex) => (
-                        <span 
-                          key={portIndex}
-                          className="text-xs bg-light-gray text-slate-gray px-2 py-1 rounded-full"
-                        >
-                          {port}
-                        </span>
-                      ))}
+                    <div className="mb-4">
+                      <h4 className="text-sm font-medium text-charcoal mb-2">Popular Ports</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {destination.popularPorts.slice(0, destination.size === 'large' ? 3 : 2).map((port, portIndex) => (
+                          <span 
+                            key={portIndex}
+                            className="text-xs bg-light-gray text-slate-gray px-2 py-1 rounded-full"
+                          >
+                            {port}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-slate-gray">
-                      {destination.duration} typical
+                    <div className="flex items-center justify-between mt-auto">
+                      <div className="text-sm text-slate-gray">
+                        {destination.duration} typical
+                      </div>
+                      <Button 
+                        size="sm" 
+                        className="bg-ocean-blue hover:bg-deep-navy text-white"
+                      >
+                        Explore
+                      </Button>
                     </div>
-                    <Button 
-                      size="sm" 
-                      className="bg-ocean-blue hover:bg-deep-navy text-white"
-                    >
-                      Explore
-                    </Button>
                   </div>
-                </div>
+                )}
 
                 {/* Hover overlay */}
                 <div className="absolute inset-0 bg-ocean-blue/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
