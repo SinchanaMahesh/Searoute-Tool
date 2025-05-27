@@ -3,6 +3,7 @@ import React from 'react';
 import Header from '@/components/layout/Header';
 import HeroSection from '@/components/sections/HeroSection';
 import CruiseDealsSection from '@/components/sections/CruiseDealsSection';
+import DestinationCards from '@/components/sections/DestinationCards';
 import CruiseLinesSection from '@/components/sections/CruiseLinesSection';
 import FeaturesSection from '@/components/sections/FeaturesSection';
 import TestimonialsSection from '@/components/sections/TestimonialsSection';
@@ -16,6 +17,7 @@ const Index = () => {
       <main>
         <HeroSection />
         <CruiseDealsSection />
+        <DestinationCards />
         <CruiseLinesSection />
         <FeaturesSection />
         <TestimonialsSection />

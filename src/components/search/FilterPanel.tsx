@@ -3,8 +3,12 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
-import { X, RotateCcw, MessageCircle } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { X, RotateCcw, MessageCircle, CalendarIcon } from 'lucide-react';
 import { Cruise } from '@/pages/Search';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface FilterPanelProps {
   filters: any;
@@ -36,14 +40,21 @@ const FilterPanel = ({ filters, onFiltersChange, onClose, cruises }: FilterPanel
   ];
 
   const clearAllFilters = () => {
+    const today = new Date();
+    const threeMonthsLater = new Date(today);
+    threeMonthsLater.setMonth(today.getMonth() + 3);
+    
     onFiltersChange({
-      priceRange: [500, 5000],
+      priceRange: [0, 20000],
       duration: [],
       departurePorts: [],
       cruiseLines: [],
       amenities: [],
       destinations: [],
-      dateRange: null,
+      dateRange: {
+        from: today,
+        to: threeMonthsLater
+      },
     });
   };
 
@@ -81,6 +92,47 @@ const FilterPanel = ({ filters, onFiltersChange, onClose, cruises }: FilterPanel
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        {/* Date Range */}
+        <div className="space-y-3">
+          <h4 className="font-medium text-charcoal">Departure Date Range</h4>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !filters.dateRange && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {filters.dateRange?.from ? (
+                  filters.dateRange.to ? (
+                    <>
+                      {format(filters.dateRange.from, "LLL dd, y")} -{" "}
+                      {format(filters.dateRange.to, "LLL dd, y")}
+                    </>
+                  ) : (
+                    format(filters.dateRange.from, "LLL dd, y")
+                  )
+                ) : (
+                  <span>Pick a date range</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                initialFocus
+                mode="range"
+                defaultMonth={filters.dateRange?.from}
+                selected={filters.dateRange}
+                onSelect={(range) => onFiltersChange({ ...filters, dateRange: range })}
+                numberOfMonths={2}
+                className="pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
         {/* Price Range */}
         <div className="space-y-3">
           <h4 className="font-medium text-charcoal">Price Range</h4>
@@ -88,8 +140,8 @@ const FilterPanel = ({ filters, onFiltersChange, onClose, cruises }: FilterPanel
             <Slider
               value={filters.priceRange}
               onValueChange={(value) => onFiltersChange({ ...filters, priceRange: value })}
-              max={5000}
-              min={500}
+              max={20000}
+              min={0}
               step={50}
               className="w-full"
             />

@@ -39,6 +39,12 @@ export interface Cruise {
 const Search = () => {
   const [searchParams] = useSearchParams();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  
+  // Default to next 3 months date range
+  const today = new Date();
+  const threeMonthsLater = new Date(today);
+  threeMonthsLater.setMonth(today.getMonth() + 3);
+  
   const [filters, setFilters] = useState({
     priceRange: [0, 20000],
     duration: [],
@@ -46,7 +52,10 @@ const Search = () => {
     cruiseLines: [],
     amenities: [],
     destinations: [],
-    dateRange: null,
+    dateRange: {
+      from: today,
+      to: threeMonthsLater
+    },
   });
   const [sortBy, setSortBy] = useState('price');
   const [hoveredCruise, setHoveredCruise] = useState<string | null>(null);
@@ -142,6 +151,14 @@ const Search = () => {
     if (filters.duration.length > 0 && !filters.duration.includes(cruise.duration.toString())) {
       return false;
     }
+
+    // Apply date range filter
+    if (filters.dateRange?.from && filters.dateRange?.to) {
+      const cruiseDate = new Date(cruise.departureDate);
+      if (cruiseDate < filters.dateRange.from || cruiseDate > filters.dateRange.to) {
+        return false;
+      }
+    }
     
     return true;
   });
@@ -158,7 +175,7 @@ const Search = () => {
         {/* Left Pane - Fixed */}
         <div className="w-1/3 border-r border-border-gray bg-white flex flex-col fixed h-full top-20 left-0">
           {/* Map Section - Now at top */}
-          <div className="h-80 border-b border-border-gray">
+          <div className="h-64 border-b border-border-gray">
             <RouteMap 
               cruises={filteredCruises}
               hoveredCruise={hoveredCruise}
@@ -167,12 +184,31 @@ const Search = () => {
           </div>
           
           {/* Chat Interface Section - Fixed height */}
-          <div className="flex-1 min-h-0">
+          <div className="h-96 border-b border-border-gray">
             <SearchResultsChat 
               initialQuery={query}
               searchType={searchType}
               resultCount={filteredCruises.length}
             />
+          </div>
+
+          {/* Quick Filters Section */}
+          <div className="flex-1 min-h-0 overflow-y-auto p-4">
+            <h4 className="font-semibold text-charcoal mb-3">Quick Filters</h4>
+            <div className="space-y-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start text-left"
+                onClick={() => setIsFilterOpen(true)}
+              >
+                <Filter className="w-4 h-4 mr-2" />
+                All Filters
+              </Button>
+              <div className="text-xs text-slate-gray">
+                Date Range: {filters.dateRange?.from?.toLocaleDateString()} - {filters.dateRange?.to?.toLocaleDateString()}
+              </div>
+            </div>
           </div>
         </div>
 
