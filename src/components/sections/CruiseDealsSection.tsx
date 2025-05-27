@@ -2,8 +2,11 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Star, Clock, Percent, TrendingDown, Zap } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const CruiseDealsSection = () => {
+  const navigate = useNavigate();
+
   const recentlyViewed = [
     {
       id: 1,
@@ -93,13 +96,24 @@ const CruiseDealsSection = () => {
     }
   ];
 
+  const handleCruiseClick = (cruiseId: number) => {
+    navigate(`/cruise/${cruiseId}/book`);
+  };
+
+  const handleViewAllClick = (section: string) => {
+    navigate(`/search?q=${encodeURIComponent(section)}&type=browse`);
+  };
+
   const CruiseCard = ({ cruise }: { cruise: any }) => (
-    <div className="relative group cursor-pointer">
+    <div 
+      className="relative group cursor-pointer"
+      onClick={() => handleCruiseClick(cruise.id)}
+    >
       <div className="relative overflow-hidden rounded-lg">
         <img 
           src={cruise.image} 
           alt={cruise.title}
-          className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+          className="w-full h-36 object-cover transition-transform duration-300 group-hover:scale-105"
         />
         <div className="absolute top-2 right-2 bg-coral-pink text-white px-2 py-1 rounded text-xs font-bold">
           {cruise.discount}
@@ -127,13 +141,19 @@ const CruiseDealsSection = () => {
         
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <div className="absolute bottom-4 left-4 right-4">
-            <Button className="w-full bg-ocean-blue hover:bg-deep-navy text-white text-sm">
+            <Button 
+              className="w-full bg-ocean-blue hover:bg-deep-navy text-white text-sm h-8"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCruiseClick(cruise.id);
+              }}
+            >
               View Details
             </Button>
           </div>
         </div>
       </div>
-      <div className="mt-3 space-y-1">
+      <div className="mt-2 space-y-1">
         <h3 className="font-semibold text-charcoal text-sm line-clamp-1">{cruise.title}</h3>
         <p className="text-xs text-slate-gray">{cruise.subtitle}</p>
         <div className="flex items-center justify-between">
@@ -147,7 +167,7 @@ const CruiseDealsSection = () => {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-lg font-bold text-sunset-orange">{cruise.price}</span>
+          <span className="text-base font-bold text-sunset-orange">{cruise.price}</span>
           <span className="text-sm text-slate-gray line-through">{cruise.originalPrice}</span>
         </div>
       </div>
@@ -155,14 +175,18 @@ const CruiseDealsSection = () => {
   );
 
   const SectionRow = ({ title, items, viewAllText = "View All" }: { title: string; items: any[]; viewAllText?: string }) => (
-    <div className="mb-12">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-charcoal">{title}</h2>
-        <Button variant="ghost" className="text-ocean-blue hover:text-deep-navy">
+    <div className="mb-8">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-charcoal">{title}</h2>
+        <Button 
+          variant="ghost" 
+          className="text-ocean-blue hover:text-deep-navy text-sm"
+          onClick={() => handleViewAllClick(title)}
+        >
           {viewAllText} →
         </Button>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
         {items.map((item) => (
           <CruiseCard key={item.id} cruise={item} />
         ))}
@@ -171,7 +195,7 @@ const CruiseDealsSection = () => {
   );
 
   return (
-    <section className="py-16 bg-pearl-white">
+    <section className="py-8 bg-pearl-white">
       <div className="container mx-auto px-4 lg:px-8">
         <SectionRow title="Recently Viewed" items={recentlyViewed} />
         <SectionRow title="Deals & Steals" items={dealsAndSteals} />

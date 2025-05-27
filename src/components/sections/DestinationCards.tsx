@@ -2,8 +2,11 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Ship } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const DestinationCards = () => {
+  const navigate = useNavigate();
+
   const destinations = [
     {
       name: "Caribbean",
@@ -73,49 +76,65 @@ const DestinationCards = () => {
     }
   ];
 
+  const handleDestinationClick = (destinationName: string) => {
+    navigate(`/search?q=${encodeURIComponent(`${destinationName} cruise`)}&destination=${destinationName}`);
+  };
+
+  const handleViewAllClick = () => {
+    navigate('/search?q=popular destinations&type=browse');
+  };
+
   const getCardClasses = (size: string) => {
     switch (size) {
       case 'large':
-        return 'col-span-2 row-span-2 h-96';
+        return 'col-span-2 row-span-2 h-80';
       case 'medium':
-        return 'col-span-1 row-span-2 h-96';
+        return 'col-span-1 row-span-2 h-80';
       case 'small':
-        return 'col-span-1 row-span-1 h-44';
+        return 'col-span-1 row-span-1 h-36';
       default:
-        return 'col-span-1 row-span-1 h-44';
+        return 'col-span-1 row-span-1 h-36';
     }
   };
 
   const getImageHeight = (size: string) => {
     switch (size) {
       case 'large':
-        return 'h-64';
+        return 'h-52';
       case 'medium':
-        return 'h-48';
+        return 'h-40';
       case 'small':
-        return 'h-28';
+        return 'h-24';
       default:
-        return 'h-32';
+        return 'h-28';
     }
   };
 
   return (
-    <section className="py-12 bg-white">
+    <section className="py-8 bg-white">
       <div className="container mx-auto px-4 lg:px-8">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-3xl font-bold text-charcoal mb-2">Popular Destinations</h2>
-            <p className="text-slate-gray">Discover amazing cruise destinations around the world</p>
+            <h2 className="text-2xl font-bold text-charcoal mb-1">Popular Destinations</h2>
+            <p className="text-slate-gray text-sm">Discover amazing cruise destinations around the world</p>
           </div>
-          <Button variant="ghost" className="text-ocean-blue hover:text-deep-navy">
+          <Button 
+            variant="ghost" 
+            className="text-ocean-blue hover:text-deep-navy text-sm"
+            onClick={handleViewAllClick}
+          >
             View All Destinations →
           </Button>
         </div>
 
-        <div className="grid grid-cols-3 grid-rows-4 gap-4 auto-rows-min">
+        <div className="grid grid-cols-3 grid-rows-4 gap-3 auto-rows-min max-h-96">
           {destinations.map((destination, index) => (
-            <div key={index} className={`group cursor-pointer ${getCardClasses(destination.size)}`}>
-              <div className="relative overflow-hidden rounded-xl bg-white border border-border-gray hover:shadow-level-3 transition-all duration-300 hover:scale-[1.02] h-full">
+            <div 
+              key={index} 
+              className={`group cursor-pointer ${getCardClasses(destination.size)}`}
+              onClick={() => handleDestinationClick(destination.name)}
+            >
+              <div className="relative overflow-hidden rounded-lg bg-white border border-border-gray hover:shadow-level-3 transition-all duration-300 hover:scale-[1.02] h-full">
                 {/* Image */}
                 <div className={`relative ${getImageHeight(destination.size)} overflow-hidden`}>
                   <img 
@@ -126,38 +145,38 @@ const DestinationCards = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                   
                   {/* Price overlay */}
-                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-1">
-                    <div className="text-sm font-semibold text-charcoal">From {destination.averagePrice}</div>
+                  <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-md px-2 py-1">
+                    <div className="text-xs font-semibold text-charcoal">From {destination.averagePrice}</div>
                   </div>
 
                   {/* Title overlay */}
-                  <div className="absolute bottom-4 left-4 text-white">
-                    <h3 className={`font-bold mb-1 ${destination.size === 'large' ? 'text-2xl' : destination.size === 'medium' ? 'text-xl' : 'text-lg'}`}>{destination.name}</h3>
-                    <p className="text-sm opacity-90 line-clamp-2">{destination.description}</p>
+                  <div className="absolute bottom-3 left-3 text-white">
+                    <h3 className={`font-bold mb-1 ${destination.size === 'large' ? 'text-xl' : destination.size === 'medium' ? 'text-lg' : 'text-sm'}`}>{destination.name}</h3>
+                    <p className="text-xs opacity-90 line-clamp-2">{destination.description}</p>
                   </div>
                 </div>
 
                 {/* Content - only show for large and medium cards */}
                 {destination.size !== 'small' && (
-                  <div className="p-4 flex-1 flex flex-col">
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Ship className="w-4 h-4 text-ocean-blue" />
+                  <div className="p-3 flex-1 flex flex-col">
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div className="flex items-center gap-1 text-xs">
+                        <Ship className="w-3 h-3 text-ocean-blue" />
                         <span className="text-slate-gray">{destination.cruiseCount} cruises</span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Calendar className="w-4 h-4 text-ocean-blue" />
+                      <div className="flex items-center gap-1 text-xs">
+                        <Calendar className="w-3 h-3 text-ocean-blue" />
                         <span className="text-slate-gray">{destination.bestTime}</span>
                       </div>
                     </div>
 
-                    <div className="mb-4">
-                      <h4 className="text-sm font-medium text-charcoal mb-2">Popular Ports</h4>
-                      <div className="flex flex-wrap gap-2">
+                    <div className="mb-3">
+                      <h4 className="text-xs font-medium text-charcoal mb-1">Popular Ports</h4>
+                      <div className="flex flex-wrap gap-1">
                         {destination.popularPorts.slice(0, destination.size === 'large' ? 3 : 2).map((port, portIndex) => (
                           <span 
                             key={portIndex}
-                            className="text-xs bg-light-gray text-slate-gray px-2 py-1 rounded-full"
+                            className="text-xs bg-light-gray text-slate-gray px-2 py-0.5 rounded-full"
                           >
                             {port}
                           </span>
@@ -166,12 +185,16 @@ const DestinationCards = () => {
                     </div>
 
                     <div className="flex items-center justify-between mt-auto">
-                      <div className="text-sm text-slate-gray">
+                      <div className="text-xs text-slate-gray">
                         {destination.duration} typical
                       </div>
                       <Button 
                         size="sm" 
-                        className="bg-ocean-blue hover:bg-deep-navy text-white"
+                        className="bg-ocean-blue hover:bg-deep-navy text-white text-xs h-7 px-3"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDestinationClick(destination.name);
+                        }}
                       >
                         Explore
                       </Button>
@@ -180,7 +203,7 @@ const DestinationCards = () => {
                 )}
 
                 {/* Hover overlay */}
-                <div className="absolute inset-0 bg-ocean-blue/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
+                <div className="absolute inset-0 bg-ocean-blue/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
               </div>
             </div>
           ))}

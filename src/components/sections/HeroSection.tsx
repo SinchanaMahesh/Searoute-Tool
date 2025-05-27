@@ -71,34 +71,28 @@ const HeroSection = () => {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background with animated cruise ship */}
-      <div className="absolute inset-0 bg-gradient-to-br from-ocean-blue via-deep-navy to-sunset-orange">
-        <div className="absolute inset-0 bg-black/20"></div>
-        {/* Animated cruise ship silhouette */}
-        <div className="absolute bottom-20 left-10 cruise-float opacity-30">
-          <div className="w-32 h-16 bg-white rounded-t-lg relative">
-            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-2 h-8 bg-white rounded"></div>
-            <div className="absolute -top-6 left-1/3 w-1 h-6 bg-white rounded"></div>
-            <div className="absolute -top-6 right-1/3 w-1 h-6 bg-white rounded"></div>
-          </div>
-        </div>
-        {/* Floating elements */}
-        <div className="absolute top-1/4 right-1/4 w-3 h-3 bg-seafoam-green rounded-full cruise-float opacity-60"></div>
-        <div className="absolute top-1/3 left-1/4 w-2 h-2 bg-coral-pink rounded-full cruise-float opacity-40" style={{animationDelay: '2s'}}></div>
-        <div className="absolute bottom-1/3 right-1/3 w-4 h-4 bg-sunset-orange rounded-full cruise-float opacity-50" style={{animationDelay: '4s'}}></div>
+      {/* Background with AI-generated cruise collage */}
+      <div className="absolute inset-0">
+        <img 
+          src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1920&h=1080&fit=crop&crop=center"
+          alt="Ocean cruise destination collage"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-ocean-blue/80 via-deep-navy/70 to-sunset-orange/60"></div>
+        <div className="absolute inset-0 bg-black/30"></div>
       </div>
 
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-        <div className="space-y-8 animate-fade-in">
+        <div className="space-y-6 animate-fade-in">
           {/* Main Headline */}
-          <div className="space-y-4">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight">
+          <div className="space-y-3">
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
               <span className="block bg-gradient-to-r from-seafoam-green to-coral-pink bg-clip-text text-transparent">
                 Discover Your Perfect Human Experience
               </span>
             </h1>
-            <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed">
               Describe your dream vacation in your own words. We will find the perfect cruise, 
               flights, and hotels - all in one conversation.
             </p>
@@ -106,27 +100,27 @@ const HeroSection = () => {
 
           {/* Primary AI Chat Interface */}
           <div className="max-w-3xl mx-auto">
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-level-3">
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-level-3">
               {/* AI Chat Header */}
-              <div className="flex items-center justify-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-r from-ocean-blue to-seafoam-green rounded-full flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-white" />
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-gradient-to-r from-ocean-blue to-seafoam-green rounded-full flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-white" />
                 </div>
-                <h2 className="text-xl font-semibold text-charcoal">Cruise Assistant</h2>
+                <h2 className="text-lg font-semibold text-charcoal">Cruise Assistant</h2>
               </div>
 
               {/* Main Chat Input */}
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div className="relative">
                   <Input
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={isListening ? "🎤 Listening..." : "Tell me about your dream cruise..."}
-                    className="w-full h-16 text-lg pl-6 pr-32 border-2 border-ocean-blue/20 focus:border-ocean-blue rounded-xl bg-white"
+                    className="w-full h-14 text-base pl-5 pr-28 border-2 border-ocean-blue/20 focus:border-ocean-blue rounded-xl bg-white"
                     onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                     disabled={isListening}
                   />
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex gap-2">
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1">
                     <Button
                       variant="outline"
                       size="sm"
@@ -142,9 +136,10 @@ const HeroSection = () => {
                     <Button
                       onClick={handleSearch}
                       disabled={!searchQuery.trim() || isListening}
+                      size="sm"
                       className="bg-ocean-blue hover:bg-deep-navy text-white disabled:opacity-50"
                     >
-                      <Search className="w-4 h-4 mr-2" />
+                      <Search className="w-4 h-4 mr-1" />
                       Search
                     </Button>
                   </div>
@@ -175,7 +170,7 @@ const HeroSection = () => {
                       key={index}
                       variant="outline"
                       size="sm"
-                      className="text-xs h-8 px-3 border-ocean-blue/20 text-ocean-blue hover:bg-ocean-blue hover:text-white transition-colors"
+                      className="text-xs h-7 px-3 border-ocean-blue/20 text-ocean-blue hover:bg-ocean-blue hover:text-white transition-colors"
                       onClick={() => setSearchQuery(prompt)}
                     >
                       {prompt}
@@ -184,16 +179,15 @@ const HeroSection = () => {
                 </div>
 
                 {/* Filter Options */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-ocean-blue/20">
+                <div className="grid grid-cols-3 gap-3 pt-3 border-t border-ocean-blue/20">
                   {/* Destination */}
                   <div>
-                    <label className="text-sm font-medium text-charcoal mb-2 flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      Destination
-                    </label>
                     <Select value={selectedDestination} onValueChange={setSelectedDestination}>
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Select destination" />
+                      <SelectTrigger className="h-9">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-ocean-blue" />
+                          <SelectValue placeholder="Destination" />
+                        </div>
                       </SelectTrigger>
                       <SelectContent>
                         {destinations.map((dest) => (
@@ -205,29 +199,26 @@ const HeroSection = () => {
 
                   {/* Date Range */}
                   <div>
-                    <label className="text-sm font-medium text-charcoal mb-2 flex items-center gap-2">
-                      <CalendarIcon className="w-4 h-4" />
-                      Date Range
-                    </label>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
                           className={cn(
-                            "h-10 w-full justify-start text-left font-normal",
+                            "h-9 w-full justify-start text-left font-normal",
                             !dateRange?.from && "text-muted-foreground"
                           )}
                         >
+                          <CalendarIcon className="w-4 h-4 text-ocean-blue mr-2" />
                           {dateRange?.from ? (
                             dateRange.to ? (
                               <>
-                                {format(dateRange.from, "LLL dd")} - {format(dateRange.to, "LLL dd")}
+                                {format(dateRange.from, "MMM dd")} - {format(dateRange.to, "MMM dd")}
                               </>
                             ) : (
-                              format(dateRange.from, "LLL dd, y")
+                              format(dateRange.from, "MMM dd")
                             )
                           ) : (
-                            <span>Pick dates</span>
+                            <span>Dates</span>
                           )}
                         </Button>
                       </PopoverTrigger>
@@ -247,13 +238,12 @@ const HeroSection = () => {
 
                   {/* Length */}
                   <div>
-                    <label className="text-sm font-medium text-charcoal mb-2 flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
-                      Length
-                    </label>
                     <Select value={selectedLength} onValueChange={setSelectedLength}>
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Select length" />
+                      <SelectTrigger className="h-9">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-ocean-blue" />
+                          <SelectValue placeholder="Length" />
+                        </div>
                       </SelectTrigger>
                       <SelectContent>
                         {lengths.map((length) => (
@@ -268,21 +258,21 @@ const HeroSection = () => {
           </div>
 
           {/* Trust Indicators */}
-          <div className="flex flex-wrap justify-center items-center gap-8 text-white/70 text-sm">
+          <div className="flex flex-wrap justify-center items-center gap-6 text-white/70 text-sm">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-seafoam-green rounded-full flex items-center justify-center">
+              <div className="w-5 h-5 bg-seafoam-green rounded-full flex items-center justify-center">
                 <span className="text-xs font-bold text-white">✓</span>
               </div>
               <span>Personalized search powered by AI</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-seafoam-green rounded-full flex items-center justify-center">
+              <div className="w-5 h-5 bg-seafoam-green rounded-full flex items-center justify-center">
                 <span className="text-xs font-bold text-white">✓</span>
               </div>
               <span>50,000+ happy travelers</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-seafoam-green rounded-full flex items-center justify-center">
+              <div className="w-5 h-5 bg-seafoam-green rounded-full flex items-center justify-center">
                 <span className="text-xs font-bold text-white">✓</span>
               </div>
               <span>Best price guarantee</span>
@@ -292,9 +282,9 @@ const HeroSection = () => {
       </div>
 
       {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white/70 animate-bounce">
-        <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center">
-          <div className="w-1 h-3 bg-white/70 rounded-full mt-2"></div>
+      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 text-white/70 animate-bounce">
+        <div className="w-5 h-8 border-2 border-white/50 rounded-full flex justify-center">
+          <div className="w-1 h-2 bg-white/70 rounded-full mt-1"></div>
         </div>
       </div>
     </section>
