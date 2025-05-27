@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/layout/Header';
@@ -156,20 +157,21 @@ const Search = () => {
       <div className="pt-20 h-screen flex">
         {/* Left Pane - Fixed */}
         <div className="w-1/3 border-r border-border-gray bg-white flex flex-col fixed h-full top-20 left-0">
-          {/* Chat Interface Section */}
-          <div className="flex-1 border-b border-border-gray">
+          {/* Map Section - Now at top */}
+          <div className="h-80 border-b border-border-gray">
+            <RouteMap 
+              cruises={filteredCruises}
+              hoveredCruise={hoveredCruise}
+              selectedCruise={filteredCruises.length > 0 ? filteredCruises[0].id : null}
+            />
+          </div>
+          
+          {/* Chat Interface Section - Fixed height */}
+          <div className="flex-1 min-h-0">
             <SearchResultsChat 
               initialQuery={query}
               searchType={searchType}
               resultCount={filteredCruises.length}
-            />
-          </div>
-          
-          {/* Map Section */}
-          <div className="h-96">
-            <RouteMap 
-              cruises={filteredCruises}
-              hoveredCruise={hoveredCruise}
             />
           </div>
         </div>

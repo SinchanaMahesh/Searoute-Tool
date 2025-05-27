@@ -2,15 +2,12 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MessageCircle, Mic, Search, MapPin, Calendar, Users, Sparkles } from 'lucide-react';
+import { MessageCircle, Mic, Search, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const HeroSection = () => {
   const [isListening, setIsListening] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [destination, setDestination] = useState('');
-  const [departureDate, setDepartureDate] = useState('');
-  const [guests, setGuests] = useState('2');
   const navigate = useNavigate();
 
   const handleVoiceSearch = () => {
@@ -23,27 +20,17 @@ const HeroSection = () => {
     }
   };
 
-  const handleChatSearch = () => {
+  const handleSearch = () => {
     if (searchQuery.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchQuery)}&type=chat`);
     }
   };
 
-  const handleTraditionalSearch = () => {
-    const searchParams = new URLSearchParams();
-    if (destination) searchParams.append('destination', destination);
-    if (departureDate) searchParams.append('departure', departureDate);
-    if (guests) searchParams.append('guests', guests);
-    searchParams.append('type', 'traditional');
-    
-    navigate(`/search?${searchParams.toString()}`);
-  };
-
   const quickPrompts = [
-    "Find me a Caribbean cruise for 2 people",
-    "Mediterranean cruise with balcony",
-    "Family cruise with kids activities",
-    "Last minute cruise deals"
+    "Caribbean cruise for 2",
+    "Mediterranean with balcony",
+    "Family cruise with kids",
+    "Last minute deals"
   ];
 
   return (
@@ -66,14 +53,17 @@ const HeroSection = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 text-center px-4 max-w-6xl mx-auto">
+      <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
         <div className="space-y-8 animate-fade-in">
           {/* Main Headline */}
           <div className="space-y-4">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight">
-              Plan Your
+              Discover Your
               <span className="block bg-gradient-to-r from-seafoam-green to-coral-pink bg-clip-text text-transparent">
-                Perfect Cruise
+                Perfect Human
+              </span>
+              <span className="block bg-gradient-to-r from-seafoam-green to-coral-pink bg-clip-text text-transparent">
+                Experience
               </span>
               <span className="block text-2xl md:text-3xl lg:text-4xl font-medium mt-2">
                 Just Ask Our AI
@@ -86,8 +76,8 @@ const HeroSection = () => {
           </div>
 
           {/* Primary AI Chat Interface */}
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl p-6 md:p-8 shadow-level-3">
+          <div className="max-w-3xl mx-auto">
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl p-6 shadow-level-3">
               {/* AI Chat Header */}
               <div className="flex items-center justify-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-gradient-to-r from-ocean-blue to-seafoam-green rounded-full flex items-center justify-center">
@@ -104,7 +94,7 @@ const HeroSection = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={isListening ? "🎤 Listening..." : "Tell me about your dream cruise... (e.g., 'Find me a 7-day Caribbean cruise for 2 adults leaving from Miami in March')"}
                     className="w-full h-16 text-lg pl-6 pr-32 border-2 border-ocean-blue/20 focus:border-ocean-blue rounded-xl bg-white"
-                    onKeyPress={(e) => e.key === 'Enter' && handleChatSearch()}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                     disabled={isListening}
                   />
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex gap-2">
@@ -121,11 +111,11 @@ const HeroSection = () => {
                       <Mic className="w-4 h-4" />
                     </Button>
                     <Button
-                      onClick={handleChatSearch}
+                      onClick={handleSearch}
                       disabled={!searchQuery.trim() || isListening}
                       className="bg-ocean-blue hover:bg-deep-navy text-white disabled:opacity-50"
                     >
-                      <MessageCircle className="w-4 h-4 mr-2" />
+                      <Search className="w-4 h-4 mr-2" />
                       Search
                     </Button>
                   </div>
@@ -149,88 +139,19 @@ const HeroSection = () => {
                   </div>
                 )}
 
-                {/* Quick Prompts */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* Quick Prompts - Smaller Design */}
+                <div className="flex flex-wrap justify-center gap-2">
                   {quickPrompts.map((prompt, index) => (
                     <Button
                       key={index}
                       variant="outline"
-                      className="text-left h-auto p-4 border-ocean-blue/20 text-ocean-blue hover:bg-ocean-blue hover:text-white transition-colors justify-start"
+                      size="sm"
+                      className="text-xs h-8 px-3 border-ocean-blue/20 text-ocean-blue hover:bg-ocean-blue hover:text-white transition-colors"
                       onClick={() => setSearchQuery(prompt)}
                     >
-                      <MessageCircle className="w-4 h-4 mr-3 flex-shrink-0" />
-                      <span className="text-sm">{prompt}</span>
+                      {prompt}
                     </Button>
                   ))}
-                </div>
-              </div>
-
-              {/* Traditional Search - Always Visible */}
-              <div className="mt-8 pt-6 border-t border-border-gray">
-                <div className="text-center mb-4">
-                  <h3 className="text-lg font-medium text-charcoal mb-2">Or search traditionally</h3>
-                  <p className="text-sm text-slate-gray">Use our classic search form</p>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  {/* Destination */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-charcoal flex items-center">
-                      <MapPin className="w-4 h-4 mr-1 text-ocean-blue" />
-                      Destination
-                    </label>
-                    <Input 
-                      placeholder="Caribbean, Mediterranean..."
-                      value={destination}
-                      onChange={(e) => setDestination(e.target.value)}
-                      className="border-0 bg-light-gray focus:bg-white"
-                    />
-                  </div>
-                  
-                  {/* Dates */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-charcoal flex items-center">
-                      <Calendar className="w-4 h-4 mr-1 text-ocean-blue" />
-                      Departure
-                    </label>
-                    <Input 
-                      type="date"
-                      value={departureDate}
-                      onChange={(e) => setDepartureDate(e.target.value)}
-                      className="border-0 bg-light-gray focus:bg-white"
-                    />
-                  </div>
-                  
-                  {/* Guests */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-charcoal flex items-center">
-                      <Users className="w-4 h-4 mr-1 text-ocean-blue" />
-                      Guests
-                    </label>
-                    <select 
-                      value={guests}
-                      onChange={(e) => setGuests(e.target.value)}
-                      className="w-full px-3 py-2 bg-light-gray rounded-lg border-0 focus:bg-white focus:outline-none focus:ring-2 focus:ring-ocean-blue"
-                    >
-                      <option value="1">1 Guest</option>
-                      <option value="2">2 Guests</option>
-                      <option value="3">3 Guests</option>
-                      <option value="4">4 Guests</option>
-                      <option value="5+">5+ Guests</option>
-                    </select>
-                  </div>
-                  
-                  {/* Search Button */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-transparent">Search</label>
-                    <Button 
-                      onClick={handleTraditionalSearch}
-                      className="w-full h-10 bg-sunset-orange hover:bg-orange-600 text-white rounded-lg transition-all duration-200"
-                    >
-                      <Search className="w-4 h-4 mr-2" />
-                      Search
-                    </Button>
-                  </div>
                 </div>
               </div>
             </div>
