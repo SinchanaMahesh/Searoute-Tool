@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Cruise } from '@/pages/Search';
 import { Star, Heart, Share, GitCompare } from 'lucide-react';
@@ -13,6 +14,8 @@ interface CruiseResultsProps {
 }
 
 const CruiseResults = ({ cruises, isLoading, onCruiseHover, sortBy, onSortChange }: CruiseResultsProps) => {
+  const navigate = useNavigate();
+
   // Memoize the sorted cruises to prevent continuous re-sorting
   const sortedCruises = useMemo(() => {
     return [...cruises].sort((a, b) => {
@@ -94,6 +97,7 @@ const CruiseResults = ({ cruises, isLoading, onCruiseHover, sortBy, onSortChange
               key={cruise.id} 
               cruise={cruise} 
               onHover={onCruiseHover}
+              navigate={navigate}
             />
           ))}
         </div>
@@ -103,11 +107,14 @@ const CruiseResults = ({ cruises, isLoading, onCruiseHover, sortBy, onSortChange
 };
 
 // Individual Cruise Card Component
-const CruiseCard = ({ cruise, onHover }: { cruise: Cruise; onHover: (cruiseId: string | null) => void }) => {
+const CruiseCard = ({ cruise, onHover, navigate }: { cruise: Cruise; onHover: (cruiseId: string | null) => void; navigate: any }) => {
+  const handleBookNow = () => {
+    navigate(`/cruise/${cruise.id}/book`);
+  };
+
   const handleViewDetails = () => {
-    // Navigate to cruise details page or open external link
-    // For now, we'll create a details URL pattern
-    const detailsUrl = `/cruise/${cruise.id}`;
+    // Create a details URL pattern for external cruise details
+    const detailsUrl = `https://www.royalcaribbean.com/cruise/${cruise.id}`;
     window.open(detailsUrl, '_blank');
   };
 
@@ -220,12 +227,21 @@ const CruiseCard = ({ cruise, onHover }: { cruise: Cruise; onHover: (cruiseId: s
                   <div className="text-lg font-bold text-sunset-orange">${cruise.priceFrom}</div>
                   <div className="text-xs text-slate-gray">per person</div>
                 </div>
-                <Button 
-                  onClick={handleViewDetails}
-                  className="bg-ocean-blue hover:bg-deep-navy text-white"
-                >
-                  View Details
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    onClick={handleViewDetails}
+                  >
+                    View Details
+                  </Button>
+                  <Button 
+                    onClick={handleBookNow}
+                    className="bg-ocean-blue hover:bg-deep-navy text-white"
+                  >
+                    Book Now
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
