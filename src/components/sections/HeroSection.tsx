@@ -70,7 +70,7 @@ const HeroSection = () => {
   const lengths = ['3-5 days', '6-7 days', '8-10 days', '11+ days'];
 
   return (
-    <section className="relative h-[62.5vh] flex items-center justify-center overflow-hidden">
+    <section className="relative h-[78vh] flex items-center justify-center overflow-hidden pt-16">
       {/* Original gradient background */}
       <div className="absolute inset-0">
         <div className="w-full h-full bg-gradient-to-br from-ocean-blue via-deep-navy to-sunset-orange relative">

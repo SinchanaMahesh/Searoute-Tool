@@ -1,3 +1,4 @@
+
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Ship, ChevronRight } from 'lucide-react';
@@ -73,8 +74,43 @@ const DestinationCards = () => {
       bestTime: "Apr-Nov",
       duration: "6-14 days",
       type: "horizontal"
+    },
+    {
+      name: "Pacific Coast",
+      description: "Scenic coastlines and charming cities",
+      image: "https://images.unsplash.com/photo-1472396961693-142e6e269027?w=400",
+      cruiseCount: 28,
+      averagePrice: "$1,199",
+      popularPorts: ["San Francisco", "Seattle", "Victoria"],
+      bestTime: "Apr-Oct",
+      duration: "7-10 days",
+      type: "vertical"
+    },
+    {
+      name: "Baltic Sea",
+      description: "Historic capitals and medieval charm",
+      image: "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=400",
+      cruiseCount: 39,
+      averagePrice: "$1,699",
+      popularPorts: ["Stockholm", "Helsinki", "St. Petersburg"],
+      bestTime: "May-Sep",
+      duration: "7-12 days",
+      type: "horizontal"
+    },
+    {
+      name: "British Isles",
+      description: "Castles, countryside, and culture",
+      image: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=400",
+      cruiseCount: 31,
+      averagePrice: "$1,599",
+      popularPorts: ["Edinburgh", "Dublin", "London"],
+      bestTime: "May-Sep",
+      duration: "7-14 days",
+      type: "horizontal"
     }
   ];
+
+  const defaultImage = "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=400";
 
   const handleDestinationClick = (destinationName: string) => {
     navigate(`/search?q=${encodeURIComponent(`${destinationName} cruise`)}&destination=${destinationName}`);
@@ -107,14 +143,18 @@ const DestinationCards = () => {
       onClick={() => handleDestinationClick(destination.name)}
     >
       <div className={`relative overflow-hidden rounded-lg bg-white border border-border-gray hover:shadow-level-3 transition-all duration-300 hover:scale-[1.02] ${
-        isVertical ? 'h-72' : 'h-32'
+        isVertical ? 'h-72' : 'h-[136px]'
       }`}>
         {/* Image */}
         <div className={`relative ${isVertical ? 'h-44' : 'h-full w-40 float-left'} overflow-hidden`}>
           <img 
-            src={destination.image} 
+            src={destination.image || defaultImage} 
             alt={destination.name}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = defaultImage;
+            }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
           
@@ -244,11 +284,6 @@ const DestinationCards = () => {
           <div 
             ref={scrollContainerRef}
             className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth"
-            style={{ 
-              scrollbarWidth: 'none', 
-              msOverflowStyle: 'none',
-              WebkitScrollbar: { display: 'none' }
-            }}
           >
             {Array.from({ length: Math.ceil(destinations.length / 3) }).map((_, index) => (
               <GroupedCards key={index} startIndex={index * 3} />
