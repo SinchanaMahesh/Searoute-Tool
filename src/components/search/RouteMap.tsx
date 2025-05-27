@@ -6,14 +6,21 @@ import { Button } from '@/components/ui/button';
 interface RouteMapProps {
   cruises: Cruise[];
   hoveredCruise: string | null;
+  selectedCruise?: string | null;
 }
 
-const RouteMap = ({ cruises, hoveredCruise }: RouteMapProps) => {
+const RouteMap = ({ cruises, hoveredCruise, selectedCruise }: RouteMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<any>(null);
   const [mapboxToken, setMapboxToken] = useState('');
   const [isLargeView, setIsLargeView] = useState(false);
-  const hoveredCruiseData = cruises.find(c => c.id === hoveredCruise);
+  
+  // Use hovered cruise if available, otherwise use selected cruise, otherwise use first cruise
+  const displayCruise = hoveredCruise 
+    ? cruises.find(c => c.id === hoveredCruise)
+    : selectedCruise 
+    ? cruises.find(c => c.id === selectedCruise)
+    : cruises.length > 0 ? cruises[0] : null;
 
   useEffect(() => {
     // Load Mapbox GL JS
@@ -108,7 +115,7 @@ const RouteMap = ({ cruises, hoveredCruise }: RouteMapProps) => {
   };
 
   useEffect(() => {
-    if (!map || !hoveredCruiseData) return;
+    if (!map || !displayCruise) return;
 
     // Clear existing route
     if (map.getLayer('route')) {
@@ -118,8 +125,8 @@ const RouteMap = ({ cruises, hoveredCruise }: RouteMapProps) => {
       map.removeSource('route');
     }
 
-    // Add route for hovered cruise
-    const coordinates = hoveredCruiseData.ports.map(port => getPortCoordinates(port));
+    // Add route for display cruise
+    const coordinates = displayCruise.ports.map(port => getPortCoordinates(port));
     
     map.addSource('route', {
       type: 'geojson',
@@ -162,7 +169,7 @@ const RouteMap = ({ cruises, hoveredCruise }: RouteMapProps) => {
     coordinates.forEach(coord => bounds.extend(coord));
     map.fitBounds(bounds, { padding: 50 });
 
-  }, [map, hoveredCruiseData]);
+  }, [map, displayCruise]);
 
   return (
     <div className="h-full bg-gradient-to-br from-blue-50 to-blue-100 relative overflow-hidden">
@@ -172,8 +179,8 @@ const RouteMap = ({ cruises, hoveredCruise }: RouteMapProps) => {
           <div>
             <h3 className="font-semibold text-charcoal text-sm">Route Visualization</h3>
             <p className="text-xs text-slate-gray">
-              {hoveredCruiseData 
-                ? `Viewing route for ${hoveredCruiseData.shipName}` 
+              {displayCruise 
+                ? `Viewing route for ${displayCruise.shipName}` 
                 : 'Hover over a cruise to see its route'}
             </p>
           </div>
@@ -246,7 +253,7 @@ const RouteMap = ({ cruises, hoveredCruise }: RouteMapProps) => {
             <circle cx="220" cy="110" r="3" fill="#0ea5e9" />
             <text x="225" y="105" fontSize="8" fill="#0f172a">Nassau</text>
 
-            {hoveredCruiseData && (
+            {displayCruise && (
               <g>
                 <path
                   d="M 100 100 Q 140 120 180 130 Q 200 115 220 110 Q 160 95 100 100"
@@ -267,17 +274,17 @@ const RouteMap = ({ cruises, hoveredCruise }: RouteMapProps) => {
 
       {/* Cruise Details - Fixed at bottom */}
       <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-border-gray p-4 z-10">
-        {hoveredCruiseData ? (
+        {displayCruise ? (
           <div>
             <div className="flex items-center justify-between mb-2">
-              <h4 className="font-semibold text-charcoal">{hoveredCruiseData.shipName}</h4>
-              <span className="text-lg font-bold text-sunset-orange">${hoveredCruiseData.priceFrom}</span>
+              <h4 className="font-semibold text-charcoal">{displayCruise.shipName}</h4>
+              <span className="text-lg font-bold text-sunset-orange">${displayCruise.priceFrom}</span>
             </div>
             <p className="text-sm text-slate-gray mb-2">
-              {hoveredCruiseData.cruiseLine} • {hoveredCruiseData.duration} nights • {hoveredCruiseData.route}
+              {displayCruise.cruiseLine} • {displayCruise.duration} nights • {displayCruise.route}
             </p>
             <div className="text-xs text-ocean-blue">
-              <strong>Ports:</strong> {hoveredCruiseData.ports.join(' → ')}
+              <strong>Ports:</strong> {displayCruise.ports.join(' → ')}
             </div>
           </div>
         ) : (
