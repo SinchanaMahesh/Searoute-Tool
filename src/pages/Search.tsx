@@ -55,7 +55,7 @@ const Search = () => {
   const searchType = searchParams.get('type') || 'chat';
 
   // Fetch cruises from API
-  const { data: cruisesData, isLoading, error } = useQuery({
+  const { data: cruisesResponse, isLoading, error } = useQuery({
     queryKey: ['cruises'],
     queryFn: async () => {
       const response = await fetch('https://travtech.tech:3333/api/v3/Getcruises?skin=1020');
@@ -66,35 +66,56 @@ const Search = () => {
     },
   });
 
-  const cruises: Cruise[] = cruisesData?.data?.map((cruise: any, index: number) => ({
-    id: cruise.id || `cruise-${index}`,
-    shipName: cruise.shipName || cruise.name || 'Unknown Ship',
-    cruiseLine: cruise.cruiseLine || cruise.line || 'Unknown Line',
-    duration: cruise.duration || cruise.nights || 7,
-    departureDate: cruise.departureDate || cruise.sailDate || new Date().toISOString().split('T')[0],
-    departurePort: cruise.departurePort || cruise.port || 'Miami, FL',
-    route: cruise.route || cruise.destination || 'Caribbean',
-    ports: cruise.ports || cruise.itinerary?.map((p: any) => p.port) || ['Various Ports'],
-    priceFrom: cruise.priceFrom || cruise.price || cruise.fromPrice || 899,
-    rating: cruise.rating || 4.5,
-    reviewCount: cruise.reviewCount || cruise.reviews || 1000,
-    images: cruise.images || [
-      'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800',
-      'https://images.unsplash.com/photo-1564437657622-73a8e53c0ca7?w=800'
-    ],
-    amenities: cruise.amenities || ['Pool', 'Spa', 'Theater', 'Dining'],
-    savings: cruise.savings || (Math.random() > 0.7 ? Math.floor(Math.random() * 300) + 100 : undefined),
-    isPopular: cruise.isPopular || Math.random() > 0.8,
-    itinerary: cruise.itinerary || {
-      days: [
-        { day: 1, port: 'Miami, FL', coordinates: [-80.1918, 25.7617] },
-        { day: 2, port: 'At Sea', coordinates: [-75.0, 24.0] },
-        { day: 3, port: 'Cozumel, Mexico', coordinates: [-86.9223, 20.4230] },
-        { day: 4, port: 'At Sea', coordinates: [-82.0, 22.0] },
-        { day: 5, port: 'Miami, FL', coordinates: [-80.1918, 25.7617] }
-      ]
-    }
-  })) || [];
+  console.log('API Response:', cruisesResponse);
+
+  const cruises: Cruise[] = cruisesResponse?.SearchData?.data?.map((cruise: any, index: number) => {
+    // Get the lowest fare for pricing
+    const lowestFare = cruise.fare?.reduce((min: any, current: any) => 
+      parseInt(current.TotalAmt) < parseInt(min.TotalAmt) ? current : min
+    );
+
+    // Parse itinerary summary into ports array
+    const ports = cruise.itinerary_summary 
+      ? cruise.itinerary_summary.split(', ').map((port: string) => port.trim())
+      : ['Various Ports'];
+
+    // Extract departure port (usually first port in itinerary)
+    const departurePort = ports[0] || 'Unknown Port';
+
+    return {
+      id: cruise.itinerary_id || `cruise-${index}`,
+      shipName: cruise.ship_name || 'Unknown Ship',
+      cruiseLine: cruise.company_name || 'Unknown Line',
+      duration: parseInt(cruise.number_of_days) || 7,
+      departureDate: cruise.sail_date ? new Date(cruise.sail_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      departurePort: departurePort,
+      route: cruise.region_name || 'Unknown Region',
+      ports: ports,
+      priceFrom: lowestFare ? parseInt(lowestFare.TotalAmt) : 999,
+      rating: Math.random() * 2 + 3.5, // Random rating between 3.5-5.5
+      reviewCount: Math.floor(Math.random() * 2000) + 500,
+      images: [
+        'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800',
+        'https://images.unsplash.com/photo-1564437657622-73a8e53c0ca7?w=800',
+        'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800'
+      ],
+      amenities: ['Pool', 'Spa', 'Theater', 'Dining', 'Casino', 'Fitness Center'],
+      savings: Math.random() > 0.7 ? Math.floor(Math.random() * 300) + 100 : undefined,
+      isPopular: Math.random() > 0.8,
+      itinerary: {
+        days: ports.map((port, idx) => ({
+          day: idx + 1,
+          port: port,
+          coordinates: [
+            -80 + Math.random() * 40, // Longitude between -80 and -40
+            25 + Math.random() * 35   // Latitude between 25 and 60
+          ] as [number, number]
+        }))
+      }
+    };
+  }) || [];
+
+  console.log('Mapped Cruises:', cruises);
 
   const filteredCruises = cruises.filter(cruise => {
     // Apply basic text search
