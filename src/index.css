@@ -90,6 +90,16 @@
 
 .recording-pulse { animation: recording-pulse 1s ease-in-out infinite; }
 
+/* Hide scrollbars completely */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Gradient backgrounds */
 .hero-gradient {
   background: linear-gradient(135deg, 

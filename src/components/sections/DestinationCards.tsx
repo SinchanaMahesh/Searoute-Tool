@@ -1,7 +1,6 @@
-
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { MapPin, Calendar, Ship, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MapPin, Calendar, Ship, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const DestinationCards = () => {
@@ -87,7 +86,7 @@ const DestinationCards = () => {
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
-      const scrollAmount = 300;
+      const scrollAmount = 320;
       const currentScroll = scrollContainerRef.current.scrollLeft;
       const targetScroll = direction === 'left' 
         ? currentScroll - scrollAmount 
@@ -228,31 +227,28 @@ const DestinationCards = () => {
           </div>
         </div>
 
-        <div className="relative">
-          {/* Navigation arrows */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/90 border-gray-200 hover:bg-white shadow-md"
-            onClick={() => scroll('left')}
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white/90 border-gray-200 hover:bg-white shadow-md"
-            onClick={() => scroll('right')}
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
+        <div className="relative group">
+          {/* Subtle navigation arrow - right */}
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 hover:bg-white shadow-sm"
+              onClick={() => scroll('right')}
+            >
+              <ChevronRight className="w-4 h-4 text-gray-600" />
+            </Button>
+          </div>
 
           {/* Scrollable container */}
           <div 
             ref={scrollContainerRef}
-            className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth px-10"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth"
+            style={{ 
+              scrollbarWidth: 'none', 
+              msOverflowStyle: 'none',
+              WebkitScrollbar: { display: 'none' }
+            }}
           >
             {Array.from({ length: Math.ceil(destinations.length / 3) }).map((_, index) => (
               <GroupedCards key={index} startIndex={index * 3} />

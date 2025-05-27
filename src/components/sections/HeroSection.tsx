@@ -70,72 +70,21 @@ const HeroSection = () => {
   const lengths = ['3-5 days', '6-7 days', '8-10 days', '11+ days'];
 
   return (
-    <section className="relative h-[50vh] flex items-center justify-center overflow-hidden">
-      {/* Cruise vacation themed background */}
+    <section className="relative h-[62.5vh] flex items-center justify-center overflow-hidden">
+      {/* Original gradient background */}
       <div className="absolute inset-0">
-        <div className="w-full h-full bg-gradient-to-br from-ocean-blue/5 to-deep-navy/10 relative">
-          {/* Cruise vacation collage */}
-          <div className="absolute inset-0 grid grid-cols-6 grid-rows-2 gap-1 opacity-80">
-            {/* Large cruise ship */}
-            <img 
-              src="https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&h=400&fit=crop"
-              alt="Luxury cruise ship"
-              className="col-span-2 row-span-2 w-full h-full object-cover"
-            />
-            {/* Caribbean beach */}
-            <img 
-              src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop"
-              alt="Caribbean paradise"
-              className="w-full h-full object-cover"
-            />
-            {/* European coastal town */}
-            <img 
-              src="https://images.unsplash.com/photo-1533929736458-ca588d08c8be?w=400&h=200&fit=crop"
-              alt="Mediterranean coastline"
-              className="w-full h-full object-cover"
-            />
-            {/* Alaska glacier */}
-            <img 
-              src="https://images.unsplash.com/photo-1586861203927-800a5acdcc4d?w=400&h=200&fit=crop"
-              alt="Alaska wilderness"
-              className="w-full h-full object-cover"
-            />
-            {/* Cruise balcony view */}
-            <img 
-              src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=200&fit=crop"
-              alt="Ocean balcony view"
-              className="w-full h-full object-cover"
-            />
-            {/* Couple enjoying cruise */}
-            <img 
-              src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=200&fit=crop"
-              alt="Cruise vacation couple"
-              className="w-full h-full object-cover"
-            />
-            {/* Ocean sunset */}
-            <img 
-              src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&h=200&fit=crop"
-              alt="Ocean sunset"
-              className="w-full h-full object-cover"
-            />
-            {/* Tropical destination */}
-            <img 
-              src="https://images.unsplash.com/photo-1549693578-d683be217e58?w=400&h=200&fit=crop"
-              alt="Tropical paradise"
-              className="w-full h-full object-cover"
-            />
-          </div>
+        <div className="w-full h-full bg-gradient-to-br from-ocean-blue via-deep-navy to-sunset-orange relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-ocean-blue/80 via-deep-navy/60 to-sunset-orange/80"></div>
+          <div className="absolute inset-0 bg-white/5"></div>
         </div>
-        <div className="absolute inset-0 bg-gradient-to-br from-ocean-blue/20 via-deep-navy/15 to-sunset-orange/20"></div>
-        <div className="absolute inset-0 bg-white/10"></div>
       </div>
 
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-        <div className="space-y-3 animate-fade-in">
+        <div className="space-y-4 animate-fade-in">
           {/* Main Headline */}
-          <div className="space-y-2">
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight">
+          <div className="space-y-3">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
               <span className="block bg-gradient-to-r from-seafoam-green to-coral-pink bg-clip-text text-transparent">
                 Discover Your Perfect
               </span>
@@ -143,7 +92,7 @@ const HeroSection = () => {
                 Cruise Experience
               </span>
             </h1>
-            <p className="text-sm md:text-base text-white/90 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed">
               Describe your dream vacation in your own words. We will find the perfect cruise, 
               flights, and hotels - all in one conversation.
             </p>
@@ -151,46 +100,46 @@ const HeroSection = () => {
 
           {/* Primary AI Chat Interface */}
           <div className="max-w-3xl mx-auto">
-            <div className="bg-white/95 backdrop-blur-md rounded-2xl p-3 shadow-level-3">
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-level-3">
               {/* AI Chat Header */}
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <div className="w-4 h-4 bg-gradient-to-r from-ocean-blue to-seafoam-green rounded-full flex items-center justify-center">
-                  <Sparkles className="w-2 h-2 text-white" />
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <div className="w-5 h-5 bg-gradient-to-r from-ocean-blue to-seafoam-green rounded-full flex items-center justify-center">
+                  <Sparkles className="w-3 h-3 text-white" />
                 </div>
-                <h2 className="text-xs font-semibold text-charcoal">Cruise Assistant</h2>
+                <h2 className="text-sm font-semibold text-charcoal">Cruise Assistant</h2>
               </div>
 
               {/* Main Chat Input */}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="relative">
                   <Input
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={isListening ? "🎤 Listening..." : "Tell me about your dream cruise..."}
-                    className="w-full h-9 text-sm pl-3 pr-20 border-2 border-ocean-blue/20 focus:border-ocean-blue rounded-xl bg-white"
+                    className="w-full h-12 text-sm pl-4 pr-24 border-2 border-ocean-blue/20 focus:border-ocean-blue rounded-xl bg-white"
                     onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                     disabled={isListening}
                   />
-                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1">
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={handleVoiceSearch}
-                      className={`h-5 w-5 ${
+                      className={`h-6 w-6 ${
                         isListening 
                           ? 'bg-coral-pink text-white recording-pulse border-coral-pink' 
                           : 'text-slate-gray border-border-gray hover:border-ocean-blue'
                       } transition-all duration-200`}
                     >
-                      <Mic className="w-2 h-2" />
+                      <Mic className="w-3 h-3" />
                     </Button>
                     <Button
                       onClick={handleSearch}
                       disabled={!searchQuery.trim() || isListening}
                       size="sm"
-                      className="h-5 bg-ocean-blue hover:bg-deep-navy text-white disabled:opacity-50 text-xs px-2"
+                      className="h-6 bg-ocean-blue hover:bg-deep-navy text-white disabled:opacity-50 text-xs px-3"
                     >
-                      <Search className="w-2 h-2 mr-1" />
+                      <Search className="w-3 h-3 mr-1" />
                       Search
                     </Button>
                   </div>
@@ -215,13 +164,13 @@ const HeroSection = () => {
                 )}
 
                 {/* Quick Prompts */}
-                <div className="flex flex-wrap justify-center gap-1">
+                <div className="flex flex-wrap justify-center gap-2">
                   {quickPrompts.map((prompt, index) => (
                     <Button
                       key={index}
                       variant="outline"
                       size="sm"
-                      className="text-xs h-4 px-2 border-ocean-blue/20 text-ocean-blue hover:bg-ocean-blue hover:text-white transition-colors"
+                      className="text-xs h-6 px-3 border-ocean-blue/20 text-ocean-blue hover:bg-ocean-blue hover:text-white transition-colors"
                       onClick={() => setSearchQuery(prompt)}
                     >
                       {prompt}
@@ -230,13 +179,13 @@ const HeroSection = () => {
                 </div>
 
                 {/* Filter Options */}
-                <div className="grid grid-cols-3 gap-2 pt-1 border-t border-ocean-blue/20">
+                <div className="grid grid-cols-3 gap-3 pt-2 border-t border-ocean-blue/20">
                   {/* Destination */}
                   <div>
                     <Select value={selectedDestination} onValueChange={setSelectedDestination}>
-                      <SelectTrigger className="h-6 text-xs">
+                      <SelectTrigger className="h-8 text-xs">
                         <div className="flex items-center gap-1">
-                          <MapPin className="w-2 h-2 text-ocean-blue" />
+                          <MapPin className="w-3 h-3 text-ocean-blue" />
                           <SelectValue placeholder="Destination" />
                         </div>
                       </SelectTrigger>
@@ -255,11 +204,11 @@ const HeroSection = () => {
                         <Button
                           variant="outline"
                           className={cn(
-                            "h-6 w-full justify-start text-left font-normal text-xs",
+                            "h-8 w-full justify-start text-left font-normal text-xs",
                             !dateRange?.from && "text-muted-foreground"
                           )}
                         >
-                          <CalendarIcon className="w-2 h-2 text-ocean-blue mr-1" />
+                          <CalendarIcon className="w-3 h-3 text-ocean-blue mr-1" />
                           {dateRange?.from ? (
                             dateRange.to ? (
                               <>
@@ -290,9 +239,9 @@ const HeroSection = () => {
                   {/* Length */}
                   <div>
                     <Select value={selectedLength} onValueChange={setSelectedLength}>
-                      <SelectTrigger className="h-6 text-xs">
+                      <SelectTrigger className="h-8 text-xs">
                         <div className="flex items-center gap-1">
-                          <Clock className="w-2 h-2 text-ocean-blue" />
+                          <Clock className="w-3 h-3 text-ocean-blue" />
                           <SelectValue placeholder="Length" />
                         </div>
                       </SelectTrigger>
@@ -309,21 +258,21 @@ const HeroSection = () => {
           </div>
 
           {/* Trust Indicators */}
-          <div className="flex flex-wrap justify-center items-center gap-3 text-white/70 text-xs">
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-seafoam-green rounded-full flex items-center justify-center">
+          <div className="flex flex-wrap justify-center items-center gap-4 text-white/70 text-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-seafoam-green rounded-full flex items-center justify-center">
                 <span className="text-xs font-bold text-white">✓</span>
               </div>
               <span>Personalized search powered by AI</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-seafoam-green rounded-full flex items-center justify-center">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-seafoam-green rounded-full flex items-center justify-center">
                 <span className="text-xs font-bold text-white">✓</span>
               </div>
               <span>50,000+ happy travelers</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-seafoam-green rounded-full flex items-center justify-center">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-seafoam-green rounded-full flex items-center justify-center">
                 <span className="text-xs font-bold text-white">✓</span>
               </div>
               <span>Best price guarantee</span>
