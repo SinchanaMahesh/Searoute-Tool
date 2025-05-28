@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/layout/Header';
@@ -36,6 +35,86 @@ export interface Cruise {
   };
 }
 
+// Mock data based on API response structure
+const mockCruiseData = [
+  {
+    id: "495242c4-c3d5-f76e-176a-04437727942b",
+    shipName: "MS Richard With",
+    cruiseLine: "Hurtigruten",
+    duration: 11,
+    departureDate: "2025-05-28",
+    departurePort: "Bergen",
+    route: "Scandinavia & Fjords",
+    ports: ["Bergen", "Floro", "Maloy", "Turrvik", "Alesund", "Hjorundfjord", "Molde", "Kristiansund", "Trondheim"],
+    priceFrom: 5345,
+    rating: 4.2,
+    reviewCount: 1250,
+    images: [
+      'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800',
+      'https://images.unsplash.com/photo-1564437657622-73a8e53c0ca7?w=800'
+    ],
+    amenities: ['Pool', 'Spa', 'Theater', 'Dining', 'Fitness Center'],
+    isPopular: true
+  },
+  {
+    id: "81518eb4-aebb-aed2-1189-276a4db9dca1",
+    shipName: "AmaMora",
+    cruiseLine: "AmaWaterways",
+    duration: 16,
+    departureDate: "2025-05-29",
+    departurePort: "Budapest",
+    route: "Europe-Tours & Cruises",
+    ports: ["Budapest", "Bratislava", "Vienna", "Durnstein", "Melk", "Linz", "Regensburg", "Nuremberg", "Amsterdam"],
+    priceFrom: 8089,
+    rating: 4.5,
+    reviewCount: 890,
+    images: [
+      'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800',
+      'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800'
+    ],
+    amenities: ['Spa', 'Theater', 'Dining', 'Cultural Tours'],
+    savings: 480
+  },
+  {
+    id: "30146500-30d0-15f2-04de-97948467105b",
+    shipName: "Disney Magic",
+    cruiseLine: "Disney Cruise Line",
+    duration: 5,
+    departureDate: "2025-05-30",
+    departurePort: "Port Canaveral",
+    route: "Bahamas",
+    ports: ["Port Canaveral", "Lighthouse Point", "Nassau", "Castaway Cay"],
+    priceFrom: 1911,
+    rating: 4.7,
+    reviewCount: 2150,
+    images: [
+      'https://images.unsplash.com/photo-1564437657622-73a8e53c0ca7?w=800',
+      'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800'
+    ],
+    amenities: ['Kids Club', 'Pool', 'Theater', 'Dining', 'Character Meet & Greet'],
+    isPopular: true
+  },
+  {
+    id: "a86a511f-4a64-7287-03d4-0b20b134254f",
+    shipName: "MSC Splendida",
+    cruiseLine: "MSC Cruises",
+    duration: 7,
+    departureDate: "2025-05-30",
+    departurePort: "Tarragona",
+    route: "Mediterranean-West",
+    ports: ["Tarragona", "Valencia", "Livorno", "Rome/Civitavecchia", "Genoa", "Marseille"],
+    priceFrom: 609,
+    rating: 4.1,
+    reviewCount: 1680,
+    images: [
+      'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800',
+      'https://images.unsplash.com/photo-1564437657622-73a8e53c0ca7?w=800'
+    ],
+    amenities: ['Casino', 'Pool', 'Spa', 'Theater', 'Dining'],
+    savings: 240
+  }
+];
+
 const Search = () => {
   const [searchParams] = useSearchParams();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -63,21 +142,28 @@ const Search = () => {
   const query = searchParams.get('q') || '';
   const searchType = searchParams.get('type') || 'chat';
 
-  // Fetch cruises from API
+  // Fetch cruises from API but fall back to mock data
   const { data: cruisesResponse, isLoading, error } = useQuery({
     queryKey: ['cruises'],
     queryFn: async () => {
-      const response = await fetch('https://travtech.tech:3333/api/v3/Getcruises?skin=1020');
-      if (!response.ok) {
-        throw new Error('Failed to fetch cruises');
+      try {
+        const response = await fetch('https://travtech.tech:3333/api/v3/Getcruises?skin=1020');
+        if (!response.ok) {
+          throw new Error('Failed to fetch cruises');
+        }
+        return response.json();
+      } catch (error) {
+        console.log('API failed, using mock data:', error);
+        return { SearchData: { data: mockCruiseData } };
       }
-      return response.json();
     },
   });
 
   console.log('API Response:', cruisesResponse);
 
-  const cruises: Cruise[] = cruisesResponse?.SearchData?.data?.map((cruise: any, index: number) => {
+  // Use API data if available, otherwise use mock data
+  const apiCruises = cruisesResponse?.SearchData?.data || [];
+  const cruises: Cruise[] = apiCruises.length > 0 ? apiCruises.map((cruise: any, index: number) => {
     // Get the lowest fare for pricing
     const lowestFare = cruise.fare?.reduce((min: any, current: any) => 
       parseInt(current.TotalAmt) < parseInt(min.TotalAmt) ? current : min
@@ -101,7 +187,7 @@ const Search = () => {
       route: cruise.region_name || 'Unknown Region',
       ports: ports,
       priceFrom: lowestFare ? parseInt(lowestFare.TotalAmt) : 999,
-      rating: Math.random() * 2 + 3.5, // Random rating between 3.5-5.5
+      rating: Math.random() * 2 + 3.5,
       reviewCount: Math.floor(Math.random() * 2000) + 500,
       images: [
         'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800',
@@ -116,13 +202,13 @@ const Search = () => {
           day: idx + 1,
           port: port,
           coordinates: [
-            -80 + Math.random() * 40, // Longitude between -80 and -40
-            25 + Math.random() * 35   // Latitude between 25 and 60
+            -80 + Math.random() * 40,
+            25 + Math.random() * 35
           ] as [number, number]
         }))
       }
     };
-  }) || [];
+  }) : mockCruiseData;
 
   console.log('Mapped Cruises:', cruises);
 
@@ -136,7 +222,7 @@ const Search = () => {
         cruise.cruiseLine.toLowerCase().includes(searchTerm) ||
         cruise.departurePort.toLowerCase().includes(searchTerm) ||
         cruise.ports.some(port => port.toLowerCase().includes(searchTerm)) ||
-        searchTerm.includes('deal') || // For "last minute cruise deals" queries
+        searchTerm.includes('deal') ||
         searchTerm.includes('cruise');
       
       if (!matchesSearch) return false;
@@ -174,6 +260,35 @@ const Search = () => {
   console.log('Query:', query);
   console.log('Filters:', filters);
 
+  // Generate context-based quick filters
+  const getQuickFilters = () => {
+    if (!query) return [];
+    
+    const queryLower = query.toLowerCase();
+    const quickFilters = [];
+    
+    if (queryLower.includes('family') || queryLower.includes('kids')) {
+      quickFilters.push({ label: 'Family Friendly', action: () => console.log('Family filter') });
+    }
+    if (queryLower.includes('luxury') || queryLower.includes('premium')) {
+      quickFilters.push({ label: 'Luxury Cruises', action: () => console.log('Luxury filter') });
+    }
+    if (queryLower.includes('deal') || queryLower.includes('cheap') || queryLower.includes('budget')) {
+      quickFilters.push({ label: 'Best Deals', action: () => console.log('Deals filter') });
+    }
+    if (queryLower.includes('caribbean')) {
+      quickFilters.push({ label: 'Caribbean Only', action: () => console.log('Caribbean filter') });
+    }
+    if (queryLower.includes('mediterranean')) {
+      quickFilters.push({ label: 'Mediterranean Only', action: () => console.log('Mediterranean filter') });
+    }
+    if (queryLower.includes('short') || queryLower.includes('weekend')) {
+      quickFilters.push({ label: '3-5 Days', action: () => console.log('Short filter') });
+    }
+    
+    return quickFilters;
+  };
+
   return (
     <div className="min-h-screen bg-light-gray">
       <Header />
@@ -201,7 +316,7 @@ const Search = () => {
 
           {/* Quick Filters Section - Removed quick filter buttons */}
           <div className="flex-1 min-h-0 overflow-y-auto p-4">
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Button
                 variant="outline"
                 size="sm"
@@ -211,8 +326,23 @@ const Search = () => {
                 <Filter className="w-4 h-4 mr-2" />
                 All Filters
               </Button>
-              <div className="text-xs text-slate-gray">
-                Date Range: {filters.dateRange?.from?.toLocaleDateString()} - {filters.dateRange?.to?.toLocaleDateString()}
+              
+              {/* Context-based Quick Filters */}
+              {getQuickFilters().map((filter, index) => (
+                <Button
+                  key={index}
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start text-left text-ocean-blue border-ocean-blue hover:bg-ocean-blue hover:text-white"
+                  onClick={filter.action}
+                >
+                  {filter.label}
+                </Button>
+              ))}
+              
+              <div className="text-xs text-slate-gray mt-4">
+                <div>Showing {filteredCruises.length} cruises</div>
+                {query && <div className="mt-1">Search: "{query}"</div>}
               </div>
             </div>
           </div>
