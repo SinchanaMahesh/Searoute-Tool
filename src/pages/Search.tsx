@@ -152,10 +152,17 @@ const Search = () => {
       return false;
     }
 
-    // Apply date range filter
+    // Make date range filter less strict - only filter if cruise is way outside range
     if (filters.dateRange?.from && filters.dateRange?.to) {
       const cruiseDate = new Date(cruise.departureDate);
-      if (cruiseDate < filters.dateRange.from || cruiseDate > filters.dateRange.to) {
+      const fromDate = new Date(filters.dateRange.from);
+      const toDate = new Date(filters.dateRange.to);
+      
+      // Extend the date range by 6 months on each side to be less restrictive
+      fromDate.setMonth(fromDate.getMonth() - 6);
+      toDate.setMonth(toDate.getMonth() + 6);
+      
+      if (cruiseDate < fromDate || cruiseDate > toDate) {
         return false;
       }
     }
@@ -174,8 +181,8 @@ const Search = () => {
       <div className="pt-20 h-screen flex">
         {/* Left Pane - Fixed */}
         <div className="w-1/3 border-r border-border-gray bg-white flex flex-col fixed h-full top-20 left-0">
-          {/* Map Section - Now at top */}
-          <div className="h-64 border-b border-border-gray">
+          {/* Map Section - Larger now */}
+          <div className="h-80 border-b border-border-gray">
             <RouteMap 
               cruises={filteredCruises}
               hoveredCruise={hoveredCruise}
@@ -183,8 +190,8 @@ const Search = () => {
             />
           </div>
           
-          {/* Chat Interface Section - Fixed height */}
-          <div className="h-96 border-b border-border-gray">
+          {/* Chat Interface Section - Smaller */}
+          <div className="h-80 border-b border-border-gray">
             <SearchResultsChat 
               initialQuery={query}
               searchType={searchType}
@@ -192,9 +199,8 @@ const Search = () => {
             />
           </div>
 
-          {/* Quick Filters Section */}
+          {/* Quick Filters Section - Removed quick filter buttons */}
           <div className="flex-1 min-h-0 overflow-y-auto p-4">
-            <h4 className="font-semibold text-charcoal mb-3">Quick Filters</h4>
             <div className="space-y-2">
               <Button
                 variant="outline"

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { Cruise } from '@/pages/Search';
 import { Maximize2 } from 'lucide-react';
@@ -173,14 +174,14 @@ const RouteMap = ({ cruises, hoveredCruise, selectedCruise }: RouteMapProps) => 
 
   return (
     <div className="h-full bg-gradient-to-br from-blue-50 to-blue-100 relative overflow-hidden">
-      {/* Map Header */}
-      <div className="absolute top-0 left-0 right-0 bg-white/90 backdrop-blur-sm p-3 border-b border-border-gray z-10">
+      {/* Compact Map Header */}
+      <div className="absolute top-0 left-0 right-0 bg-white/90 backdrop-blur-sm p-2 border-b border-border-gray z-10">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-semibold text-charcoal text-sm">Route Visualization</h3>
             <p className="text-xs text-slate-gray">
               {displayCruise 
-                ? `Viewing route for ${displayCruise.shipName}` 
+                ? `${displayCruise.shipName}` 
                 : 'Hover over a cruise to see its route'}
             </p>
           </div>
@@ -197,34 +198,30 @@ const RouteMap = ({ cruises, hoveredCruise, selectedCruise }: RouteMapProps) => 
 
       {/* Mapbox Token Input */}
       {!mapboxToken && (
-        <div className="absolute inset-0 pt-16 flex items-center justify-center bg-white/95">
-          <div className="p-6 max-w-md text-center">
-            <h4 className="font-semibold text-charcoal mb-3">Enable Interactive Maps</h4>
-            <p className="text-sm text-slate-gray mb-4">
-              Enter your Mapbox public token to see cruise routes on an interactive map.
-              Get your token at <a href="https://mapbox.com" target="_blank" rel="noopener noreferrer" className="text-ocean-blue hover:underline">mapbox.com</a>
+        <div className="absolute inset-0 pt-12 flex items-center justify-center bg-white/95">
+          <div className="p-4 max-w-sm text-center">
+            <h4 className="font-semibold text-charcoal mb-2 text-sm">Enable Interactive Maps</h4>
+            <p className="text-xs text-slate-gray mb-3">
+              Enter your Mapbox token to see cruise routes.
             </p>
             <input
               type="text"
               placeholder="pk.eyJ1..."
-              className="w-full p-2 border border-border-gray rounded mb-3 text-sm"
+              className="w-full p-2 border border-border-gray rounded mb-2 text-xs"
               onChange={(e) => setMapboxToken(e.target.value)}
             />
-            <p className="text-xs text-slate-gray">
-              This is only stored temporarily for this session
-            </p>
           </div>
         </div>
       )}
 
-      {/* Map Container */}
+      {/* Map Container - Now covers full area except header and cruise details */}
       {mapboxToken && (
-        <div ref={mapRef} className="absolute inset-0 pt-16 pb-24" />
+        <div ref={mapRef} className="absolute inset-0 pt-12 pb-20" />
       )}
 
-      {/* Fallback Map for Demo */}
+      {/* Fallback Map for Demo - Full coverage */}
       {!mapboxToken && (
-        <div className="absolute inset-0 pt-16 pb-24">
+        <div className="absolute inset-0 pt-12 pb-20">
           <svg viewBox="0 0 400 200" className="w-full h-full">
             {/* Ocean Background */}
             <rect width="400" height="200" fill="#e0f2fe" />
@@ -272,24 +269,24 @@ const RouteMap = ({ cruises, hoveredCruise, selectedCruise }: RouteMapProps) => 
         </div>
       )}
 
-      {/* Cruise Details - Fixed at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-border-gray p-4 z-10">
+      {/* Cruise Details - Compact at bottom */}
+      <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-border-gray p-3 z-10">
         {displayCruise ? (
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="font-semibold text-charcoal">{displayCruise.shipName}</h4>
+            <div className="flex items-center justify-between mb-1">
+              <h4 className="font-semibold text-charcoal text-sm">{displayCruise.shipName}</h4>
               <span className="text-lg font-bold text-sunset-orange">${displayCruise.priceFrom}</span>
             </div>
-            <p className="text-sm text-slate-gray mb-2">
+            <p className="text-xs text-slate-gray mb-1">
               {displayCruise.cruiseLine} • {displayCruise.duration} nights • {displayCruise.route}
             </p>
             <div className="text-xs text-ocean-blue">
-              <strong>Ports:</strong> {displayCruise.ports.join(' → ')}
+              <strong>Ports:</strong> {displayCruise.ports.slice(0, 3).join(' → ')}{displayCruise.ports.length > 3 && '...'}
             </div>
           </div>
         ) : (
           <div className="text-center text-slate-gray">
-            <p className="text-sm">Hover over a cruise to see route details</p>
+            <p className="text-xs">Hover over a cruise to see route details</p>
           </div>
         )}
       </div>

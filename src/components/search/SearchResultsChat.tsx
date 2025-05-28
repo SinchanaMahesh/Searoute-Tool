@@ -37,7 +37,7 @@ const SearchResultsChat = ({ initialQuery, searchType, resultCount }: SearchResu
       
       const aiMessage: Message = {
         id: '2',
-        text: `Great! I found ${resultCount} cruises matching your search. You can see them on the right, and their routes are displayed on the map below. Would you like me to help you narrow down the options or find something more specific?`,
+        text: `Great! I found ${resultCount} cruises matching your search. You can see them on the right, and their routes are displayed on the map above. Would you like me to help you narrow down the options or find something more specific?`,
         isUser: false,
         timestamp: new Date()
       };
@@ -109,23 +109,14 @@ const SearchResultsChat = ({ initialQuery, searchType, resultCount }: SearchResu
     }
   };
 
-  const quickActions = [
-    "Show cheapest options",
-    "Best family cruises", 
-    "Luxury experiences",
-    "Short weekend trips"
-  ];
-
   return (
     <div className="h-full flex flex-col">
-      {/* Chat Header */}
-      <div className="p-4 border-b border-border-gray bg-gradient-to-r from-ocean-blue to-deep-navy text-white">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-seafoam-green rounded-full flex items-center justify-center animate-pulse">
-            <span className="text-sm font-bold">AI</span>
-          </div>
+      {/* Chat Header - Made smaller */}
+      <div className="p-3 border-b border-border-gray bg-gradient-to-r from-ocean-blue to-deep-navy text-white">
+        <div className="flex items-center gap-2">
+          <MessageCircle className="w-5 h-5" />
           <div>
-            <div className="font-semibold">Search Assistant</div>
+            <div className="font-semibold text-sm">Search Assistant</div>
             <div className="text-xs text-white/80">Refine your cruise search</div>
           </div>
         </div>
@@ -167,27 +158,7 @@ const SearchResultsChat = ({ initialQuery, searchType, resultCount }: SearchResu
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick Actions */}
-      {messages.length <= 2 && (
-        <div className="px-4 pb-2">
-          <div className="text-xs text-slate-gray mb-3 font-medium">Quick filters:</div>
-          <div className="grid grid-cols-2 gap-2">
-            {quickActions.map((action, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                size="sm"
-                className="text-xs h-8 border-ocean-blue/20 text-ocean-blue hover:bg-ocean-blue hover:text-white transition-colors"
-                onClick={() => setInputText(action)}
-              >
-                {action}
-              </Button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Input */}
+      {/* Input - Removed quick actions section */}
       <div className="p-4 border-t border-border-gray bg-pearl-white">
         <div className="flex items-center gap-3">
           <Button
