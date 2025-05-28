@@ -131,7 +131,7 @@ const DestinationCards = () => {
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
-      const scrollAmount = 320;
+      const scrollAmount = 384; // Increased for larger cards
       const currentScroll = scrollContainerRef.current.scrollLeft;
       const targetScroll = direction === 'left' 
         ? currentScroll - scrollAmount 
@@ -150,7 +150,7 @@ const DestinationCards = () => {
     return (
       <div 
         className={`group cursor-pointer flex-shrink-0 ${
-          isVertical ? 'w-60' : 'w-72'
+          isVertical ? 'w-72' : 'w-86'
         }`}
         onClick={() => handleDestinationClick(destination.name)}
         onMouseEnter={() => setHoveredCard(destination.id)}
@@ -158,9 +158,9 @@ const DestinationCards = () => {
       >
         <div className={`relative overflow-hidden rounded-lg bg-white border border-border-gray transition-all duration-300 ${
           isHovered ? 'shadow-level-3 -translate-y-1' : 'shadow-level-1'
-        } ${isVertical ? 'h-72' : 'h-[136px]'}`}>
-          {/* Image */}
-          <div className={`relative ${isVertical ? 'h-44' : 'h-full w-40 float-left'} overflow-hidden`}>
+        } ${isVertical ? 'h-86' : 'h-[163px]'}`}>
+          {/* Image - increased dimensions */}
+          <div className={`relative ${isVertical ? 'h-52' : 'h-full w-48 float-left'} overflow-hidden`}>
             <img 
               src={destination.image || defaultImage} 
               alt={destination.name}
@@ -172,57 +172,57 @@ const DestinationCards = () => {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
             
-            {/* Price overlay */}
-            <div className="absolute top-1 right-1 bg-white/90 backdrop-blur-sm rounded-md px-1 py-0.5">
-              <div className="text-xs font-semibold text-charcoal">From {destination.averagePrice}</div>
+            {/* Price overlay - increased size */}
+            <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-md px-2 py-1">
+              <div className="text-sm font-semibold text-charcoal">From {destination.averagePrice}</div>
             </div>
 
-            {/* Hover icon indicator - moved to bottom right */}
-            <div className={`absolute bottom-2 right-2 transition-opacity duration-300 ${
+            {/* Hover icon indicator - increased size */}
+            <div className={`absolute bottom-3 right-3 transition-opacity duration-300 ${
               isHovered ? 'opacity-100' : 'opacity-0'
             }`}>
-              <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md">
-                <ExternalLink className="w-3 h-3 text-ocean-blue" />
+              <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md">
+                <ExternalLink className="w-4 h-4 text-ocean-blue" />
               </div>
             </div>
 
-            {/* Title overlay for horizontal cards */}
+            {/* Title overlay for horizontal cards - increased font sizes */}
             {!isVertical && (
-              <div className="absolute bottom-1 left-1 text-white">
-                <h3 className="font-bold text-sm mb-0.5">{destination.name}</h3>
-                <p className="text-xs opacity-90 line-clamp-1">{destination.description}</p>
+              <div className="absolute bottom-2 left-2 text-white">
+                <h3 className="font-bold text-base mb-1">{destination.name}</h3>
+                <p className="text-sm opacity-90 line-clamp-1">{destination.description}</p>
               </div>
             )}
           </div>
 
-          {/* Content */}
-          <div className={`p-2 ${isVertical ? '' : 'ml-40'} flex-1 flex flex-col h-full`}>
-            {/* Title for vertical cards */}
+          {/* Content - increased padding */}
+          <div className={`p-3 ${isVertical ? '' : 'ml-48'} flex-1 flex flex-col h-full`}>
+            {/* Title for vertical cards - increased font sizes */}
             {isVertical && (
-              <div className="mb-1">
-                <h3 className="font-bold text-base text-charcoal">{destination.name}</h3>
-                <p className="text-xs text-slate-gray line-clamp-2">{destination.description}</p>
+              <div className="mb-2">
+                <h3 className="font-bold text-lg text-charcoal">{destination.name}</h3>
+                <p className="text-sm text-slate-gray line-clamp-2">{destination.description}</p>
               </div>
             )}
 
-            <div className={`grid ${isVertical ? 'grid-cols-2' : 'grid-cols-1'} gap-1 mb-1`}>
-              <div className="flex items-center gap-1 text-xs">
-                <Ship className="w-2 h-2 text-ocean-blue" />
+            <div className={`grid ${isVertical ? 'grid-cols-2' : 'grid-cols-1'} gap-2 mb-2`}>
+              <div className="flex items-center gap-2 text-sm">
+                <Ship className="w-4 h-4 text-ocean-blue" />
                 <span className="text-slate-gray">{destination.cruiseCount} cruises</span>
               </div>
-              <div className="flex items-center gap-1 text-xs">
-                <Calendar className="w-2 h-2 text-ocean-blue" />
+              <div className="flex items-center gap-2 text-sm">
+                <Calendar className="w-4 h-4 text-ocean-blue" />
                 <span className="text-slate-gray">{destination.bestTime}</span>
               </div>
             </div>
 
-            <div className="mb-1">
-              <h4 className="text-xs font-medium text-charcoal mb-0.5">Popular Ports</h4>
-              <div className="flex flex-wrap gap-0.5">
+            <div className="mb-2">
+              <h4 className="text-sm font-medium text-charcoal mb-1">Popular Ports</h4>
+              <div className="flex flex-wrap gap-1">
                 {destination.popularPorts.slice(0, isVertical ? 3 : 2).map((port: string, portIndex: number) => (
                   <span 
                     key={portIndex}
-                    className="text-xs bg-light-gray text-slate-gray px-1 py-0.5 rounded-full"
+                    className="text-xs bg-light-gray text-slate-gray px-2 py-1 rounded-full"
                   >
                     {port}
                   </span>
@@ -231,7 +231,7 @@ const DestinationCards = () => {
             </div>
 
             <div className="flex items-center justify-between mt-auto">
-              <div className="text-xs text-slate-gray">
+              <div className="text-sm text-slate-gray">
                 {destination.duration} typical
               </div>
             </div>
@@ -251,12 +251,12 @@ const DestinationCards = () => {
     if (group.length === 0) return null;
 
     return (
-      <div className="flex-shrink-0 flex gap-2">
+      <div className="flex-shrink-0 flex gap-3">
         {/* Vertical card */}
         <DestinationCard destination={group[0]} isVertical={true} />
         
         {/* Two horizontal cards stacked */}
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           {group[1] && <DestinationCard destination={group[1]} isVertical={false} />}
           {group[2] && <DestinationCard destination={group[2]} isVertical={false} />}
         </div>
@@ -265,17 +265,17 @@ const DestinationCards = () => {
   };
 
   return (
-    <section className="py-4 bg-white">
+    <section className="py-5 bg-white">
       <div className="container mx-auto px-4 lg:px-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
           <div>
-            <h2 className="text-lg font-bold text-charcoal mb-1">Popular Destinations</h2>
-            <p className="text-slate-gray text-sm">Discover amazing cruise destinations around the world</p>
+            <h2 className="text-xl font-bold text-charcoal mb-1">Popular Destinations</h2>
+            <p className="text-slate-gray text-base">Discover amazing cruise destinations around the world</p>
           </div>
           <div className="flex items-center gap-2">
             <Button 
               variant="ghost" 
-              className="text-ocean-blue hover:text-deep-navy text-sm"
+              className="text-ocean-blue hover:text-deep-navy text-base"
               onClick={handleViewAllClick}
             >
               View All Destinations →
@@ -284,22 +284,22 @@ const DestinationCards = () => {
         </div>
 
         <div className="relative group">
-          {/* Subtle navigation arrow - right */}
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          {/* Navigation arrow - increased size */}
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <Button
               variant="ghost"
               size="sm"
-              className="w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 hover:bg-white shadow-sm"
+              className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 hover:bg-white shadow-sm"
               onClick={() => scroll('right')}
             >
-              <ChevronRight className="w-4 h-4 text-gray-600" />
+              <ChevronRight className="w-5 h-5 text-gray-600" />
             </Button>
           </div>
 
-          {/* Scrollable container */}
+          {/* Scrollable container - increased gap */}
           <div 
             ref={scrollContainerRef}
-            className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+            className="flex gap-5 overflow-x-auto scrollbar-hide scroll-smooth pb-3"
           >
             {Array.from({ length: Math.ceil(destinations.length / 3) }).map((_, index) => (
               <GroupedCards key={index} startIndex={index * 3} />

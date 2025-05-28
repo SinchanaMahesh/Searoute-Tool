@@ -266,7 +266,7 @@ const CruiseLinesSection = () => {
 
     return (
       <div 
-        className={`group cursor-pointer min-w-[180px] flex-shrink-0 transition-transform duration-300 ${
+        className={`group cursor-pointer min-w-[216px] flex-shrink-0 transition-transform duration-300 ${
           isHovered ? 'transform -translate-y-2' : ''
         }`}
         onMouseEnter={() => setIsHovered(true)}
@@ -276,27 +276,27 @@ const CruiseLinesSection = () => {
           <img 
             src={cruise.image} 
             alt={cruise.shipName}
-            className="w-full h-28 object-cover transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-36 object-cover transition-transform duration-300 group-hover:scale-105"
           />
-          <div className="absolute top-1 right-1 bg-ocean-blue text-white px-1 py-0.5 rounded text-xs font-bold">
+          <div className="absolute top-2 right-2 bg-ocean-blue text-white px-2 py-1 rounded text-sm font-bold">
             {cruise.price}
           </div>
           
-          {/* Hover icon indicator - moved to bottom right */}
-          <div className={`absolute bottom-1 right-1 transition-opacity duration-300 ${
+          {/* Hover icon indicator - increased size */}
+          <div className={`absolute bottom-2 right-2 transition-opacity duration-300 ${
             isHovered ? 'opacity-100' : 'opacity-0'
           }`}>
-            <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-md">
-              <ExternalLink className="w-2.5 h-2.5 text-ocean-blue" />
+            <div className="w-8 h-8 bg-white/95 rounded-full flex items-center justify-center shadow-lg border border-border-gray">
+              <ExternalLink className="w-4 h-4 text-ocean-blue" />
             </div>
           </div>
           
-          <div className="p-2">
-            <h4 className="font-semibold text-charcoal text-xs line-clamp-1 mb-1">{cruise.shipName}</h4>
-            <p className="text-xs text-slate-gray mb-1">{cruise.route} • {cruise.duration} nights</p>
-            <div className="flex items-center gap-1">
-              <Star className="w-2 h-2 fill-yellow-400 text-yellow-400" />
-              <span className="text-xs text-charcoal">{cruise.rating}</span>
+          <div className="p-3">
+            <h4 className="font-semibold text-charcoal text-sm line-clamp-1 mb-1">{cruise.shipName}</h4>
+            <p className="text-sm text-slate-gray mb-2">{cruise.route} • {cruise.duration} nights</p>
+            <div className="flex items-center gap-2">
+              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+              <span className="text-sm text-charcoal">{cruise.rating}</span>
             </div>
           </div>
         </div>
@@ -310,32 +310,32 @@ const CruiseLinesSection = () => {
         <div className="space-y-8">
           {cruiseLineData.map((line, index) => (
             <div key={index} className="space-y-4">
-              {/* Cruise Line Header */}
+              {/* Cruise Line Header - increased spacing */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`w-12 h-12 bg-gradient-to-r ${line.color} rounded-xl flex items-center justify-center`}>
-                    <span className="text-white font-bold text-sm">{line.logo}</span>
+                <div className="flex items-center gap-4">
+                  <div className={`w-14 h-14 bg-gradient-to-r ${line.color} rounded-xl flex items-center justify-center`}>
+                    <span className="text-white font-bold text-base">{line.logo}</span>
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-charcoal">{line.name}</h3>
-                    <p className="text-slate-gray text-sm">{line.description}</p>
-                    <div className="flex items-center gap-3 mt-0.5">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm text-charcoal">{line.rating}</span>
+                    <h3 className="text-xl font-bold text-charcoal">{line.name}</h3>
+                    <p className="text-slate-gray text-base">{line.description}</p>
+                    <div className="flex items-center gap-4 mt-1">
+                      <div className="flex items-center gap-2">
+                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        <span className="text-base text-charcoal">{line.rating}</span>
                       </div>
-                      <span className="text-sm text-slate-gray">{line.ships} ships</span>
-                      <span className="text-sm text-slate-gray">{line.destinations} destinations</span>
+                      <span className="text-base text-slate-gray">{line.ships} ships</span>
+                      <span className="text-base text-slate-gray">{line.destinations} destinations</span>
                     </div>
                   </div>
                 </div>
-                <Button variant="ghost" className="text-ocean-blue hover:text-deep-navy text-sm">
-                  View All <ChevronRight className="w-3 h-3 ml-1" />
+                <Button variant="ghost" className="text-ocean-blue hover:text-deep-navy text-base">
+                  View All <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               </div>
 
-              {/* Available Cruises */}
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+              {/* Available Cruises - increased gap */}
+              <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                 {line.availableCruises.map((cruise) => (
                   <CruiseCard key={cruise.id} cruise={cruise} />
                 ))}
