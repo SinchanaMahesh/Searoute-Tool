@@ -177,12 +177,12 @@ const DestinationCards = () => {
               <div className="text-xs font-semibold text-charcoal">From {destination.averagePrice}</div>
             </div>
 
-            {/* Hover icon indicator */}
-            <div className={`absolute top-2 left-2 transition-opacity duration-300 ${
+            {/* Hover icon indicator - moved to bottom right */}
+            <div className={`absolute bottom-2 right-2 transition-opacity duration-300 ${
               isHovered ? 'opacity-100' : 'opacity-0'
             }`}>
-              <div className="w-6 h-6 bg-ocean-blue/90 rounded-full flex items-center justify-center">
-                <ExternalLink className="w-3 h-3 text-white" />
+              <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md">
+                <ExternalLink className="w-3 h-3 text-ocean-blue" />
               </div>
             </div>
 
