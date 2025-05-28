@@ -26,6 +26,12 @@ const Header = () => {
             <a href="/cruise-lines" className="text-slate-gray hover:text-ocean-blue transition-colors">
               Cruise Lines
             </a>
+            <a href="/vacations" className="text-slate-gray hover:text-ocean-blue transition-colors">
+              Vacations
+            </a>
+            <a href="/luxury" className="text-slate-gray hover:text-ocean-blue transition-colors">
+              Luxury
+            </a>
             <a href="/deals" className="text-slate-gray hover:text-ocean-blue transition-colors">
               Deals
             </a>
@@ -37,6 +43,7 @@ const Header = () => {
               variant="ghost" 
               size="sm" 
               className="text-slate-gray hover:text-ocean-blue"
+              aria-label="Chat with AI assistant"
             >
               <MessageCircle className="w-4 h-4 mr-2" />
               Chat with AI
@@ -45,6 +52,7 @@ const Header = () => {
               variant="outline" 
               size="sm"
               className="border-ocean-blue text-ocean-blue hover:bg-ocean-blue hover:text-white"
+              aria-label="Sign in to your account"
             >
               <User className="w-4 h-4 mr-2" />
               Sign In
@@ -55,6 +63,8 @@ const Header = () => {
           <button
             className="md:hidden p-2 text-slate-gray hover:text-ocean-blue"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isMobileMenuOpen}
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -63,25 +73,28 @@ const Header = () => {
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-border-gray bg-white py-4 slide-in-bottom">
-            <nav className="space-y-4">
+            <nav className="space-y-4" role="navigation" aria-label="Mobile navigation">
               <a href="/destinations" className="block text-slate-gray hover:text-ocean-blue transition-colors">
                 Destinations
               </a>
               <a href="/cruise-lines" className="block text-slate-gray hover:text-ocean-blue transition-colors">
                 Cruise Lines
               </a>
+              <a href="/vacations" className="block text-slate-gray hover:text-ocean-blue transition-colors">
+                Vacations
+              </a>
+              <a href="/luxury" className="block text-slate-gray hover:text-ocean-blue transition-colors">
+                Luxury
+              </a>
               <a href="/deals" className="block text-slate-gray hover:text-ocean-blue transition-colors">
                 Deals
               </a>
-              <a href="/about" className="block text-slate-gray hover:text-ocean-blue transition-colors">
-                About
-              </a>
               <div className="pt-4 space-y-2">
-                <Button variant="ghost" className="w-full justify-start text-slate-gray">
+                <Button variant="ghost" className="w-full justify-start text-slate-gray" aria-label="Chat with AI assistant">
                   <MessageCircle className="w-4 h-4 mr-2" />
                   Chat with AI
                 </Button>
-                <Button variant="outline" className="w-full justify-start border-ocean-blue text-ocean-blue">
+                <Button variant="outline" className="w-full justify-start border-ocean-blue text-ocean-blue" aria-label="Sign in to your account">
                   <User className="w-4 h-4 mr-2" />
                   Sign In
                 </Button>
