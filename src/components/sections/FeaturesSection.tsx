@@ -44,30 +44,31 @@ const features = [
 
 const FeaturesSection = () => {
   return (
-    <section className="py-20 bg-gradient-to-b from-light-gray to-white">
+    <section className="py-20 bg-gradient-to-b from-light-gray to-white" aria-labelledby="features-heading">
       <div className="container mx-auto px-4 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-charcoal mb-6">
-            Why Choose <span className="text-ocean-blue">CruiseAI</span>?
+          <h2 id="features-heading" className="text-3xl md:text-4xl lg:text-5xl font-bold text-charcoal mb-6">
+            Why Choose <span className="text-ocean-blue">Cruise & Vacations</span>?
           </h2>
-          <p className="text-lg text-slate-gray leading-relaxed">
+          <p className="text-lg text-charcoal leading-relaxed">
             We're revolutionizing cruise discovery with cutting-edge AI technology, 
             making it easier than ever to find and book your perfect vacation.
           </p>
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" role="list">
           {features.map((feature, index) => (
             <Card 
               key={index}
               className="group hover:shadow-level-3 transition-all duration-300 hover:-translate-y-2 border-0 bg-white/80 backdrop-blur-sm"
+              role="listitem"
             >
               <CardContent className="p-8">
                 <div className="space-y-4">
                   {/* Icon with Gradient Background */}
-                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`} aria-hidden="true">
                     <feature.icon className="w-8 h-8 text-white" />
                   </div>
                   
@@ -76,7 +77,7 @@ const FeaturesSection = () => {
                     <h3 className="text-xl font-bold text-charcoal group-hover:text-ocean-blue transition-colors">
                       {feature.title}
                     </h3>
-                    <p className="text-slate-gray leading-relaxed">
+                    <p className="text-charcoal leading-relaxed">
                       {feature.description}
                     </p>
                   </div>
@@ -87,18 +88,19 @@ const FeaturesSection = () => {
         </div>
 
         {/* Stats Section */}
-        <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8" role="region" aria-labelledby="stats-heading">
+          <h3 id="stats-heading" className="sr-only">Company Statistics</h3>
           {[
             { number: '50,000+', label: 'Happy Travelers' },
             { number: '200+', label: 'Destinations' },
             { number: '15+', label: 'Cruise Lines' },
             { number: '4.9/5', label: 'Customer Rating' }
           ].map((stat, index) => (
-            <div key={index} className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-ocean-blue mb-2">
+            <div key={index} className="text-center" role="group" aria-labelledby={`stat-${index}`}>
+              <div className="text-3xl md:text-4xl font-bold text-ocean-blue mb-2" id={`stat-${index}`}>
                 {stat.number}
               </div>
-              <div className="text-slate-gray font-medium">
+              <div className="text-charcoal font-medium">
                 {stat.label}
               </div>
             </div>

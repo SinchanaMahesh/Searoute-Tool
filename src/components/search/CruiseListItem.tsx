@@ -32,18 +32,20 @@ const CruiseListItem = ({ cruise }: CruiseListItemProps) => {
 
   return (
     <div 
-      className={`bg-white rounded-lg border border-border-gray overflow-hidden transition-all duration-300 ${
+      className={`bg-white rounded-lg border border-border-gray overflow-hidden transition-all duration-300 relative ${
         isHovered ? 'shadow-level-2 scale-[1.02]' : 'shadow-level-1'
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      role="article"
+      aria-labelledby={`cruise-list-${cruise.shipName}`}
     >
       <div className="flex flex-col md:flex-row">
         {/* Image */}
         <div className="relative md:w-80 h-48 md:h-auto overflow-hidden">
           <img
             src={cruise.images[0] || defaultImage}
-            alt={cruise.shipName}
+            alt={`${cruise.shipName} cruise ship`}
             className="w-full h-full object-cover"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
@@ -54,44 +56,46 @@ const CruiseListItem = ({ cruise }: CruiseListItemProps) => {
           {/* Badges */}
           <div className="absolute top-3 left-3 flex flex-col gap-1">
             {cruise.savings && (
-              <div className="bg-seafoam-green text-white px-2 py-1 rounded-full text-xs font-medium">
+              <div className="bg-seafoam-green text-white px-2 py-1 rounded-full text-xs font-medium shadow-md">
                 Save ${cruise.savings}
               </div>
             )}
             {cruise.isPopular && (
-              <div className="bg-sunset-orange text-white px-2 py-1 rounded-full text-xs font-medium">
+              <div className="bg-sunset-orange text-white px-2 py-1 rounded-full text-xs font-medium shadow-md">
                 Popular
               </div>
             )}
           </div>
 
-          {/* Hover icon indicator */}
-          <div className={`absolute top-3 right-3 transition-opacity duration-300 ${
+          {/* Hover icon indicator - positioned at bottom right */}
+          <div className={`absolute bottom-3 right-3 transition-opacity duration-300 ${
             isHovered ? 'opacity-100' : 'opacity-0'
           }`}>
-            <div className="w-8 h-8 bg-ocean-blue/90 rounded-full flex items-center justify-center">
-              <ExternalLink className="w-4 h-4 text-white" />
+            <div className="w-10 h-10 bg-white/95 rounded-full flex items-center justify-center shadow-lg border border-border-gray">
+              <ExternalLink className="w-5 h-5 text-ocean-blue" />
             </div>
           </div>
 
           {/* Quick Actions */}
-          <div className={`absolute top-3 right-14 flex gap-1 transition-opacity duration-300 ${
+          <div className={`absolute top-3 right-3 flex gap-2 transition-opacity duration-300 ${
             isHovered ? 'opacity-100' : 'opacity-0'
           }`}>
             <Button
               size="icon"
               variant="secondary"
-              className="w-8 h-8 bg-white/90 hover:bg-white"
+              className="w-10 h-10 bg-white/95 hover:bg-white border border-border-gray shadow-md min-w-[44px] min-h-[44px]"
               onClick={() => setIsSaved(!isSaved)}
+              aria-label={isSaved ? 'Remove from favorites' : 'Add to favorites'}
             >
-              <Heart className={`w-4 h-4 ${isSaved ? 'fill-coral-pink text-coral-pink' : 'text-slate-gray'}`} />
+              <Heart className={`w-5 h-5 ${isSaved ? 'fill-coral-pink text-coral-pink' : 'text-charcoal'}`} />
             </Button>
             <Button
               size="icon"
               variant="secondary"
-              className="w-8 h-8 bg-white/90 hover:bg-white"
+              className="w-10 h-10 bg-white/95 hover:bg-white border border-border-gray shadow-md min-w-[44px] min-h-[44px]"
+              aria-label="Share cruise"
             >
-              <Share className="w-4 h-4 text-slate-gray" />
+              <Share className="w-5 h-5 text-charcoal" />
             </Button>
           </div>
         </div>
@@ -102,28 +106,28 @@ const CruiseListItem = ({ cruise }: CruiseListItemProps) => {
             <div className="flex-1">
               {/* Header */}
               <div className="mb-3">
-                <h3 className="text-xl font-semibold text-charcoal mb-1">{cruise.shipName}</h3>
-                <p className="text-slate-gray">{cruise.cruiseLine}</p>
+                <h3 id={`cruise-list-${cruise.shipName}`} className="text-xl font-semibold text-charcoal mb-1">{cruise.shipName}</h3>
+                <p className="text-charcoal">{cruise.cruiseLine}</p>
               </div>
 
               {/* Details */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div className="flex items-center gap-2 text-sm text-charcoal">
-                  <Calendar className="w-4 h-4 text-slate-gray" />
+                  <Calendar className="w-4 h-4 text-charcoal" aria-hidden="true" />
                   <span>{cruise.duration} nights • {formatDate(cruise.departureDate)}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-charcoal">
-                  <MapPin className="w-4 h-4 text-slate-gray" />
+                  <MapPin className="w-4 h-4 text-charcoal" aria-hidden="true" />
                   <span>{cruise.route} • {cruise.ports.length} ports</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-charcoal">
-                  <Users className="w-4 h-4 text-slate-gray" />
+                  <Users className="w-4 h-4 text-charcoal" aria-hidden="true" />
                   <span>Departs from {cruise.departurePort}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" aria-hidden="true" />
                   <span className="text-sm font-medium text-charcoal">{cruise.rating}</span>
-                  <span className="text-sm text-slate-gray">
+                  <span className="text-sm text-charcoal">
                     ({cruise.reviewCount.toLocaleString()} reviews)
                   </span>
                 </div>
@@ -134,20 +138,20 @@ const CruiseListItem = ({ cruise }: CruiseListItemProps) => {
                 {cruise.amenities.slice(0, 4).map((amenity) => (
                   <span
                     key={amenity}
-                    className="px-2 py-1 bg-light-gray text-slate-gray text-xs rounded-full"
+                    className="px-2 py-1 bg-light-gray text-charcoal text-xs rounded-full border border-border-gray"
                   >
                     {amenity}
                   </span>
                 ))}
                 {cruise.amenities.length > 4 && (
-                  <span className="px-2 py-1 bg-light-gray text-slate-gray text-xs rounded-full">
+                  <span className="px-2 py-1 bg-light-gray text-charcoal text-xs rounded-full border border-border-gray">
                     +{cruise.amenities.length - 4} more
                   </span>
                 )}
               </div>
 
               {/* Ports Preview */}
-              <div className="text-sm text-slate-gray">
+              <div className="text-sm text-charcoal">
                 <span className="font-medium">Ports: </span>
                 {cruise.ports.join(' • ')}
               </div>
@@ -159,17 +163,17 @@ const CruiseListItem = ({ cruise }: CruiseListItemProps) => {
                 <div className="text-2xl font-bold text-charcoal">
                   {formatPrice(cruise.priceFrom)}
                 </div>
-                <div className="text-sm text-slate-gray mb-1">
+                <div className="text-sm text-charcoal mb-1">
                   from ${Math.round(cruise.priceFrom / cruise.duration)} per night
                 </div>
-                <div className="text-xs text-slate-gray">per person</div>
+                <div className="text-xs text-charcoal">per person</div>
               </div>
               
               <div className="flex flex-col gap-2">
-                <Button className="bg-ocean-blue hover:bg-deep-navy text-white min-w-32">
+                <Button className="bg-ocean-blue hover:bg-deep-navy text-white min-w-32 min-h-[44px]">
                   View Details
                 </Button>
-                <Button variant="outline" size="sm" className="border-ocean-blue text-ocean-blue hover:bg-ocean-blue hover:text-white">
+                <Button variant="outline" size="sm" className="border-ocean-blue text-ocean-blue hover:bg-ocean-blue hover:text-white min-h-[44px]">
                   <Plus className="w-4 h-4 mr-1" />
                   Compare
                 </Button>
