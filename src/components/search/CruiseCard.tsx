@@ -42,8 +42,8 @@ const CruiseCard = ({ cruise, showHoverIcon = true }: CruiseCardProps) => {
       role="article"
       aria-labelledby={`cruise-${cruise.shipName}`}
     >
-      {/* Image Gallery */}
-      <div className="relative aspect-video overflow-hidden">
+      {/* Image Gallery - increased height from aspect-video to custom height */}
+      <div className="relative h-64 overflow-hidden">
         <img
           src={cruise.images[currentImageIndex] || defaultImage}
           alt={`${cruise.shipName} cruise ship`}
@@ -54,39 +54,39 @@ const CruiseCard = ({ cruise, showHoverIcon = true }: CruiseCardProps) => {
           }}
         />
         
-        {/* Price Badge */}
-        <div className="absolute top-3 right-3 bg-ocean-blue text-white px-3 py-1 rounded-full text-sm font-semibold shadow-md">
+        {/* Price Badge - increased padding and font size */}
+        <div className="absolute top-4 right-4 bg-ocean-blue text-white px-4 py-2 rounded-full text-base font-semibold shadow-md">
           From {formatPrice(cruise.priceFrom)}
         </div>
 
-        {/* Savings Badge */}
+        {/* Savings Badge - increased padding */}
         {cruise.savings && (
-          <div className="absolute top-3 left-3 bg-seafoam-green text-white px-2 py-1 rounded-full text-xs font-medium shadow-md">
+          <div className="absolute top-4 left-4 bg-seafoam-green text-white px-3 py-2 rounded-full text-sm font-medium shadow-md">
             Save ${cruise.savings}
           </div>
         )}
 
-        {/* Popular Badge */}
+        {/* Popular Badge - increased padding and positioning */}
         {cruise.isPopular && (
-          <div className="absolute top-12 left-3 bg-sunset-orange text-white px-2 py-1 rounded-full text-xs font-medium shadow-md">
+          <div className="absolute top-16 left-4 bg-sunset-orange text-white px-3 py-2 rounded-full text-sm font-medium shadow-md">
             Popular
           </div>
         )}
 
-        {/* Hover icon indicator - positioned at bottom right */}
+        {/* Hover icon indicator - increased size */}
         {showHoverIcon && (
-          <div className={`absolute bottom-3 right-3 transition-opacity duration-300 ${
+          <div className={`absolute bottom-4 right-4 transition-opacity duration-300 ${
             isHovered ? 'opacity-100' : 'opacity-0'
           }`}>
-            <div className="w-10 h-10 bg-white/95 rounded-full flex items-center justify-center shadow-lg border border-border-gray">
-              <ExternalLink className="w-5 h-5 text-ocean-blue" />
+            <div className="w-12 h-12 bg-white/95 rounded-full flex items-center justify-center shadow-lg border border-border-gray">
+              <ExternalLink className="w-6 h-6 text-ocean-blue" />
             </div>
           </div>
         )}
 
-        {/* Image Navigation Dots */}
+        {/* Image Navigation Dots - increased size */}
         {cruise.images.length > 1 && (
-          <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-2">
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3">
             {cruise.images.map((_, index) => (
               <button
                 key={index}
@@ -94,7 +94,7 @@ const CruiseCard = ({ cruise, showHoverIcon = true }: CruiseCardProps) => {
                   e.stopPropagation();
                   setCurrentImageIndex(index);
                 }}
-                className={`w-3 h-3 rounded-full transition-colors min-w-[12px] min-h-[12px] ${
+                className={`w-4 h-4 rounded-full transition-colors min-w-[16px] min-h-[16px] ${
                   index === currentImageIndex ? 'bg-white shadow-md' : 'bg-white/60'
                 }`}
                 aria-label={`View image ${index + 1} of ${cruise.images.length}`}
@@ -103,103 +103,103 @@ const CruiseCard = ({ cruise, showHoverIcon = true }: CruiseCardProps) => {
           </div>
         )}
 
-        {/* Quick Actions */}
-        <div className={`absolute top-3 left-3 flex flex-col gap-2 transition-opacity ${
+        {/* Quick Actions - increased button size */}
+        <div className={`absolute top-4 left-4 flex flex-col gap-3 transition-opacity ${
           isHovered ? 'opacity-100' : 'opacity-0'
         }`}>
           <Button
             size="icon"
             variant="secondary"
-            className="w-10 h-10 bg-white/95 hover:bg-white border border-border-gray shadow-md min-w-[44px] min-h-[44px]"
+            className="w-12 h-12 bg-white/95 hover:bg-white border border-border-gray shadow-md min-w-[52px] min-h-[52px]"
             onClick={(e) => {
               e.stopPropagation();
               setIsSaved(!isSaved);
             }}
             aria-label={isSaved ? 'Remove from favorites' : 'Add to favorites'}
           >
-            <Heart className={`w-5 h-5 ${isSaved ? 'fill-coral-pink text-coral-pink' : 'text-charcoal'}`} />
+            <Heart className={`w-6 h-6 ${isSaved ? 'fill-coral-pink text-coral-pink' : 'text-charcoal'}`} />
           </Button>
           <Button
             size="icon"
             variant="secondary"
-            className="w-10 h-10 bg-white/95 hover:bg-white border border-border-gray shadow-md min-w-[44px] min-h-[44px]"
+            className="w-12 h-12 bg-white/95 hover:bg-white border border-border-gray shadow-md min-w-[52px] min-h-[52px]"
             onClick={(e) => e.stopPropagation()}
             aria-label="Share cruise"
           >
-            <Share className="w-5 h-5 text-charcoal" />
+            <Share className="w-6 h-6 text-charcoal" />
           </Button>
           <Button
             size="icon"
             variant="secondary"
-            className="w-10 h-10 bg-white/95 hover:bg-white border border-border-gray shadow-md min-w-[44px] min-h-[44px]"
+            className="w-12 h-12 bg-white/95 hover:bg-white border border-border-gray shadow-md min-w-[52px] min-h-[52px]"
             onClick={(e) => e.stopPropagation()}
             aria-label="Add to comparison"
           >
-            <Plus className="w-5 h-5 text-charcoal" />
+            <Plus className="w-6 h-6 text-charcoal" />
           </Button>
         </div>
       </div>
 
-      {/* Card Content */}
-      <div className="p-4">
-        {/* Ship & Cruise Line */}
-        <div className="mb-2">
-          <h3 id={`cruise-${cruise.shipName}`} className="text-lg font-semibold text-charcoal mb-1">{cruise.shipName}</h3>
-          <p className="text-sm text-charcoal">{cruise.cruiseLine}</p>
+      {/* Card Content - increased padding */}
+      <div className="p-5">
+        {/* Ship & Cruise Line - increased font sizes */}
+        <div className="mb-3">
+          <h3 id={`cruise-${cruise.shipName}`} className="text-xl font-semibold text-charcoal mb-1">{cruise.shipName}</h3>
+          <p className="text-base text-charcoal">{cruise.cruiseLine}</p>
         </div>
 
-        {/* Duration & Route */}
-        <div className="mb-3">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-charcoal mb-1">
-            <div className="flex items-center gap-1">
-              <Calendar className="w-4 h-4 text-charcoal flex-shrink-0" aria-hidden="true" />
+        {/* Duration & Route - increased spacing and font size */}
+        <div className="mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-base text-charcoal mb-2">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-charcoal flex-shrink-0" aria-hidden="true" />
               <span>{cruise.duration} nights</span>
             </div>
-            <div className="flex items-center gap-1">
-              <MapPin className="w-4 h-4 text-charcoal flex-shrink-0" aria-hidden="true" />
+            <div className="flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-charcoal flex-shrink-0" aria-hidden="true" />
               <span className="truncate">{cruise.route}</span>
             </div>
           </div>
-          <p className="text-sm text-charcoal">
+          <p className="text-base text-charcoal">
             {cruise.ports.length} ports • Departs {formatDate(cruise.departureDate)}
           </p>
         </div>
 
-        {/* Rating & Reviews */}
-        <div className="flex items-center gap-2 mb-4">
-          <div className="flex items-center gap-1">
-            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" aria-hidden="true" />
-            <span className="text-sm font-medium text-charcoal">{cruise.rating}</span>
+        {/* Rating & Reviews - increased font size and spacing */}
+        <div className="flex items-center gap-3 mb-5">
+          <div className="flex items-center gap-2">
+            <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" aria-hidden="true" />
+            <span className="text-base font-medium text-charcoal">{cruise.rating}</span>
           </div>
-          <span className="text-sm text-charcoal">
+          <span className="text-base text-charcoal">
             ({cruise.reviewCount.toLocaleString()} reviews)
           </span>
         </div>
 
-        {/* Amenities Preview */}
-        <div className="flex flex-wrap gap-1 mb-4">
+        {/* Amenities Preview - increased padding and font size */}
+        <div className="flex flex-wrap gap-2 mb-5">
           {cruise.amenities.slice(0, 3).map((amenity) => (
             <span
               key={amenity}
-              className="px-2 py-1 bg-light-gray text-charcoal text-xs rounded-full border border-border-gray"
+              className="px-3 py-2 bg-light-gray text-charcoal text-sm rounded-full border border-border-gray"
             >
               {amenity}
             </span>
           ))}
           {cruise.amenities.length > 3 && (
-            <span className="px-2 py-1 bg-light-gray text-charcoal text-xs rounded-full border border-border-gray">
+            <span className="px-3 py-2 bg-light-gray text-charcoal text-sm rounded-full border border-border-gray">
               +{cruise.amenities.length - 3} more
             </span>
           )}
         </div>
 
-        {/* Price & CTA */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Price & CTA - increased font sizes */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="text-xl font-bold text-charcoal">
+            <div className="text-2xl font-bold text-charcoal">
               {formatPrice(cruise.priceFrom)}
             </div>
-            <div className="text-xs text-charcoal">
+            <div className="text-sm text-charcoal">
               ${Math.round(cruise.priceFrom / cruise.duration)} per night
             </div>
           </div>

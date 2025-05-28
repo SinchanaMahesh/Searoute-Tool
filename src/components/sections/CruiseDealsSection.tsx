@@ -228,7 +228,7 @@ const CruiseDealsSection = () => {
 
     return (
       <div 
-        className={`relative group cursor-pointer flex-shrink-0 w-48 transition-transform duration-300 ${
+        className={`relative group cursor-pointer flex-shrink-0 w-58 transition-transform duration-300 ${
           isHovered ? 'transform -translate-y-2' : ''
         }`}
         onClick={() => handleCruiseClick(cruise.id)}
@@ -239,61 +239,61 @@ const CruiseDealsSection = () => {
           <img 
             src={cruise.image || defaultImage} 
             alt={cruise.title}
-            className="w-full h-32 object-cover transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.src = defaultImage;
             }}
           />
-          <div className="absolute top-2 right-2 bg-coral-pink text-white px-2 py-1 rounded text-xs font-bold">
+          <div className="absolute top-3 right-3 bg-coral-pink text-white px-3 py-2 rounded text-sm font-bold">
             {cruise.discount}
           </div>
           
-          {/* Type indicators */}
+          {/* Type indicators - increased size */}
           {cruise.type === 'last-minute' && (
-            <div className="absolute top-2 left-2 bg-sunset-orange text-white px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
-              <Zap className="w-3 h-3" />
+            <div className="absolute top-3 left-3 bg-sunset-orange text-white px-3 py-2 rounded text-sm font-bold flex items-center gap-2">
+              <Zap className="w-4 h-4" />
               Last Minute
             </div>
           )}
           {cruise.type === 'price-drop' && (
-            <div className="absolute top-2 left-2 bg-emerald-500 text-white px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
-              <TrendingDown className="w-3 h-3" />
+            <div className="absolute top-3 left-3 bg-emerald-500 text-white px-3 py-2 rounded text-sm font-bold flex items-center gap-2">
+              <TrendingDown className="w-4 h-4" />
               Price Drop
             </div>
           )}
           {cruise.departure && (
-            <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
-              <Clock className="w-3 h-3" />
+            <div className="absolute bottom-3 left-3 bg-black/70 text-white px-3 py-2 rounded text-sm flex items-center gap-2">
+              <Clock className="w-4 h-4" />
               {cruise.departure}
             </div>
           )}
           
-          {/* Hover icon indicator - moved to bottom right */}
-          <div className={`absolute bottom-2 right-2 transition-opacity duration-300 ${
+          {/* Hover icon indicator - increased size */}
+          <div className={`absolute bottom-3 right-3 transition-opacity duration-300 ${
             isHovered ? 'opacity-100' : 'opacity-0'
           }`}>
-            <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md">
-              <ExternalLink className="w-3 h-3 text-ocean-blue" />
+            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md">
+              <ExternalLink className="w-4 h-4 text-ocean-blue" />
             </div>
           </div>
         </div>
-        <div className="mt-2 space-y-1">
-          <h3 className="font-semibold text-charcoal text-sm line-clamp-1">{cruise.title}</h3>
-          <p className="text-xs text-slate-gray">{cruise.subtitle}</p>
+        <div className="mt-3 space-y-2">
+          <h3 className="font-semibold text-charcoal text-base line-clamp-1">{cruise.title}</h3>
+          <p className="text-sm text-slate-gray">{cruise.subtitle}</p>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                <span className="text-xs text-charcoal">{cruise.rating}</span>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                <span className="text-sm text-charcoal">{cruise.rating}</span>
               </div>
-              <span className="text-xs text-slate-gray">•</span>
-              <span className="text-xs text-slate-gray">{cruise.duration}</span>
+              <span className="text-sm text-slate-gray">•</span>
+              <span className="text-sm text-slate-gray">{cruise.duration}</span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-sunset-orange">{cruise.price}</span>
-            <span className="text-xs text-slate-gray line-through">{cruise.originalPrice}</span>
+          <div className="flex items-center gap-3">
+            <span className="text-base font-bold text-sunset-orange">{cruise.price}</span>
+            <span className="text-sm text-slate-gray line-through">{cruise.originalPrice}</span>
           </div>
         </div>
       </div>
