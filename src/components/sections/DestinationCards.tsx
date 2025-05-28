@@ -131,7 +131,7 @@ const DestinationCards = () => {
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
-      const scrollAmount = 384; // Increased for larger cards
+      const scrollAmount = 384;
       const currentScroll = scrollContainerRef.current.scrollLeft;
       const targetScroll = direction === 'left' 
         ? currentScroll - scrollAmount 
@@ -150,7 +150,7 @@ const DestinationCards = () => {
     return (
       <div 
         className={`group cursor-pointer flex-shrink-0 ${
-          isVertical ? 'w-72' : 'w-86'
+          isVertical ? 'w-80' : 'w-96'
         }`}
         onClick={() => handleDestinationClick(destination.name)}
         onMouseEnter={() => setHoveredCard(destination.id)}
@@ -158,9 +158,9 @@ const DestinationCards = () => {
       >
         <div className={`relative overflow-hidden rounded-lg bg-white border border-border-gray transition-all duration-300 ${
           isHovered ? 'shadow-level-3 -translate-y-1' : 'shadow-level-1'
-        } ${isVertical ? 'h-86' : 'h-[163px]'}`}>
-          {/* Image - increased dimensions */}
-          <div className={`relative ${isVertical ? 'h-52' : 'h-full w-48 float-left'} overflow-hidden`}>
+        } ${isVertical ? 'h-96' : 'h-48'}`}>
+          {/* Image */}
+          <div className={`relative ${isVertical ? 'h-56' : 'h-full w-56 float-left'} overflow-hidden`}>
             <img 
               src={destination.image || defaultImage} 
               alt={destination.name}
@@ -172,12 +172,12 @@ const DestinationCards = () => {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
             
-            {/* Price overlay - increased size */}
+            {/* Price overlay */}
             <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm rounded-md px-2 py-1">
               <div className="text-sm font-semibold text-charcoal">From {destination.averagePrice}</div>
             </div>
 
-            {/* Hover icon indicator - increased size */}
+            {/* Hover icon indicator */}
             <div className={`absolute bottom-3 right-3 transition-opacity duration-300 ${
               isHovered ? 'opacity-100' : 'opacity-0'
             }`}>
@@ -186,7 +186,7 @@ const DestinationCards = () => {
               </div>
             </div>
 
-            {/* Title overlay for horizontal cards - increased font sizes */}
+            {/* Title overlay for horizontal cards */}
             {!isVertical && (
               <div className="absolute bottom-2 left-2 text-white">
                 <h3 className="font-bold text-base mb-1">{destination.name}</h3>
@@ -195,9 +195,9 @@ const DestinationCards = () => {
             )}
           </div>
 
-          {/* Content - increased padding */}
-          <div className={`p-3 ${isVertical ? '' : 'ml-48'} flex-1 flex flex-col h-full`}>
-            {/* Title for vertical cards - increased font sizes */}
+          {/* Content */}
+          <div className={`p-3 ${isVertical ? '' : 'ml-56'} flex-1 flex flex-col h-full`}>
+            {/* Title for vertical cards */}
             {isVertical && (
               <div className="mb-2">
                 <h3 className="font-bold text-lg text-charcoal">{destination.name}</h3>
@@ -251,12 +251,12 @@ const DestinationCards = () => {
     if (group.length === 0) return null;
 
     return (
-      <div className="flex-shrink-0 flex gap-3">
+      <div className="flex-shrink-0 flex gap-6">
         {/* Vertical card */}
         <DestinationCard destination={group[0]} isVertical={true} />
         
         {/* Two horizontal cards stacked */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-6">
           {group[1] && <DestinationCard destination={group[1]} isVertical={false} />}
           {group[2] && <DestinationCard destination={group[2]} isVertical={false} />}
         </div>
@@ -284,7 +284,7 @@ const DestinationCards = () => {
         </div>
 
         <div className="relative group">
-          {/* Navigation arrow - increased size */}
+          {/* Navigation arrow */}
           <div className="absolute right-3 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <Button
               variant="ghost"
@@ -296,10 +296,10 @@ const DestinationCards = () => {
             </Button>
           </div>
 
-          {/* Scrollable container - increased gap */}
+          {/* Scrollable container */}
           <div 
             ref={scrollContainerRef}
-            className="flex gap-5 overflow-x-auto scrollbar-hide scroll-smooth pb-3"
+            className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-3"
           >
             {Array.from({ length: Math.ceil(destinations.length / 3) }).map((_, index) => (
               <GroupedCards key={index} startIndex={index * 3} />

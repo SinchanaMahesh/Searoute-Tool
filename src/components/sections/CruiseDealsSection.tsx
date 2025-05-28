@@ -1,4 +1,3 @@
-
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Star, Clock, Percent, TrendingDown, Zap, ChevronRight, ExternalLink } from 'lucide-react';
@@ -211,7 +210,7 @@ const CruiseDealsSection = () => {
 
   const scroll = (direction: 'left' | 'right', ref: React.RefObject<HTMLDivElement>) => {
     if (ref.current) {
-      const scrollAmount = 384; // Increased scroll amount for larger cards
+      const scrollAmount = 384;
       const currentScroll = ref.current.scrollLeft;
       const targetScroll = direction === 'left' 
         ? currentScroll - scrollAmount 
@@ -229,7 +228,7 @@ const CruiseDealsSection = () => {
 
     return (
       <div 
-        className={`relative group cursor-pointer flex-shrink-0 w-70 transition-transform duration-300 ${
+        className={`relative group cursor-pointer flex-shrink-0 w-80 transition-transform duration-300 ${
           isHovered ? 'transform -translate-y-2' : ''
         }`}
         onClick={() => handleCruiseClick(cruise.id)}
@@ -240,7 +239,7 @@ const CruiseDealsSection = () => {
           <img 
             src={cruise.image || defaultImage} 
             alt={cruise.title}
-            className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-56 object-cover transition-transform duration-300 group-hover:scale-105"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.src = defaultImage;
@@ -250,7 +249,7 @@ const CruiseDealsSection = () => {
             {cruise.discount}
           </div>
           
-          {/* Type indicators - increased size */}
+          {/* Type indicators */}
           {cruise.type === 'last-minute' && (
             <div className="absolute top-4 left-4 bg-sunset-orange text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2">
               <Zap className="w-4 h-4" />
@@ -270,7 +269,7 @@ const CruiseDealsSection = () => {
             </div>
           )}
           
-          {/* Hover icon indicator - increased size */}
+          {/* Hover icon indicator */}
           <div className={`absolute bottom-4 right-4 transition-opacity duration-300 ${
             isHovered ? 'opacity-100' : 'opacity-0'
           }`}>
@@ -328,7 +327,7 @@ const CruiseDealsSection = () => {
         
         <div 
           ref={scrollRef}
-          className="flex gap-5 overflow-x-auto scrollbar-hide scroll-smooth pb-3"
+          className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-3"
         >
           {items.map((item) => (
             <CruiseCard key={item.id} cruise={item} />
