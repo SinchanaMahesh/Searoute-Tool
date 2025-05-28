@@ -113,7 +113,7 @@ const DestinationCards = () => {
   const defaultImage = "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=400";
 
   const handleDestinationClick = (destinationName: string) => {
-    navigate(`/search?q=${encodeURIComponent(`${destinationName} cruise`)}&destination=${destinationName}`);
+    navigate(`/destination/${destinationName.toLowerCase().replace(/\s+/g, '-')}`);
   };
 
   const handleViewAllClick = () => {
