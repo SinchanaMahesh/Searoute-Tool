@@ -1,5 +1,4 @@
-
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Ship, ChevronRight, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -7,9 +6,11 @@ import { useNavigate } from 'react-router-dom';
 const DestinationCards = () => {
   const navigate = useNavigate();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
   const destinations = [
     {
+      id: "caribbean",
       name: "Caribbean",
       description: "Tropical paradise with pristine beaches",
       image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600",
@@ -21,6 +22,7 @@ const DestinationCards = () => {
       type: "vertical"
     },
     {
+      id: "mediterranean",
       name: "Mediterranean",
       description: "Historic cities and stunning coastlines",
       image: "https://images.unsplash.com/photo-1533929736458-ca588d08c8be?w=400",
@@ -32,6 +34,7 @@ const DestinationCards = () => {
       type: "horizontal"
     },
     {
+      id: "alaska",
       name: "Alaska",
       description: "Glaciers, wildlife, and breathtaking scenery",
       image: "https://images.unsplash.com/photo-1586861203927-800a5acdcc4d?w=400",
@@ -43,6 +46,7 @@ const DestinationCards = () => {
       type: "horizontal"
     },
     {
+      id: "northern-europe",
       name: "Northern Europe",
       description: "Fjords, capitals, and Viking heritage",
       image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300",
@@ -54,6 +58,7 @@ const DestinationCards = () => {
       type: "vertical"
     },
     {
+      id: "asia",
       name: "Asia",
       description: "Ancient cultures and modern marvels",
       image: "https://images.unsplash.com/photo-1549693578-d683be217e58?w=300",
@@ -65,6 +70,7 @@ const DestinationCards = () => {
       type: "horizontal"
     },
     {
+      id: "transatlantic",
       name: "Transatlantic",
       description: "Classic ocean crossing experience",
       image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400",
@@ -76,6 +82,7 @@ const DestinationCards = () => {
       type: "horizontal"
     },
     {
+      id: "pacific-coast",
       name: "Pacific Coast",
       description: "Scenic coastlines and charming cities",
       image: "https://images.unsplash.com/photo-1472396961693-142e6e269027?w=400",
@@ -87,6 +94,7 @@ const DestinationCards = () => {
       type: "vertical"
     },
     {
+      id: "baltic-sea",
       name: "Baltic Sea",
       description: "Historic capitals and medieval charm",
       image: "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=400",
@@ -98,6 +106,7 @@ const DestinationCards = () => {
       type: "horizontal"
     },
     {
+      id: "british-isles",
       name: "British Isles",
       description: "Castles, countryside, and culture",
       image: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=400",
@@ -135,97 +144,107 @@ const DestinationCards = () => {
     }
   };
 
-  const DestinationCard = ({ destination, isVertical }: { destination: any; isVertical: boolean }) => (
-    <div 
-      className={`group cursor-pointer flex-shrink-0 ${
-        isVertical ? 'w-60' : 'w-72'
-      }`}
-      onClick={() => handleDestinationClick(destination.name)}
-    >
-      <div className={`relative overflow-hidden rounded-lg bg-white border border-border-gray transition-all duration-300 group-hover:shadow-level-3 group-hover:-translate-y-1 ${
-        isVertical ? 'h-72' : 'h-[136px]'
-      }`}>
-        {/* Image */}
-        <div className={`relative ${isVertical ? 'h-44' : 'h-full w-40 float-left'} overflow-hidden`}>
-          <img 
-            src={destination.image || defaultImage} 
-            alt={destination.name}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = defaultImage;
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-          
-          {/* Price overlay */}
-          <div className="absolute top-1 right-1 bg-white/90 backdrop-blur-sm rounded-md px-1 py-0.5">
-            <div className="text-xs font-semibold text-charcoal">From {destination.averagePrice}</div>
+  const DestinationCard = ({ destination, isVertical }: { destination: any; isVertical: boolean }) => {
+    const isHovered = hoveredCard === destination.id;
+    
+    return (
+      <div 
+        className={`group cursor-pointer flex-shrink-0 ${
+          isVertical ? 'w-60' : 'w-72'
+        }`}
+        onClick={() => handleDestinationClick(destination.name)}
+        onMouseEnter={() => setHoveredCard(destination.id)}
+        onMouseLeave={() => setHoveredCard(null)}
+      >
+        <div className={`relative overflow-hidden rounded-lg bg-white border border-border-gray transition-all duration-300 ${
+          isHovered ? 'shadow-level-3 -translate-y-1' : 'shadow-level-1'
+        } ${isVertical ? 'h-72' : 'h-[136px]'}`}>
+          {/* Image */}
+          <div className={`relative ${isVertical ? 'h-44' : 'h-full w-40 float-left'} overflow-hidden`}>
+            <img 
+              src={destination.image || defaultImage} 
+              alt={destination.name}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = defaultImage;
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            
+            {/* Price overlay */}
+            <div className="absolute top-1 right-1 bg-white/90 backdrop-blur-sm rounded-md px-1 py-0.5">
+              <div className="text-xs font-semibold text-charcoal">From {destination.averagePrice}</div>
+            </div>
+
+            {/* Hover icon indicator */}
+            <div className={`absolute top-2 left-2 transition-opacity duration-300 ${
+              isHovered ? 'opacity-100' : 'opacity-0'
+            }`}>
+              <div className="w-6 h-6 bg-ocean-blue/90 rounded-full flex items-center justify-center">
+                <ExternalLink className="w-3 h-3 text-white" />
+              </div>
+            </div>
+
+            {/* Title overlay for horizontal cards */}
+            {!isVertical && (
+              <div className="absolute bottom-1 left-1 text-white">
+                <h3 className="font-bold text-sm mb-0.5">{destination.name}</h3>
+                <p className="text-xs opacity-90 line-clamp-1">{destination.description}</p>
+              </div>
+            )}
           </div>
 
-          {/* Hover icon indicator */}
-          <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="w-6 h-6 bg-ocean-blue/90 rounded-full flex items-center justify-center">
-              <ExternalLink className="w-3 h-3 text-white" />
-            </div>
-          </div>
+          {/* Content */}
+          <div className={`p-2 ${isVertical ? '' : 'ml-40'} flex-1 flex flex-col h-full`}>
+            {/* Title for vertical cards */}
+            {isVertical && (
+              <div className="mb-1">
+                <h3 className="font-bold text-base text-charcoal">{destination.name}</h3>
+                <p className="text-xs text-slate-gray line-clamp-2">{destination.description}</p>
+              </div>
+            )}
 
-          {/* Title overlay for horizontal cards */}
-          {!isVertical && (
-            <div className="absolute bottom-1 left-1 text-white">
-              <h3 className="font-bold text-sm mb-0.5">{destination.name}</h3>
-              <p className="text-xs opacity-90 line-clamp-1">{destination.description}</p>
+            <div className={`grid ${isVertical ? 'grid-cols-2' : 'grid-cols-1'} gap-1 mb-1`}>
+              <div className="flex items-center gap-1 text-xs">
+                <Ship className="w-2 h-2 text-ocean-blue" />
+                <span className="text-slate-gray">{destination.cruiseCount} cruises</span>
+              </div>
+              <div className="flex items-center gap-1 text-xs">
+                <Calendar className="w-2 h-2 text-ocean-blue" />
+                <span className="text-slate-gray">{destination.bestTime}</span>
+              </div>
             </div>
-          )}
-        </div>
 
-        {/* Content */}
-        <div className={`p-2 ${isVertical ? '' : 'ml-40'} flex-1 flex flex-col h-full`}>
-          {/* Title for vertical cards */}
-          {isVertical && (
             <div className="mb-1">
-              <h3 className="font-bold text-base text-charcoal">{destination.name}</h3>
-              <p className="text-xs text-slate-gray line-clamp-2">{destination.description}</p>
+              <h4 className="text-xs font-medium text-charcoal mb-0.5">Popular Ports</h4>
+              <div className="flex flex-wrap gap-0.5">
+                {destination.popularPorts.slice(0, isVertical ? 3 : 2).map((port: string, portIndex: number) => (
+                  <span 
+                    key={portIndex}
+                    className="text-xs bg-light-gray text-slate-gray px-1 py-0.5 rounded-full"
+                  >
+                    {port}
+                  </span>
+                ))}
+              </div>
             </div>
-          )}
 
-          <div className={`grid ${isVertical ? 'grid-cols-2' : 'grid-cols-1'} gap-1 mb-1`}>
-            <div className="flex items-center gap-1 text-xs">
-              <Ship className="w-2 h-2 text-ocean-blue" />
-              <span className="text-slate-gray">{destination.cruiseCount} cruises</span>
-            </div>
-            <div className="flex items-center gap-1 text-xs">
-              <Calendar className="w-2 h-2 text-ocean-blue" />
-              <span className="text-slate-gray">{destination.bestTime}</span>
+            <div className="flex items-center justify-between mt-auto">
+              <div className="text-xs text-slate-gray">
+                {destination.duration} typical
+              </div>
             </div>
           </div>
 
-          <div className="mb-1">
-            <h4 className="text-xs font-medium text-charcoal mb-0.5">Popular Ports</h4>
-            <div className="flex flex-wrap gap-0.5">
-              {destination.popularPorts.slice(0, isVertical ? 3 : 2).map((port: string, portIndex: number) => (
-                <span 
-                  key={portIndex}
-                  className="text-xs bg-light-gray text-slate-gray px-1 py-0.5 rounded-full"
-                >
-                  {port}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between mt-auto">
-            <div className="text-xs text-slate-gray">
-              {destination.duration} typical
-            </div>
-          </div>
+          {/* Hover overlay */}
+          <div className={`absolute inset-0 bg-ocean-blue/5 transition-opacity duration-300 rounded-lg ${
+            isHovered ? 'opacity-100' : 'opacity-0'
+          }`}></div>
         </div>
-
-        {/* Hover overlay */}
-        <div className="absolute inset-0 bg-ocean-blue/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const GroupedCards = ({ startIndex }: { startIndex: number }) => {
     const group = destinations.slice(startIndex, startIndex + 3);

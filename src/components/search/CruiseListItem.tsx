@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Heart, Share, Plus, Star, Calendar, MapPin, Users } from 'lucide-react';
+import { Heart, Share, Plus, Star, Calendar, MapPin, Users, ExternalLink } from 'lucide-react';
 import { Cruise } from '@/pages/Search';
 
 interface CruiseListItemProps {
@@ -10,6 +10,9 @@ interface CruiseListItemProps {
 
 const CruiseListItem = ({ cruise }: CruiseListItemProps) => {
   const [isSaved, setIsSaved] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const defaultImage = "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=400";
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -28,14 +31,24 @@ const CruiseListItem = ({ cruise }: CruiseListItemProps) => {
   };
 
   return (
-    <div className="bg-white rounded-lg border border-border-gray overflow-hidden shadow-level-1 hover:shadow-level-2 transition-all duration-300">
+    <div 
+      className={`bg-white rounded-lg border border-border-gray overflow-hidden transition-all duration-300 ${
+        isHovered ? 'shadow-level-2 scale-[1.02]' : 'shadow-level-1'
+      }`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <div className="flex flex-col md:flex-row">
         {/* Image */}
         <div className="relative md:w-80 h-48 md:h-auto overflow-hidden">
           <img
-            src={cruise.images[0]}
+            src={cruise.images[0] || defaultImage}
             alt={cruise.shipName}
             className="w-full h-full object-cover"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = defaultImage;
+            }}
           />
           
           {/* Badges */}
@@ -52,8 +65,19 @@ const CruiseListItem = ({ cruise }: CruiseListItemProps) => {
             )}
           </div>
 
+          {/* Hover icon indicator */}
+          <div className={`absolute top-3 right-3 transition-opacity duration-300 ${
+            isHovered ? 'opacity-100' : 'opacity-0'
+          }`}>
+            <div className="w-8 h-8 bg-ocean-blue/90 rounded-full flex items-center justify-center">
+              <ExternalLink className="w-4 h-4 text-white" />
+            </div>
+          </div>
+
           {/* Quick Actions */}
-          <div className="absolute top-3 right-3 flex gap-1">
+          <div className={`absolute top-3 right-14 flex gap-1 transition-opacity duration-300 ${
+            isHovered ? 'opacity-100' : 'opacity-0'
+          }`}>
             <Button
               size="icon"
               variant="secondary"
@@ -154,6 +178,11 @@ const CruiseListItem = ({ cruise }: CruiseListItemProps) => {
           </div>
         </div>
       </div>
+
+      {/* Hover overlay */}
+      <div className={`absolute inset-0 bg-ocean-blue/5 transition-opacity duration-300 rounded-lg pointer-events-none ${
+        isHovered ? 'opacity-100' : 'opacity-0'
+      }`}></div>
     </div>
   );
 };

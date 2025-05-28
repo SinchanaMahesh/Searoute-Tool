@@ -6,11 +6,15 @@ import { Cruise } from '@/pages/Search';
 
 interface CruiseCardProps {
   cruise: Cruise;
+  showHoverIcon?: boolean;
 }
 
-const CruiseCard = ({ cruise }: CruiseCardProps) => {
+const CruiseCard = ({ cruise, showHoverIcon = true }: CruiseCardProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const defaultImage = "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=400";
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -29,13 +33,23 @@ const CruiseCard = ({ cruise }: CruiseCardProps) => {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-border-gray overflow-hidden shadow-level-1 transition-all duration-300 hover:shadow-level-3 hover:-translate-y-1 group cursor-pointer">
+    <div 
+      className={`bg-white rounded-xl border border-border-gray overflow-hidden transition-all duration-300 cursor-pointer ${
+        isHovered ? 'shadow-level-3 -translate-y-1' : 'shadow-level-1'
+      }`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       {/* Image Gallery */}
       <div className="relative aspect-video overflow-hidden">
         <img
-          src={cruise.images[currentImageIndex]}
+          src={cruise.images[currentImageIndex] || defaultImage}
           alt={cruise.shipName}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = defaultImage;
+          }}
         />
         
         {/* Price Badge */}
@@ -58,11 +72,15 @@ const CruiseCard = ({ cruise }: CruiseCardProps) => {
         )}
 
         {/* Hover icon indicator */}
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <div className="w-8 h-8 bg-ocean-blue/90 rounded-full flex items-center justify-center">
-            <ExternalLink className="w-4 h-4 text-white" />
+        {showHoverIcon && (
+          <div className={`absolute top-2 right-2 transition-opacity duration-300 ${
+            isHovered ? 'opacity-100' : 'opacity-0'
+          }`}>
+            <div className="w-8 h-8 bg-ocean-blue/90 rounded-full flex items-center justify-center">
+              <ExternalLink className="w-4 h-4 text-white" />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Image Navigation Dots */}
         {cruise.images.length > 1 && (
@@ -83,7 +101,9 @@ const CruiseCard = ({ cruise }: CruiseCardProps) => {
         )}
 
         {/* Quick Actions */}
-        <div className="absolute top-3 left-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className={`absolute top-3 left-3 flex flex-col gap-2 transition-opacity ${
+          isHovered ? 'opacity-100' : 'opacity-0'
+        }`}>
           <Button
             size="icon"
             variant="secondary"
@@ -181,7 +201,9 @@ const CruiseCard = ({ cruise }: CruiseCardProps) => {
       </div>
 
       {/* Hover overlay */}
-      <div className="absolute inset-0 bg-ocean-blue/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl pointer-events-none"></div>
+      <div className={`absolute inset-0 bg-ocean-blue/5 transition-opacity duration-300 rounded-xl pointer-events-none ${
+        isHovered ? 'opacity-100' : 'opacity-0'
+      }`}></div>
     </div>
   );
 };
