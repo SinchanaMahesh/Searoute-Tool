@@ -1,12 +1,14 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Star, Clock, Percent, TrendingDown, Zap, ChevronRight, ExternalLink } from 'lucide-react';
+import { Star, Clock, Percent, TrendingDown, Zap, ChevronRight, ChevronLeft, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const CruiseDealsSection = () => {
   const navigate = useNavigate();
   const recentlyViewedRef = useRef<HTMLDivElement>(null);
   const dealsRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState({ recently: false, deals: false });
+  const [canScrollRight, setCanScrollRight] = useState({ recently: true, deals: true });
 
   const defaultImage = "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=400";
 
@@ -200,6 +202,50 @@ const CruiseDealsSection = () => {
     }
   ];
 
+  // Check scroll position
+  const checkScrollPosition = (ref: React.RefObject<HTMLDivElement>, section: 'recently' | 'deals') => {
+    if (ref.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = ref.current;
+      const canLeft = scrollLeft > 0;
+      const canRight = scrollLeft < scrollWidth - clientWidth - 1;
+      
+      if (section === 'recently') {
+        setCanScrollLeft(prev => ({ ...prev, recently: canLeft }));
+        setCanScrollRight(prev => ({ ...prev, recently: canRight }));
+      } else {
+        setCanScrollLeft(prev => ({ ...prev, deals: canLeft }));
+        setCanScrollRight(prev => ({ ...prev, deals: canRight }));
+      }
+    }
+  };
+
+  useEffect(() => {
+    const recentlyViewedElement = recentlyViewedRef.current;
+    const dealsElement = dealsRef.current;
+
+    const handleRecentlyScroll = () => checkScrollPosition(recentlyViewedRef, 'recently');
+    const handleDealsScroll = () => checkScrollPosition(dealsRef, 'deals');
+
+    if (recentlyViewedElement) {
+      recentlyViewedElement.addEventListener('scroll', handleRecentlyScroll);
+      checkScrollPosition(recentlyViewedRef, 'recently'); // Initial check
+    }
+
+    if (dealsElement) {
+      dealsElement.addEventListener('scroll', handleDealsScroll);
+      checkScrollPosition(dealsRef, 'deals'); // Initial check
+    }
+
+    return () => {
+      if (recentlyViewedElement) {
+        recentlyViewedElement.removeEventListener('scroll', handleRecentlyScroll);
+      }
+      if (dealsElement) {
+        dealsElement.removeEventListener('scroll', handleDealsScroll);
+      }
+    };
+  }, []);
+
   const handleCruiseClick = (cruiseId: number) => {
     navigate(`/cruise/${cruiseId}/book`);
   };
@@ -228,7 +274,7 @@ const CruiseDealsSection = () => {
 
     return (
       <div 
-        className={`relative group cursor-pointer flex-shrink-0 w-80 transition-transform duration-300 ${
+        className={`relative group cursor-pointer flex-shrink-0 w-96 transition-transform duration-300 ${
           isHovered ? 'transform -translate-y-2' : ''
         }`}
         onClick={() => handleCruiseClick(cruise.id)}
@@ -239,7 +285,7 @@ const CruiseDealsSection = () => {
           <img 
             src={cruise.image || defaultImage} 
             alt={cruise.title}
-            className="w-full h-56 object-cover transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.src = defaultImage;
@@ -300,7 +346,13 @@ const CruiseDealsSection = () => {
     );
   };
 
-  const SectionRow = ({ title, items, viewAllText = "View All", scrollRef }: { title: string; items: any[]; viewAllText?: string; scrollRef: React.RefObject<HTMLDivElement> }) => (
+  const SectionRow = ({ title, items, viewAllText = "View All", scrollRef, section }: { 
+    title: string; 
+    items: any[]; 
+    viewAllText?: string; 
+    scrollRef: React.RefObject<HTMLDivElement>;
+    section: 'recently' | 'deals';
+  }) => (
     <div className="mb-8">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-charcoal">{title}</h2>
@@ -313,17 +365,33 @@ const CruiseDealsSection = () => {
         </Button>
       </div>
       <div className="relative group">
-        {/* Navigation arrow - right */}
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 hover:bg-white shadow-sm"
-            onClick={() => scroll('right', scrollRef)}
-          >
-            <ChevronRight className="w-5 h-5 text-gray-600" />
-          </Button>
-        </div>
+        {/* Left Navigation Arrow */}
+        {(section === 'recently' ? canScrollLeft.recently : canScrollLeft.deals) && (
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 hover:bg-white shadow-sm"
+              onClick={() => scroll('left', scrollRef)}
+            >
+              <ChevronLeft className="w-5 h-5 text-gray-600" />
+            </Button>
+          </div>
+        )}
+        
+        {/* Right Navigation Arrow */}
+        {(section === 'recently' ? canScrollRight.recently : canScrollRight.deals) && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 hover:bg-white shadow-sm"
+              onClick={() => scroll('right', scrollRef)}
+            >
+              <ChevronRight className="w-5 h-5 text-gray-600" />
+            </Button>
+          </div>
+        )}
         
         <div 
           ref={scrollRef}
@@ -340,8 +408,18 @@ const CruiseDealsSection = () => {
   return (
     <section className="py-8 bg-pearl-white">
       <div className="container mx-auto px-4 lg:px-8">
-        <SectionRow title="Recently Viewed" items={recentlyViewed} scrollRef={recentlyViewedRef} />
-        <SectionRow title="Deals & Steals" items={dealsAndSteals} scrollRef={dealsRef} />
+        <SectionRow 
+          title="Recently Viewed" 
+          items={recentlyViewed} 
+          scrollRef={recentlyViewedRef} 
+          section="recently"
+        />
+        <SectionRow 
+          title="Deals & Steals" 
+          items={dealsAndSteals} 
+          scrollRef={dealsRef} 
+          section="deals"
+        />
       </div>
     </section>
   );

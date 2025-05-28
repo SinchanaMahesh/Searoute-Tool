@@ -1,12 +1,14 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { MapPin, Calendar, Ship, ChevronRight, ExternalLink } from 'lucide-react';
+import { MapPin, Calendar, Ship, ChevronRight, ChevronLeft, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const DestinationCards = () => {
   const navigate = useNavigate();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
 
   const destinations = [
     {
@@ -121,6 +123,27 @@ const DestinationCards = () => {
 
   const defaultImage = "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=400";
 
+  // Check scroll position
+  const checkScrollPosition = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+    }
+  };
+
+  useEffect(() => {
+    const element = scrollContainerRef.current;
+    if (element) {
+      element.addEventListener('scroll', checkScrollPosition);
+      checkScrollPosition(); // Initial check
+      
+      return () => {
+        element.removeEventListener('scroll', checkScrollPosition);
+      };
+    }
+  }, []);
+
   const handleDestinationClick = (destinationName: string) => {
     navigate(`/destination/${destinationName.toLowerCase().replace(/\s+/g, '-')}`);
   };
@@ -150,7 +173,7 @@ const DestinationCards = () => {
     return (
       <div 
         className={`group cursor-pointer flex-shrink-0 ${
-          isVertical ? 'w-80' : 'w-96'
+          isVertical ? 'w-96' : 'w-96'
         }`}
         onClick={() => handleDestinationClick(destination.name)}
         onMouseEnter={() => setHoveredCard(destination.id)}
@@ -158,9 +181,9 @@ const DestinationCards = () => {
       >
         <div className={`relative overflow-hidden rounded-lg bg-white border border-border-gray transition-all duration-300 ${
           isHovered ? 'shadow-level-3 -translate-y-1' : 'shadow-level-1'
-        } ${isVertical ? 'h-96' : 'h-48'}`}>
+        } ${isVertical ? 'h-[480px]' : 'h-[230px]'}`}>
           {/* Image */}
-          <div className={`relative ${isVertical ? 'h-56' : 'h-full w-56 float-left'} overflow-hidden`}>
+          <div className={`relative ${isVertical ? 'h-64' : 'h-full w-56 float-left'} overflow-hidden`}>
             <img 
               src={destination.image || defaultImage} 
               alt={destination.name}
@@ -284,17 +307,33 @@ const DestinationCards = () => {
         </div>
 
         <div className="relative group">
-          {/* Navigation arrow */}
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 hover:bg-white shadow-sm"
-              onClick={() => scroll('right')}
-            >
-              <ChevronRight className="w-5 h-5 text-gray-600" />
-            </Button>
-          </div>
+          {/* Left Navigation arrow */}
+          {canScrollLeft && (
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 hover:bg-white shadow-sm"
+                onClick={() => scroll('left')}
+              >
+                <ChevronLeft className="w-5 h-5 text-gray-600" />
+              </Button>
+            </div>
+          )}
+
+          {/* Right Navigation arrow */}
+          {canScrollRight && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 hover:bg-white shadow-sm"
+                onClick={() => scroll('right')}
+              >
+                <ChevronRight className="w-5 h-5 text-gray-600" />
+              </Button>
+            </div>
+          )}
 
           {/* Scrollable container */}
           <div 
