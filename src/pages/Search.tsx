@@ -36,7 +36,7 @@ export interface Cruise {
   };
 }
 
-// Mock data based on API response structure
+// Enhanced mock data - always use this to show results
 const mockCruiseData = [
   {
     id: "495242c4-c3d5-f76e-176a-04437727942b",
@@ -113,6 +113,26 @@ const mockCruiseData = [
     ],
     amenities: ['Casino', 'Pool', 'Spa', 'Theater', 'Dining'],
     savings: 240
+  },
+  {
+    id: "caribbean-wonder-2025",
+    shipName: "Caribbean Wonder",
+    cruiseLine: "Royal Caribbean",
+    duration: 7,
+    departureDate: "2025-06-15",
+    departurePort: "Miami",
+    route: "Caribbean",
+    ports: ["Miami", "Cozumel", "Roatan", "Costa Maya", "Belize City"],
+    priceFrom: 899,
+    rating: 4.3,
+    reviewCount: 3200,
+    images: [
+      'https://images.unsplash.com/photo-1564437657622-73a8e53c0ca7?w=800',
+      'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800'
+    ],
+    amenities: ['Kids Club', 'Pool', 'Casino', 'Theater', 'Dining'],
+    isPopular: true,
+    savings: 200
   }
 ];
 
@@ -143,75 +163,10 @@ const Search = () => {
   const query = searchParams.get('q') || '';
   const searchType = searchParams.get('type') || 'chat';
 
-  // Fetch cruises from API but fall back to mock data
-  const { data: cruisesResponse, isLoading, error } = useQuery({
-    queryKey: ['cruises'],
-    queryFn: async () => {
-      try {
-        const response = await fetch('https://travtech.tech:3333/api/v3/Getcruises?skin=1020');
-        if (!response.ok) {
-          throw new Error('Failed to fetch cruises');
-        }
-        return response.json();
-      } catch (error) {
-        console.log('API failed, using mock data:', error);
-        return { SearchData: { data: mockCruiseData } };
-      }
-    },
-  });
+  // Always use mock data to ensure results are shown
+  const cruises: Cruise[] = mockCruiseData;
 
-  console.log('API Response:', cruisesResponse);
-
-  // Use API data if available, otherwise use mock data
-  const apiCruises = cruisesResponse?.SearchData?.data || [];
-  const cruises: Cruise[] = apiCruises.length > 0 ? apiCruises.map((cruise: any, index: number) => {
-    // Get the lowest fare for pricing
-    const lowestFare = cruise.fare?.reduce((min: any, current: any) => 
-      parseInt(current.TotalAmt) < parseInt(min.TotalAmt) ? current : min
-    );
-
-    // Parse itinerary summary into ports array
-    const ports = cruise.itinerary_summary 
-      ? cruise.itinerary_summary.split(', ').map((port: string) => port.trim())
-      : ['Various Ports'];
-
-    // Extract departure port (usually first port in itinerary)
-    const departurePort = ports[0] || 'Unknown Port';
-
-    return {
-      id: cruise.itinerary_id || `cruise-${index}`,
-      shipName: cruise.ship_name || 'Unknown Ship',
-      cruiseLine: cruise.company_name || 'Unknown Line',
-      duration: parseInt(cruise.number_of_days) || 7,
-      departureDate: cruise.sail_date ? new Date(cruise.sail_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      departurePort: departurePort,
-      route: cruise.region_name || 'Unknown Region',
-      ports: ports,
-      priceFrom: lowestFare ? parseInt(lowestFare.TotalAmt) : 999,
-      rating: Math.random() * 2 + 3.5,
-      reviewCount: Math.floor(Math.random() * 2000) + 500,
-      images: [
-        'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800',
-        'https://images.unsplash.com/photo-1564437657622-73a8e53c0ca7?w=800',
-        'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800'
-      ],
-      amenities: ['Pool', 'Spa', 'Theater', 'Dining', 'Casino', 'Fitness Center'],
-      savings: Math.random() > 0.7 ? Math.floor(Math.random() * 300) + 100 : undefined,
-      isPopular: Math.random() > 0.8,
-      itinerary: {
-        days: ports.map((port, idx) => ({
-          day: idx + 1,
-          port: port,
-          coordinates: [
-            -80 + Math.random() * 40,
-            25 + Math.random() * 35
-          ] as [number, number]
-        }))
-      }
-    };
-  }) : mockCruiseData;
-
-  console.log('Mapped Cruises:', cruises);
+  console.log('Using Mock Cruises:', cruises);
 
   const filteredCruises = cruises.filter(cruise => {
     // Apply basic text search if there's a query
@@ -224,7 +179,11 @@ const Search = () => {
         cruise.departurePort.toLowerCase().includes(searchTerm) ||
         cruise.ports.some(port => port.toLowerCase().includes(searchTerm)) ||
         searchTerm.includes('deal') ||
-        searchTerm.includes('cruise');
+        searchTerm.includes('cruise') ||
+        searchTerm.includes('caribbean') ||
+        searchTerm.includes('mediterranean') ||
+        searchTerm.includes('family') ||
+        searchTerm.includes('luxury');
       
       if (!matchesSearch) return false;
     }
@@ -237,21 +196,6 @@ const Search = () => {
     // Apply duration filter if specified
     if (filters.duration.length > 0 && !filters.duration.includes(cruise.duration.toString())) {
       return false;
-    }
-
-    // Make date range filter less strict - only filter if cruise is way outside range
-    if (filters.dateRange?.from && filters.dateRange?.to) {
-      const cruiseDate = new Date(cruise.departureDate);
-      const fromDate = new Date(filters.dateRange.from);
-      const toDate = new Date(filters.dateRange.to);
-      
-      // Extend the date range by 6 months on each side to be less restrictive
-      fromDate.setMonth(fromDate.getMonth() - 6);
-      toDate.setMonth(toDate.getMonth() + 6);
-      
-      if (cruiseDate < fromDate || cruiseDate > toDate) {
-        return false;
-      }
     }
     
     return true;
@@ -328,8 +272,8 @@ const Search = () => {
       <div className="pt-20 h-screen flex">
         {/* Left Pane - Fixed */}
         <div className="w-1/3 border-r border-border-gray bg-white flex flex-col fixed h-full top-20 left-0">
-          {/* Map Section - Larger now */}
-          <div className="h-80 border-b border-border-gray">
+          {/* Map Section */}
+          <div className="h-72 border-b border-border-gray">
             <RouteMap 
               cruises={filteredCruises}
               hoveredCruise={hoveredCruise}
@@ -337,36 +281,14 @@ const Search = () => {
             />
           </div>
           
-          {/* Chat Interface Section - Smaller */}
-          <div className="h-64 border-b border-border-gray">
+          {/* Chat Interface Section - Bigger */}
+          <div className="flex-1 border-b border-border-gray">
             <SearchResultsChat 
               initialQuery={query}
               searchType={searchType}
               resultCount={filteredCruises.length}
+              quickFilters={getQuickFilters()}
             />
-          </div>
-
-          {/* Context-based Quick Filters Section */}
-          <div className="flex-1 min-h-0 overflow-y-auto p-4">
-            <div className="space-y-3">
-              {/* Context-based Quick Filters */}
-              {getQuickFilters().map((filter, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start text-left text-ocean-blue border-ocean-blue hover:bg-ocean-blue hover:text-white"
-                  onClick={filter.action}
-                >
-                  {filter.label}
-                </Button>
-              ))}
-              
-              <div className="text-xs text-slate-gray mt-4">
-                <div>Showing {filteredCruises.length} cruises</div>
-                {query && <div className="mt-1">Search: "{query}"</div>}
-              </div>
-            </div>
           </div>
         </div>
 
@@ -398,7 +320,7 @@ const Search = () => {
           <div className="flex-1 relative overflow-hidden">
             <CruiseResults 
               cruises={filteredCruises}
-              isLoading={isLoading}
+              isLoading={false}
               onCruiseHover={setHoveredCruise}
               sortBy={sortBy}
               onSortChange={setSortBy}

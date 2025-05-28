@@ -12,13 +12,19 @@ interface Message {
   isTyping?: boolean;
 }
 
+interface QuickFilter {
+  label: string;
+  action: () => void;
+}
+
 interface SearchResultsChatProps {
   initialQuery: string;
   searchType: string;
   resultCount: number;
+  quickFilters?: QuickFilter[];
 }
 
-const SearchResultsChat = ({ initialQuery, searchType, resultCount }: SearchResultsChatProps) => {
+const SearchResultsChat = ({ initialQuery, searchType, resultCount, quickFilters = [] }: SearchResultsChatProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -111,14 +117,11 @@ const SearchResultsChat = ({ initialQuery, searchType, resultCount }: SearchResu
 
   return (
     <div className="h-full flex flex-col">
-      {/* Chat Header - Made smaller */}
-      <div className="p-3 border-b border-border-gray bg-gradient-to-r from-ocean-blue to-deep-navy text-white">
+      {/* Chat Header - Smaller and simplified */}
+      <div className="p-2 border-b border-border-gray bg-gradient-to-r from-ocean-blue to-deep-navy text-white">
         <div className="flex items-center gap-2">
-          <MessageCircle className="w-5 h-5" />
-          <div>
-            <div className="font-semibold text-sm">Search Assistant</div>
-            <div className="text-xs text-white/80">Refine your cruise search</div>
-          </div>
+          <MessageCircle className="w-4 h-4" />
+          <div className="font-medium text-sm">Refine your search</div>
         </div>
       </div>
 
@@ -158,7 +161,27 @@ const SearchResultsChat = ({ initialQuery, searchType, resultCount }: SearchResu
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input - Removed quick actions section */}
+      {/* Context-based Quick Filters */}
+      {quickFilters.length > 0 && (
+        <div className="px-4 pb-3 border-b border-border-gray">
+          <div className="text-xs text-slate-gray mb-2 font-medium">Quick filters for your search:</div>
+          <div className="flex flex-wrap gap-2">
+            {quickFilters.map((filter, index) => (
+              <Button
+                key={index}
+                variant="outline"
+                size="sm"
+                className="text-xs h-8 border-ocean-blue/30 text-ocean-blue hover:bg-ocean-blue hover:text-white transition-colors"
+                onClick={filter.action}
+              >
+                {filter.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Input */}
       <div className="p-4 border-t border-border-gray bg-pearl-white">
         <div className="flex items-center gap-3">
           <Button
