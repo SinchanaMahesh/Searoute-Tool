@@ -1,3 +1,4 @@
+
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Star, Clock, Percent, TrendingDown, Zap, ChevronRight, ExternalLink } from 'lucide-react';
@@ -210,7 +211,7 @@ const CruiseDealsSection = () => {
 
   const scroll = (direction: 'left' | 'right', ref: React.RefObject<HTMLDivElement>) => {
     if (ref.current) {
-      const scrollAmount = 320;
+      const scrollAmount = 384; // Increased scroll amount for larger cards
       const currentScroll = ref.current.scrollLeft;
       const targetScroll = direction === 'left' 
         ? currentScroll - scrollAmount 
@@ -228,7 +229,7 @@ const CruiseDealsSection = () => {
 
     return (
       <div 
-        className={`relative group cursor-pointer flex-shrink-0 w-58 transition-transform duration-300 ${
+        className={`relative group cursor-pointer flex-shrink-0 w-70 transition-transform duration-300 ${
           isHovered ? 'transform -translate-y-2' : ''
         }`}
         onClick={() => handleCruiseClick(cruise.id)}
@@ -239,61 +240,61 @@ const CruiseDealsSection = () => {
           <img 
             src={cruise.image || defaultImage} 
             alt={cruise.title}
-            className="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.src = defaultImage;
             }}
           />
-          <div className="absolute top-3 right-3 bg-coral-pink text-white px-3 py-2 rounded text-sm font-bold">
+          <div className="absolute top-4 right-4 bg-coral-pink text-white px-4 py-2 rounded text-sm font-bold">
             {cruise.discount}
           </div>
           
           {/* Type indicators - increased size */}
           {cruise.type === 'last-minute' && (
-            <div className="absolute top-3 left-3 bg-sunset-orange text-white px-3 py-2 rounded text-sm font-bold flex items-center gap-2">
+            <div className="absolute top-4 left-4 bg-sunset-orange text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2">
               <Zap className="w-4 h-4" />
               Last Minute
             </div>
           )}
           {cruise.type === 'price-drop' && (
-            <div className="absolute top-3 left-3 bg-emerald-500 text-white px-3 py-2 rounded text-sm font-bold flex items-center gap-2">
+            <div className="absolute top-4 left-4 bg-emerald-500 text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2">
               <TrendingDown className="w-4 h-4" />
               Price Drop
             </div>
           )}
           {cruise.departure && (
-            <div className="absolute bottom-3 left-3 bg-black/70 text-white px-3 py-2 rounded text-sm flex items-center gap-2">
+            <div className="absolute bottom-4 left-4 bg-black/70 text-white px-4 py-2 rounded text-sm flex items-center gap-2">
               <Clock className="w-4 h-4" />
               {cruise.departure}
             </div>
           )}
           
           {/* Hover icon indicator - increased size */}
-          <div className={`absolute bottom-3 right-3 transition-opacity duration-300 ${
+          <div className={`absolute bottom-4 right-4 transition-opacity duration-300 ${
             isHovered ? 'opacity-100' : 'opacity-0'
           }`}>
-            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md">
-              <ExternalLink className="w-4 h-4 text-ocean-blue" />
+            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md">
+              <ExternalLink className="w-5 h-5 text-ocean-blue" />
             </div>
           </div>
         </div>
-        <div className="mt-3 space-y-2">
-          <h3 className="font-semibold text-charcoal text-base line-clamp-1">{cruise.title}</h3>
-          <p className="text-sm text-slate-gray">{cruise.subtitle}</p>
+        <div className="mt-4 space-y-3">
+          <h3 className="font-semibold text-charcoal text-lg line-clamp-1">{cruise.title}</h3>
+          <p className="text-base text-slate-gray">{cruise.subtitle}</p>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                <span className="text-sm text-charcoal">{cruise.rating}</span>
+                <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                <span className="text-base text-charcoal">{cruise.rating}</span>
               </div>
-              <span className="text-sm text-slate-gray">•</span>
-              <span className="text-sm text-slate-gray">{cruise.duration}</span>
+              <span className="text-base text-slate-gray">•</span>
+              <span className="text-base text-slate-gray">{cruise.duration}</span>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-base font-bold text-sunset-orange">{cruise.price}</span>
-            <span className="text-sm text-slate-gray line-through">{cruise.originalPrice}</span>
+          <div className="flex items-center gap-4">
+            <span className="text-lg font-bold text-sunset-orange">{cruise.price}</span>
+            <span className="text-base text-slate-gray line-through">{cruise.originalPrice}</span>
           </div>
         </div>
       </div>
@@ -301,12 +302,12 @@ const CruiseDealsSection = () => {
   };
 
   const SectionRow = ({ title, items, viewAllText = "View All", scrollRef }: { title: string; items: any[]; viewAllText?: string; scrollRef: React.RefObject<HTMLDivElement> }) => (
-    <div className="mb-6">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-bold text-charcoal">{title}</h2>
+    <div className="mb-8">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-charcoal">{title}</h2>
         <Button 
           variant="ghost" 
-          className="text-ocean-blue hover:text-deep-navy text-sm"
+          className="text-ocean-blue hover:text-deep-navy text-base"
           onClick={() => handleViewAllClick(title)}
         >
           {viewAllText} →
@@ -314,20 +315,20 @@ const CruiseDealsSection = () => {
       </div>
       <div className="relative group">
         {/* Navigation arrow - right */}
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <Button
             variant="ghost"
             size="sm"
-            className="w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 hover:bg-white shadow-sm"
+            className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 hover:bg-white shadow-sm"
             onClick={() => scroll('right', scrollRef)}
           >
-            <ChevronRight className="w-4 h-4 text-gray-600" />
+            <ChevronRight className="w-5 h-5 text-gray-600" />
           </Button>
         </div>
         
         <div 
           ref={scrollRef}
-          className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+          className="flex gap-5 overflow-x-auto scrollbar-hide scroll-smooth pb-3"
         >
           {items.map((item) => (
             <CruiseCard key={item.id} cruise={item} />
@@ -338,7 +339,7 @@ const CruiseDealsSection = () => {
   );
 
   return (
-    <section className="py-6 bg-pearl-white">
+    <section className="py-8 bg-pearl-white">
       <div className="container mx-auto px-4 lg:px-8">
         <SectionRow title="Recently Viewed" items={recentlyViewed} scrollRef={recentlyViewedRef} />
         <SectionRow title="Deals & Steals" items={dealsAndSteals} scrollRef={dealsRef} />
