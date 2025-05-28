@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/layout/Header';
@@ -268,22 +269,53 @@ const Search = () => {
     const quickFilters = [];
     
     if (queryLower.includes('family') || queryLower.includes('kids')) {
-      quickFilters.push({ label: 'Family Friendly', action: () => console.log('Family filter') });
+      quickFilters.push({ 
+        label: 'Family Friendly', 
+        action: () => {
+          setFilters(prev => ({ ...prev, amenities: [...prev.amenities, 'Kids Club'] }));
+        }
+      });
     }
     if (queryLower.includes('luxury') || queryLower.includes('premium')) {
-      quickFilters.push({ label: 'Luxury Cruises', action: () => console.log('Luxury filter') });
+      quickFilters.push({ 
+        label: 'Luxury Cruises', 
+        action: () => {
+          setFilters(prev => ({ ...prev, priceRange: [5000, 20000] }));
+        }
+      });
     }
     if (queryLower.includes('deal') || queryLower.includes('cheap') || queryLower.includes('budget')) {
-      quickFilters.push({ label: 'Best Deals', action: () => console.log('Deals filter') });
+      quickFilters.push({ 
+        label: 'Best Deals', 
+        action: () => {
+          setFilters(prev => ({ ...prev, priceRange: [0, 2000] }));
+          setSortBy('price');
+        }
+      });
     }
     if (queryLower.includes('caribbean')) {
-      quickFilters.push({ label: 'Caribbean Only', action: () => console.log('Caribbean filter') });
+      quickFilters.push({ 
+        label: 'Caribbean Only', 
+        action: () => {
+          setFilters(prev => ({ ...prev, destinations: ['Caribbean'] }));
+        }
+      });
     }
     if (queryLower.includes('mediterranean')) {
-      quickFilters.push({ label: 'Mediterranean Only', action: () => console.log('Mediterranean filter') });
+      quickFilters.push({ 
+        label: 'Mediterranean Only', 
+        action: () => {
+          setFilters(prev => ({ ...prev, destinations: ['Mediterranean'] }));
+        }
+      });
     }
     if (queryLower.includes('short') || queryLower.includes('weekend')) {
-      quickFilters.push({ label: '3-5 Days', action: () => console.log('Short filter') });
+      quickFilters.push({ 
+        label: '3-5 Days', 
+        action: () => {
+          setFilters(prev => ({ ...prev, duration: ['3', '4', '5'] }));
+        }
+      });
     }
     
     return quickFilters;
@@ -306,7 +338,7 @@ const Search = () => {
           </div>
           
           {/* Chat Interface Section - Smaller */}
-          <div className="h-80 border-b border-border-gray">
+          <div className="h-64 border-b border-border-gray">
             <SearchResultsChat 
               initialQuery={query}
               searchType={searchType}
@@ -314,19 +346,9 @@ const Search = () => {
             />
           </div>
 
-          {/* Quick Filters Section - Removed quick filter buttons */}
+          {/* Context-based Quick Filters Section */}
           <div className="flex-1 min-h-0 overflow-y-auto p-4">
             <div className="space-y-3">
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full justify-start text-left"
-                onClick={() => setIsFilterOpen(true)}
-              >
-                <Filter className="w-4 h-4 mr-2" />
-                All Filters
-              </Button>
-              
               {/* Context-based Quick Filters */}
               {getQuickFilters().map((filter, index) => (
                 <Button
