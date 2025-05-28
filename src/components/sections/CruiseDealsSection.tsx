@@ -1,7 +1,6 @@
-
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Star, Clock, Percent, TrendingDown, Zap, ChevronRight } from 'lucide-react';
+import { Star, Clock, Percent, TrendingDown, Zap, ChevronRight, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const CruiseDealsSection = () => {
@@ -224,79 +223,82 @@ const CruiseDealsSection = () => {
     }
   };
 
-  const CruiseCard = ({ cruise }: { cruise: any }) => (
-    <div 
-      className="relative group cursor-pointer flex-shrink-0 w-48"
-      onClick={() => handleCruiseClick(cruise.id)}
-    >
-      <div className="relative overflow-hidden rounded-lg">
-        <img 
-          src={cruise.image || defaultImage} 
-          alt={cruise.title}
-          className="w-full h-32 object-cover transition-transform duration-300 group-hover:scale-105"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = defaultImage;
-          }}
-        />
-        <div className="absolute top-2 right-2 bg-coral-pink text-white px-2 py-1 rounded text-xs font-bold">
-          {cruise.discount}
-        </div>
-        
-        {/* Type indicators */}
-        {cruise.type === 'last-minute' && (
-          <div className="absolute top-2 left-2 bg-sunset-orange text-white px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
-            <Zap className="w-3 h-3" />
-            Last Minute
+  const CruiseCard = ({ cruise }: { cruise: any }) => {
+    const [isHovered, setIsHovered] = React.useState(false);
+
+    return (
+      <div 
+        className={`relative group cursor-pointer flex-shrink-0 w-48 transition-transform duration-300 ${
+          isHovered ? 'transform -translate-y-2' : ''
+        }`}
+        onClick={() => handleCruiseClick(cruise.id)}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div className="relative overflow-hidden rounded-lg">
+          <img 
+            src={cruise.image || defaultImage} 
+            alt={cruise.title}
+            className="w-full h-32 object-cover transition-transform duration-300 group-hover:scale-105"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = defaultImage;
+            }}
+          />
+          <div className="absolute top-2 right-2 bg-coral-pink text-white px-2 py-1 rounded text-xs font-bold">
+            {cruise.discount}
           </div>
-        )}
-        {cruise.type === 'price-drop' && (
-          <div className="absolute top-2 left-2 bg-emerald-500 text-white px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
-            <TrendingDown className="w-3 h-3" />
-            Price Drop
-          </div>
-        )}
-        {cruise.departure && (
-          <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
-            <Clock className="w-3 h-3" />
-            {cruise.departure}
-          </div>
-        )}
-        
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <div className="absolute bottom-4 left-4 right-4">
-            <Button 
-              className="w-full bg-ocean-blue hover:bg-deep-navy text-white text-sm h-7"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCruiseClick(cruise.id);
-              }}
-            >
-              View Details
-            </Button>
-          </div>
-        </div>
-      </div>
-      <div className="mt-2 space-y-1">
-        <h3 className="font-semibold text-charcoal text-sm line-clamp-1">{cruise.title}</h3>
-        <p className="text-xs text-slate-gray">{cruise.subtitle}</p>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-              <span className="text-xs text-charcoal">{cruise.rating}</span>
+          
+          {/* Type indicators */}
+          {cruise.type === 'last-minute' && (
+            <div className="absolute top-2 left-2 bg-sunset-orange text-white px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
+              <Zap className="w-3 h-3" />
+              Last Minute
             </div>
-            <span className="text-xs text-slate-gray">•</span>
-            <span className="text-xs text-slate-gray">{cruise.duration}</span>
+          )}
+          {cruise.type === 'price-drop' && (
+            <div className="absolute top-2 left-2 bg-emerald-500 text-white px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
+              <TrendingDown className="w-3 h-3" />
+              Price Drop
+            </div>
+          )}
+          {cruise.departure && (
+            <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {cruise.departure}
+            </div>
+          )}
+          
+          {/* Hover icon indicator */}
+          <div className={`absolute top-2 right-2 transition-opacity duration-300 ${
+            isHovered ? 'opacity-100' : 'opacity-0'
+          }`}>
+            <div className="w-6 h-6 bg-ocean-blue/90 rounded-full flex items-center justify-center">
+              <ExternalLink className="w-3 h-3 text-white" />
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-bold text-sunset-orange">{cruise.price}</span>
-          <span className="text-xs text-slate-gray line-through">{cruise.originalPrice}</span>
+        <div className="mt-2 space-y-1">
+          <h3 className="font-semibold text-charcoal text-sm line-clamp-1">{cruise.title}</h3>
+          <p className="text-xs text-slate-gray">{cruise.subtitle}</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                <span className="text-xs text-charcoal">{cruise.rating}</span>
+              </div>
+              <span className="text-xs text-slate-gray">•</span>
+              <span className="text-xs text-slate-gray">{cruise.duration}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-sunset-orange">{cruise.price}</span>
+            <span className="text-xs text-slate-gray line-through">{cruise.originalPrice}</span>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const SectionRow = ({ title, items, viewAllText = "View All", scrollRef }: { title: string; items: any[]; viewAllText?: string; scrollRef: React.RefObject<HTMLDivElement> }) => (
     <div className="mb-6">

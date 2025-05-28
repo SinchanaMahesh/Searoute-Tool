@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Star, ChevronRight } from 'lucide-react';
+import { Star, ChevronRight, ExternalLink } from 'lucide-react';
 
 const CruiseLinesSection = () => {
   const cruiseLineData = [
@@ -262,28 +261,48 @@ const CruiseLinesSection = () => {
     }
   ];
 
-  const CruiseCard = ({ cruise }: { cruise: any }) => (
-    <div className="group cursor-pointer min-w-[180px] flex-shrink-0">
-      <div className="relative overflow-hidden rounded-lg bg-white border border-border-gray hover:shadow-level-2 transition-all duration-300">
-        <img 
-          src={cruise.image} 
-          alt={cruise.shipName}
-          className="w-full h-28 object-cover transition-transform duration-300 group-hover:scale-105"
-        />
-        <div className="absolute top-1 right-1 bg-ocean-blue text-white px-1 py-0.5 rounded text-xs font-bold">
-          {cruise.price}
-        </div>
-        <div className="p-2">
-          <h4 className="font-semibold text-charcoal text-xs line-clamp-1 mb-1">{cruise.shipName}</h4>
-          <p className="text-xs text-slate-gray mb-1">{cruise.route} • {cruise.duration} nights</p>
-          <div className="flex items-center gap-1">
-            <Star className="w-2 h-2 fill-yellow-400 text-yellow-400" />
-            <span className="text-xs text-charcoal">{cruise.rating}</span>
+  const CruiseCard = ({ cruise }: { cruise: any }) => {
+    const [isHovered, setIsHovered] = React.useState(false);
+
+    return (
+      <div 
+        className={`group cursor-pointer min-w-[180px] flex-shrink-0 transition-transform duration-300 ${
+          isHovered ? 'transform -translate-y-2' : ''
+        }`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div className="relative overflow-hidden rounded-lg bg-white border border-border-gray hover:shadow-level-2 transition-all duration-300">
+          <img 
+            src={cruise.image} 
+            alt={cruise.shipName}
+            className="w-full h-28 object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+          <div className="absolute top-1 right-1 bg-ocean-blue text-white px-1 py-0.5 rounded text-xs font-bold">
+            {cruise.price}
+          </div>
+          
+          {/* Hover icon indicator */}
+          <div className={`absolute top-1 right-1 transition-opacity duration-300 ${
+            isHovered ? 'opacity-100' : 'opacity-0'
+          }`}>
+            <div className="w-5 h-5 bg-ocean-blue/90 rounded-full flex items-center justify-center">
+              <ExternalLink className="w-2.5 h-2.5 text-white" />
+            </div>
+          </div>
+          
+          <div className="p-2">
+            <h4 className="font-semibold text-charcoal text-xs line-clamp-1 mb-1">{cruise.shipName}</h4>
+            <p className="text-xs text-slate-gray mb-1">{cruise.route} • {cruise.duration} nights</p>
+            <div className="flex items-center gap-1">
+              <Star className="w-2 h-2 fill-yellow-400 text-yellow-400" />
+              <span className="text-xs text-charcoal">{cruise.rating}</span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <section className="py-8 bg-white">
