@@ -1,7 +1,7 @@
 
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { MapPin, Calendar, Ship, ChevronRight } from 'lucide-react';
+import { MapPin, Calendar, Ship, ChevronRight, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const DestinationCards = () => {
@@ -142,7 +142,7 @@ const DestinationCards = () => {
       }`}
       onClick={() => handleDestinationClick(destination.name)}
     >
-      <div className={`relative overflow-hidden rounded-lg bg-white border border-border-gray hover:shadow-level-3 transition-all duration-300 hover:scale-[1.02] ${
+      <div className={`relative overflow-hidden rounded-lg bg-white border border-border-gray transition-all duration-300 group-hover:shadow-level-3 group-hover:-translate-y-1 ${
         isVertical ? 'h-72' : 'h-[136px]'
       }`}>
         {/* Image */}
@@ -161,6 +161,13 @@ const DestinationCards = () => {
           {/* Price overlay */}
           <div className="absolute top-1 right-1 bg-white/90 backdrop-blur-sm rounded-md px-1 py-0.5">
             <div className="text-xs font-semibold text-charcoal">From {destination.averagePrice}</div>
+          </div>
+
+          {/* Hover icon indicator */}
+          <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="w-6 h-6 bg-ocean-blue/90 rounded-full flex items-center justify-center">
+              <ExternalLink className="w-3 h-3 text-white" />
+            </div>
           </div>
 
           {/* Title overlay for horizontal cards */}
@@ -211,16 +218,6 @@ const DestinationCards = () => {
             <div className="text-xs text-slate-gray">
               {destination.duration} typical
             </div>
-            <Button 
-              size="sm" 
-              className="bg-ocean-blue hover:bg-deep-navy text-white text-xs h-5 px-2"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDestinationClick(destination.name);
-              }}
-            >
-              Explore
-            </Button>
           </div>
         </div>
 
@@ -251,7 +248,7 @@ const DestinationCards = () => {
   return (
     <section className="py-4 bg-white">
       <div className="container mx-auto px-4 lg:px-8">
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
           <div>
             <h2 className="text-lg font-bold text-charcoal mb-1">Popular Destinations</h2>
             <p className="text-slate-gray text-sm">Discover amazing cruise destinations around the world</p>
@@ -283,7 +280,7 @@ const DestinationCards = () => {
           {/* Scrollable container */}
           <div 
             ref={scrollContainerRef}
-            className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth"
+            className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
           >
             {Array.from({ length: Math.ceil(destinations.length / 3) }).map((_, index) => (
               <GroupedCards key={index} startIndex={index * 3} />
