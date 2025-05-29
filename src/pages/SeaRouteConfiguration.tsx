@@ -21,6 +21,13 @@ interface SavedRoute {
   timestamp: string;
 }
 
+// Extend Leaflet types for custom properties
+declare global {
+  interface Window {
+    L: any;
+  }
+}
+
 const SeaRouteConfiguration = () => {
   // Authentication state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -239,17 +246,19 @@ const SeaRouteConfiguration = () => {
 
   // Map setup and drawing logic
   useEffect(() => {
-    if (!isLeafletLoaded || !window.L || !window.L.Draw || !isAuthenticated) {
+    if (!isLeafletLoaded || !window.L || !(window.L as any).Draw || !isAuthenticated) {
       return;
     }
 
     const L = window.L;
 
     // Fix for default marker icon issue
-    if (L.Icon && L.Icon.Default && L.Icon.Default.prototype._getIconUrl) {
-      delete L.Icon.Default.prototype._getIconUrl;
-    }
-    if (L.Icon && L.Icon.Default) {
+    if (L.Icon && L.Icon.Default && L.Icon.Default.prototype) {
+      const DefaultIcon = L.Icon.Default.prototype as any;
+      if (DefaultIcon._getIconUrl) {
+        delete DefaultIcon._getIconUrl;
+      }
+      
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
         iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
@@ -271,7 +280,7 @@ const SeaRouteConfiguration = () => {
       drawnLayersRef.current = new L.FeatureGroup().addTo(map);
 
       // Initialize the draw control
-      const drawControl = new L.Control.Draw({
+      const drawControl = new (L as any).Control.Draw({
         edit: {
           featureGroup: drawnLayersRef.current,
           remove: true,
@@ -295,7 +304,7 @@ const SeaRouteConfiguration = () => {
       map.addControl(drawControl);
 
       // Event listener for when a new shape is drawn
-      map.on(L.Draw.Event.CREATED, (event: any) => {
+      map.on((L as any).Draw.Event.CREATED, (event: any) => {
         const layer = event.layer;
         drawnLayersRef.current.clearLayers();
         drawnLayersRef.current.addLayer(layer);
@@ -303,17 +312,17 @@ const SeaRouteConfiguration = () => {
       });
 
       // Event listener for when a layer is deleted
-      map.on(L.Draw.Event.DELETED, () => {
+      map.on((L as any).Draw.Event.DELETED, () => {
         setCurrentDrawnPolylineLatLngs(null);
       });
     }
 
     // Clear existing markers and routes
     mapRef.current.eachLayer((layer: any) => {
-      if (layer instanceof L.Marker && layer.options.isPortMarker) {
+      if (layer instanceof L.Marker && (layer as any).options.customType === 'port') {
         mapRef.current.removeLayer(layer);
       }
-      if (layer instanceof L.Polyline && layer.options.isSavedRoute) {
+      if (layer instanceof L.Polyline && (layer as any).options.customType === 'savedRoute') {
         mapRef.current.removeLayer(layer);
       }
     });
@@ -332,23 +341,28 @@ const SeaRouteConfiguration = () => {
         shadowSize: [41, 41]
       });
 
-      L.marker([port.lat, port.lng], { icon: portIcon, isPortMarker: true })
+      const marker = L.marker([port.lat, port.lng], { icon: portIcon })
         .addTo(mapRef.current)
         .bindPopup(`<b>${port.name}</b><br>Port`);
+      
+      // Add custom property for identification
+      (marker as any).options.customType = 'port';
     });
 
     // Draw saved routes
     savedRoutes.forEach(route => {
       if (route.polyline && route.polyline.length > 1) {
-        L.polyline(route.polyline, {
+        const polyline = L.polyline(route.polyline.map(coord => [coord[0], coord[1]]), {
           color: 'gray',
           weight: 2,
           dashArray: '5, 5',
-          opacity: 0.7,
-          isSavedRoute: true
+          opacity: 0.7
         })
         .addTo(mapRef.current)
         .bindPopup(`Saved Route: ${route.originPort.name} to ${route.destinationPort.name}`);
+        
+        // Add custom property for identification
+        (polyline as any).options.customType = 'savedRoute';
       }
     });
 
