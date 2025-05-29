@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { CruiseData } from '@/api/mockCruiseData';
 import { Maximize2, X, Cloud, MapPin, Info } from 'lucide-react';
@@ -144,7 +143,7 @@ const EnhancedRouteMap = ({ cruises, hoveredCruise, selectedCruise }: EnhancedRo
     }
   }, [isLargeView]);
 
-  // Initialize main map
+  // Initialize main map - Fixed cleanup function
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -164,10 +163,12 @@ const EnhancedRouteMap = ({ cruises, hoveredCruise, selectedCruise }: EnhancedRo
 
     setMap(mapInstance);
 
-    return () => mapInstance.remove();
+    return () => {
+      mapInstance.remove();
+    };
   }, []);
 
-  // Initialize large map
+  // Initialize large map - Fixed cleanup function
   useEffect(() => {
     if (!largeMapRef.current || !isLargeView) return;
 
