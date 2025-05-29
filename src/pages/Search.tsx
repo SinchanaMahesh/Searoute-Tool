@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/layout/Header';
-import EnhancedRouteMap from '@/components/search/EnhancedRouteMap';
+import MapLibreRouteMap from '@/components/search/MapLibreRouteMap';
 import CruiseResults from '@/components/search/CruiseResults';
 import FilterDrawer from '@/components/search/FilterDrawer';
 import { Button } from '@/components/ui/button';
@@ -71,17 +71,17 @@ const Search = () => {
       <div className="pt-20 h-screen flex">
         {/* Left Pane - Fixed width (35%) with scrolling capability */}
         <div className="w-[35%] border-r border-border-gray bg-white flex flex-col fixed h-full top-20 left-0 overflow-hidden">
-          {/* Map Section - Reduced height to 30% */}
-          <div className="h-[30%] border-b border-border-gray flex-shrink-0">
-            <EnhancedRouteMap 
+          {/* Map Section - Reduced height to 35% */}
+          <div className="h-[35%] border-b border-border-gray flex-shrink-0">
+            <MapLibreRouteMap 
               cruises={filteredCruises}
               hoveredCruise={hoveredCruise}
               selectedCruise={filteredCruises.length > 0 ? filteredCruises[0].id : null}
             />
           </div>
           
-          {/* Chat Interface Section - Flexible height 70% with overflow handling */}
-          <div className="h-[70%] flex-shrink-0 overflow-hidden">
+          {/* Chat Interface Section - Flexible height 65% with overflow handling */}
+          <div className="h-[65%] flex-shrink-0 overflow-hidden">
             <EnhancedSearchChat 
               initialQuery={query}
               searchType={searchType}
