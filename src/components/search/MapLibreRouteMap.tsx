@@ -251,8 +251,8 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise }: MapLibreRo
             ],
             'line-dasharray': [
               'case',
-              ['==', ['get', 'segmentType'], 'sea'], [1, 0],
-              [5, 5]
+              ['==', ['get', 'segmentType'], 'sea'], ['literal', [1, 0]],
+              ['literal', [5, 5]]
             ]
           }
         });
