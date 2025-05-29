@@ -322,10 +322,7 @@ const SeaRouteConfiguration = () => {
         drawnLayersRef.current.addLayer(layer);
         setCurrentDrawnPolylineLatLngs(layer.getLatLngs());
         
-        // Add click handler to the polyline for selection
-        layer.on('click', () => {
-          toast.info('Polyline selected - use the edit tool to modify vertices');
-        });
+        toast.success('Route drawn successfully! Use the edit tool to fine-tune.');
       });
 
       // Event listener for when a layer is edited
@@ -355,17 +352,14 @@ const SeaRouteConfiguration = () => {
         toast.info('Route deleted');
       });
 
-      // Add custom handlers for smoother interaction
-      map.on('click', (e: any) => {
-        // If there's a drawn polyline and user clicks on it, show edit hint
-        drawnLayersRef.current.eachLayer((layer: any) => {
-          if (layer instanceof L.Polyline) {
-            const distance = layer.closestLayerPoint(e.layerPoint);
-            if (distance && distance.distance < 10) {
-              toast.info('Click the edit tool (pencil icon) to modify this route');
-            }
-          }
-        });
+      // Event listener for when drawing starts
+      map.on((L as any).Draw.Event.DRAWSTART, () => {
+        toast.info('Click points to draw your route. Double-click to finish.');
+      });
+
+      // Event listener for when drawing stops
+      map.on((L as any).Draw.Event.DRAWSTOP, () => {
+        console.log('Drawing stopped');
       });
     }
 
