@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/layout/Header';
@@ -140,11 +139,7 @@ const Search = () => {
   const [searchParams] = useSearchParams();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   
-  // Default to next 3 months date range
-  const today = new Date();
-  const threeMonthsLater = new Date(today);
-  threeMonthsLater.setMonth(today.getMonth() + 3);
-  
+  // Simplified filters without restrictive date filtering
   const [filters, setFilters] = useState({
     priceRange: [0, 20000],
     duration: [],
@@ -152,10 +147,6 @@ const Search = () => {
     cruiseLines: [],
     amenities: [],
     destinations: [],
-    dateRange: {
-      from: today,
-      to: threeMonthsLater
-    },
   });
   const [sortBy, setSortBy] = useState('price');
   const [hoveredCruise, setHoveredCruise] = useState<string | null>(null);
@@ -168,6 +159,7 @@ const Search = () => {
 
   console.log('Using Mock Cruises:', cruises);
 
+  // Simplified filtering - just basic search and price range
   const filteredCruises = cruises.filter(cruise => {
     // Apply basic text search if there's a query
     if (query && query.trim()) {
@@ -188,13 +180,8 @@ const Search = () => {
       if (!matchesSearch) return false;
     }
     
-    // Apply price range filter
+    // Only apply price range filter
     if (cruise.priceFrom < filters.priceRange[0] || cruise.priceFrom > filters.priceRange[1]) {
-      return false;
-    }
-    
-    // Apply duration filter if specified
-    if (filters.duration.length > 0 && !filters.duration.includes(cruise.duration.toString())) {
       return false;
     }
     
@@ -202,8 +189,6 @@ const Search = () => {
   });
 
   console.log('Filtered Cruises:', filteredCruises);
-  console.log('Query:', query);
-  console.log('Filters:', filters);
 
   // Generate context-based quick filters
   const getQuickFilters = () => {
@@ -245,22 +230,6 @@ const Search = () => {
         }
       });
     }
-    if (queryLower.includes('mediterranean')) {
-      quickFilters.push({ 
-        label: 'Mediterranean Only', 
-        action: () => {
-          setFilters(prev => ({ ...prev, destinations: ['Mediterranean'] }));
-        }
-      });
-    }
-    if (queryLower.includes('short') || queryLower.includes('weekend')) {
-      quickFilters.push({ 
-        label: '3-5 Days', 
-        action: () => {
-          setFilters(prev => ({ ...prev, duration: ['3', '4', '5'] }));
-        }
-      });
-    }
     
     return quickFilters;
   };
@@ -270,10 +239,10 @@ const Search = () => {
       <Header />
       
       <div className="pt-20 h-screen flex">
-        {/* Left Pane - Fixed */}
+        {/* Left Pane - Fixed, now with flexible map and chat areas */}
         <div className="w-1/3 border-r border-border-gray bg-white flex flex-col fixed h-full top-20 left-0">
-          {/* Map Section */}
-          <div className="h-72 border-b border-border-gray">
+          {/* Map Section - Now flexible to take more space */}
+          <div className="flex-1 border-b border-border-gray">
             <RouteMap 
               cruises={filteredCruises}
               hoveredCruise={hoveredCruise}
@@ -281,8 +250,8 @@ const Search = () => {
             />
           </div>
           
-          {/* Chat Interface Section - Bigger */}
-          <div className="flex-1 border-b border-border-gray">
+          {/* Chat Interface Section - Fixed height for better control */}
+          <div className="h-80 border-b border-border-gray">
             <SearchResultsChat 
               initialQuery={query}
               searchType={searchType}
@@ -294,8 +263,8 @@ const Search = () => {
 
         {/* Right Pane - Scrollable Results */}
         <div className="flex-1 flex flex-col ml-[33.333333%]">
-          {/* Filter Header */}
-          <div className="bg-white border-b border-border-gray p-4 sticky top-20 z-10">
+          {/* Filter Header - Simplified */}
+          <div className="bg-white border-b border-border-gray p-3 sticky top-20 z-10">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-charcoal">

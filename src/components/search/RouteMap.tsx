@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { Cruise } from '@/pages/Search';
 import { Maximize2 } from 'lucide-react';
@@ -174,11 +173,11 @@ const RouteMap = ({ cruises, hoveredCruise, selectedCruise }: RouteMapProps) => 
 
   return (
     <div className="h-full bg-gradient-to-br from-blue-50 to-blue-100 relative overflow-hidden">
-      {/* Compact Map Header */}
+      {/* Compact Map Header - Reduced size */}
       <div className="absolute top-0 left-0 right-0 bg-white/90 backdrop-blur-sm p-2 border-b border-border-gray z-10">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-semibold text-charcoal text-sm">Route Visualization</h3>
+            <h3 className="font-medium text-charcoal text-sm">Refine your search</h3>
             <p className="text-xs text-slate-gray">
               {displayCruise 
                 ? `${displayCruise.shipName}` 
@@ -191,14 +190,14 @@ const RouteMap = ({ cruises, hoveredCruise, selectedCruise }: RouteMapProps) => 
             onClick={() => setIsLargeView(true)}
             className="text-ocean-blue border-ocean-blue hover:bg-ocean-blue hover:text-white"
           >
-            <Maximize2 className="w-4 h-4" />
+            <Maximize2 className="w-3 h-3" />
           </Button>
         </div>
       </div>
 
       {/* Mapbox Token Input */}
       {!mapboxToken && (
-        <div className="absolute inset-0 pt-12 flex items-center justify-center bg-white/95">
+        <div className="absolute inset-0 pt-16 flex items-center justify-center bg-white/95">
           <div className="p-4 max-w-sm text-center">
             <h4 className="font-semibold text-charcoal mb-2 text-sm">Enable Interactive Maps</h4>
             <p className="text-xs text-slate-gray mb-3">
@@ -214,14 +213,14 @@ const RouteMap = ({ cruises, hoveredCruise, selectedCruise }: RouteMapProps) => 
         </div>
       )}
 
-      {/* Map Container - Now covers full area except header and cruise details */}
+      {/* Map Container - Now covers almost full area */}
       {mapboxToken && (
-        <div ref={mapRef} className="absolute inset-0 pt-12 pb-20" />
+        <div ref={mapRef} className="absolute inset-0 pt-16 pb-16" />
       )}
 
       {/* Fallback Map for Demo - Full coverage */}
       {!mapboxToken && (
-        <div className="absolute inset-0 pt-12 pb-20">
+        <div className="absolute inset-0 pt-16 pb-16">
           <svg viewBox="0 0 400 200" className="w-full h-full">
             {/* Ocean Background */}
             <rect width="400" height="200" fill="#e0f2fe" />
@@ -270,19 +269,16 @@ const RouteMap = ({ cruises, hoveredCruise, selectedCruise }: RouteMapProps) => 
       )}
 
       {/* Cruise Details - Compact at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-border-gray p-3 z-10">
+      <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-border-gray p-2 z-10">
         {displayCruise ? (
           <div>
             <div className="flex items-center justify-between mb-1">
               <h4 className="font-semibold text-charcoal text-sm">{displayCruise.shipName}</h4>
-              <span className="text-lg font-bold text-sunset-orange">${displayCruise.priceFrom}</span>
+              <span className="text-sm font-bold text-sunset-orange">${displayCruise.priceFrom}</span>
             </div>
-            <p className="text-xs text-slate-gray mb-1">
-              {displayCruise.cruiseLine} • {displayCruise.duration} nights • {displayCruise.route}
+            <p className="text-xs text-slate-gray">
+              {displayCruise.cruiseLine} • {displayCruise.duration} nights
             </p>
-            <div className="text-xs text-ocean-blue">
-              <strong>Ports:</strong> {displayCruise.ports.slice(0, 3).join(' → ')}{displayCruise.ports.length > 3 && '...'}
-            </div>
           </div>
         ) : (
           <div className="text-center text-slate-gray">
