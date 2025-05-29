@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { MapPin, Save, Trash2, Route, Lock, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -57,7 +59,7 @@ const SeaRouteConfiguration = () => {
     { id: 'port_cozumel', name: 'Cozumel, Mexico', lat: 20.4230, lng: -86.9223 },
   ];
 
-  // Curve smoothing function
+  // Enhanced curve smoothing function with iterative improvement
   const smoothCurve = useCallback(() => {
     if (!currentDrawnPolylineLatLngs || !window.L || !drawnLayersRef.current) {
       toast.error('No polyline to smooth. Please draw a route first.');
@@ -77,9 +79,10 @@ const SeaRouteConfiguration = () => {
         return;
       }
 
-      // Simple spline interpolation - add points between existing ones
+      // Advanced spline interpolation with adaptive smoothing
       const smoothedPoints = [];
       
+      // Calculate the optimal number of interpolation points based on distance
       for (let i = 0; i < originalPoints.length - 1; i++) {
         const current = originalPoints[i];
         const next = originalPoints[i + 1];
@@ -87,30 +90,54 @@ const SeaRouteConfiguration = () => {
         // Add the current point
         smoothedPoints.push(current);
         
-        // Calculate intermediate points for smoothing
-        const steps = 3; // Number of intermediate points
+        // Calculate distance between points to determine interpolation density
+        const distance = Math.sqrt(
+          Math.pow(next.lat - current.lat, 2) + Math.pow(next.lng - current.lng, 2)
+        );
+        
+        // Adaptive step calculation - more points for longer segments
+        const steps = Math.max(2, Math.min(8, Math.floor(distance * 100)));
+        
         for (let j = 1; j < steps; j++) {
           const ratio = j / steps;
           
-          // Linear interpolation with slight curve adjustment
-          const lat = current.lat + (next.lat - current.lat) * ratio;
-          const lng = current.lng + (next.lng - current.lng) * ratio;
+          // Catmull-Rom spline for smoother curves
+          let smoothLat, smoothLng;
           
-          // Add slight curve by considering neighboring points for natural smoothing
-          let curveFactor = 0;
-          if (i > 0) {
-            const prev = originalPoints[i - 1];
-            const curveLat = (prev.lat + next.lat) / 2;
-            const curveLng = (prev.lng + next.lng) / 2;
-            curveFactor = 0.1 * Math.sin(Math.PI * ratio);
-            
-            smoothedPoints.push({
-              lat: lat + (curveLat - current.lat) * curveFactor * 0.1,
-              lng: lng + (curveLng - current.lng) * curveFactor * 0.1
-            });
+          if (i === 0) {
+            // First segment - simple interpolation with slight curve
+            smoothLat = current.lat + (next.lat - current.lat) * ratio;
+            smoothLng = current.lng + (next.lng - current.lng) * ratio;
+          } else if (i === originalPoints.length - 2) {
+            // Last segment - simple interpolation with slight curve
+            smoothLat = current.lat + (next.lat - current.lat) * ratio;
+            smoothLng = current.lng + (next.lng - current.lng) * ratio;
           } else {
-            smoothedPoints.push({ lat, lng });
+            // Middle segments - use Catmull-Rom spline
+            const prev = originalPoints[i - 1];
+            const nextNext = originalPoints[i + 2] || next;
+            
+            // Catmull-Rom interpolation
+            const t = ratio;
+            const t2 = t * t;
+            const t3 = t2 * t;
+            
+            smoothLat = 0.5 * (
+              2 * current.lat +
+              (-prev.lat + next.lat) * t +
+              (2 * prev.lat - 5 * current.lat + 4 * next.lat - nextNext.lat) * t2 +
+              (-prev.lat + 3 * current.lat - 3 * next.lat + nextNext.lat) * t3
+            );
+            
+            smoothLng = 0.5 * (
+              2 * current.lng +
+              (-prev.lng + next.lng) * t +
+              (2 * prev.lng - 5 * current.lng + 4 * next.lng - nextNext.lng) * t2 +
+              (-prev.lng + 3 * current.lng - 3 * next.lng + nextNext.lng) * t3
+            );
           }
+          
+          smoothedPoints.push({ lat: smoothLat, lng: smoothLng });
         }
       }
       
@@ -127,7 +154,8 @@ const SeaRouteConfiguration = () => {
       drawnLayersRef.current.addLayer(smoothedPolyline);
       setCurrentDrawnPolylineLatLngs(smoothedPolyline.getLatLngs());
       
-      toast.success(`Curve smoothed! Added ${smoothedPoints.length - originalPoints.length} interpolated points.`);
+      const addedPoints = smoothedPoints.length - originalPoints.length;
+      toast.success(`Curve smoothed! Added ${addedPoints} interpolated points. Click again for further refinement.`);
     } catch (error) {
       console.error('Error smoothing curve:', error);
       toast.error('Failed to smooth curve. Please try again.');
@@ -608,129 +636,137 @@ const SeaRouteConfiguration = () => {
   }
 
   return (
-    <div className="min-h-screen bg-light-gray p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-charcoal">
-              <Route className="w-6 h-6 text-ocean-blue" />
-              Sea Route Configuration
-            </CardTitle>
-            <p className="text-slate-gray">
-              Configure and manage maritime routes between ports
-            </p>
-          </CardHeader>
-        </Card>
-
-        {/* Controls */}
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-              <div>
-                <label className="block text-sm font-medium text-charcoal mb-2">
-                  Origin Port
-                </label>
-                <Select value={selectedOriginPortId} onValueChange={setSelectedOriginPortId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Origin" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ports.map(port => (
-                      <SelectItem key={port.id} value={port.id}>
-                        {port.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-charcoal mb-2">
-                  Destination Port
-                </label>
-                <Select value={selectedDestinationPortId} onValueChange={setSelectedDestinationPortId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Destination" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ports.map(port => (
-                      <SelectItem key={port.id} value={port.id}>
-                        {port.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <Button
-                onClick={smoothCurve}
-                disabled={!currentDrawnPolylineLatLngs}
-                className="bg-purple-600 hover:bg-purple-700"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Smooth Curve
-              </Button>
-
-              <Button
-                onClick={saveRoute}
-                disabled={!selectedOriginPortId || !selectedDestinationPortId || !currentDrawnPolylineLatLngs || isSaving}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                {isSaving ? 'Saving...' : 'Save Route'}
-              </Button>
-
-              <Button
-                onClick={clearRoute}
-                variant="destructive"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Clear Route
-              </Button>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <AdminSidebar />
+        <SidebarInset>
+          <div className="p-4">
+            {/* Header with Sidebar Trigger */}
+            <div className="flex items-center gap-4 mb-6">
+              <SidebarTrigger />
+              <Card className="flex-1">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-charcoal">
+                    <Route className="w-6 h-6 text-ocean-blue" />
+                    Sea Route Configuration
+                  </CardTitle>
+                  <p className="text-slate-gray">
+                    Configure and manage maritime routes between ports
+                  </p>
+                </CardHeader>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Map Container */}
-        <Card>
-          <CardContent className="p-0">
-            <div 
-              id="route-map" 
-              className="w-full h-[600px] rounded-lg bg-gray-200 flex items-center justify-center text-gray-500"
-            >
-              {!isLeafletLoaded && (
-                <div className="flex flex-col items-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ocean-blue"></div>
-                  <p className="mt-4 text-lg">Loading map libraries...</p>
+            {/* Controls */}
+            <Card className="mb-6">
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                  <div>
+                    <label className="block text-sm font-medium text-charcoal mb-2">
+                      Origin Port
+                    </label>
+                    <Select value={selectedOriginPortId} onValueChange={setSelectedOriginPortId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Origin" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ports.map(port => (
+                          <SelectItem key={port.id} value={port.id}>
+                            {port.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-charcoal mb-2">
+                      Destination Port
+                    </label>
+                    <Select value={selectedDestinationPortId} onValueChange={setSelectedDestinationPortId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Destination" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ports.map(port => (
+                          <SelectItem key={port.id} value={port.id}>
+                            {port.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Button
+                    onClick={smoothCurve}
+                    disabled={!currentDrawnPolylineLatLngs}
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Smooth Curve
+                  </Button>
+
+                  <Button
+                    onClick={saveRoute}
+                    disabled={!selectedOriginPortId || !selectedDestinationPortId || !currentDrawnPolylineLatLngs || isSaving}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    {isSaving ? 'Saving...' : 'Save Route'}
+                  </Button>
+
+                  <Button
+                    onClick={clearRoute}
+                    variant="destructive"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Clear Route
+                  </Button>
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
 
-        {/* Instructions */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="text-charcoal">Instructions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ol className="list-decimal list-inside space-y-2 text-slate-gray">
-              <li>Select an Origin Port and Destination Port from the dropdowns</li>
-              <li>Use the polyline drawing tool on the map to draw your route</li>
-              <li>Click points on the map to create your route path</li>
-              <li>Double-click to finish drawing the route</li>
-              <li>Use the edit tool (pencil icon) to modify vertices and smooth curves manually</li>
-              <li><strong>Click "Smooth Curve" to automatically add interpolated points for smoother curves</strong></li>
-              <li><strong>Hold Ctrl (or Cmd on Mac) while editing to move the map</strong></li>
-              <li>Click "Save Route" to store the route configuration</li>
-              <li>Existing routes will appear as gray dashed lines</li>
-              <li>Green markers show origin ports, red markers show destinations</li>
-            </ol>
-          </CardContent>
-        </Card>
+            {/* Map Container */}
+            <Card>
+              <CardContent className="p-0">
+                <div 
+                  id="route-map" 
+                  className="w-full h-[600px] rounded-lg bg-gray-200 flex items-center justify-center text-gray-500"
+                >
+                  {!isLeafletLoaded && (
+                    <div className="flex flex-col items-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ocean-blue"></div>
+                      <p className="mt-4 text-lg">Loading map libraries...</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Instructions */}
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="text-charcoal">Instructions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ol className="list-decimal list-inside space-y-2 text-slate-gray">
+                  <li>Select an Origin Port and Destination Port from the dropdowns</li>
+                  <li>Use the polyline drawing tool on the map to draw your route</li>
+                  <li>Click points on the map to create your route path</li>
+                  <li>Double-click to finish drawing the route</li>
+                  <li>Use the edit tool (pencil icon) to modify vertices and smooth curves manually</li>
+                  <li><strong>Click "Smooth Curve" repeatedly to progressively refine the curve until satisfied</strong></li>
+                  <li><strong>Hold Ctrl (or Cmd on Mac) while editing to move the map</strong></li>
+                  <li>Click "Save Route" to store the route configuration</li>
+                  <li>Existing routes will appear as gray dashed lines</li>
+                  <li>Green markers show origin ports, red markers show destinations</li>
+                </ol>
+              </CardContent>
+            </Card>
+          </div>
+        </SidebarInset>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
