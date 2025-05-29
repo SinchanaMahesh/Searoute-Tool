@@ -69,7 +69,7 @@ const RouteMap = ({ cruises, hoveredCruise, selectedCruise }: RouteMapProps) => 
     markers.forEach(marker => map.removeLayer(marker));
     setMarkers([]);
 
-    // Add route for display cruise - use coordinates directly from the port objects
+    // Add route for display cruise
     const coordinates = displayCruise.ports.map(port => port.coordinates);
     const latLngCoordinates = coordinates.map(coord => [coord[1], coord[0]] as L.LatLngTuple);
     
