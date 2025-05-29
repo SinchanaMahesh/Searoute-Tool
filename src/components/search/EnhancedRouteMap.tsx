@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { CruiseData } from '@/api/mockCruiseData';
-import { Maximize2, X } from 'lucide-react';
+import { Maximize2, X, Cloud, MapPin, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Map from 'ol/Map';
 import View from 'ol/View';
@@ -22,45 +22,89 @@ interface EnhancedRouteMapProps {
   selectedCruise?: string | null;
 }
 
-// Helper function to create curved sea routes
+interface LocationInfo {
+  name: string;
+  weather: string;
+  temperature: string;
+  places: string[];
+  trivia: string;
+}
+
+// Sample location data
+const locationData: Record<string, LocationInfo> = {
+  'Miami': {
+    name: 'Miami, Florida',
+    weather: 'Sunny',
+    temperature: '82°F',
+    places: ['South Beach', 'Art Deco District', 'Wynwood Walls', 'Vizcaya Museum'],
+    trivia: 'Miami is known as the "Magic City" due to its rapid growth in the early 20th century.'
+  },
+  'Nassau': {
+    name: 'Nassau, Bahamas',
+    weather: 'Partly Cloudy',
+    temperature: '78°F',
+    places: ['Paradise Island', 'Atlantis Resort', 'Cable Beach', 'Fort Charlotte'],
+    trivia: 'Nassau was once a haven for pirates in the 18th century and is named after William III of Orange-Nassau.'
+  },
+  'St. Thomas': {
+    name: 'St. Thomas, USVI',
+    weather: 'Tropical',
+    temperature: '85°F',
+    places: ['Magens Bay', 'Coral World', 'Paradise Point', 'Blackbeard\'s Castle'],
+    trivia: 'St. Thomas is famous for duty-free shopping and has one of the most beautiful beaches in the world.'
+  },
+  'Barbados': {
+    name: 'Barbados',
+    weather: 'Sunny',
+    temperature: '83°F',
+    places: ['Harrison\'s Cave', 'Animal Flower Cave', 'Rum Distilleries', 'Crane Beach'],
+    trivia: 'Barbados is the birthplace of rum and has been producing it for over 350 years.'
+  }
+};
+
+// Helper function to create curved sea routes avoiding land
 const createSeaRoute = (startCoord: number[], endCoord: number[]) => {
   const [startLon, startLat] = startCoord;
   const [endLon, endLat] = endCoord;
   
-  // Calculate midpoint
+  // Calculate distance and direction
+  const distance = Math.sqrt(Math.pow(endLon - startLon, 2) + Math.pow(endLat - startLat, 2));
+  
+  // For Caribbean routes, create deeper sea curves
+  const curveDepth = distance * 0.4; // Deeper curve for sea routes
+  
+  // Determine curve direction based on geography
   const midLon = (startLon + endLon) / 2;
   const midLat = (startLat + endLat) / 2;
   
-  // Calculate distance to determine curve depth
-  const distance = Math.sqrt(Math.pow(endLon - startLon, 2) + Math.pow(endLat - startLat, 2));
+  // For Caribbean, curve outward into Atlantic or Caribbean Sea
+  const isEastWestRoute = Math.abs(endLon - startLon) > Math.abs(endLat - startLat);
+  const curveFactor = isEastWestRoute ? 
+    (midLat > 25 ? -1 : 1) : // North of 25°N curve south, south curve north
+    (midLon > -70 ? 1 : -1); // East of 70°W curve east, west curve west
   
-  // Create curve points - push the route deeper into the sea
-  const curveDepth = distance * 0.3; // 30% of distance for curve depth
-  
-  // Determine if we should curve north or south based on route
-  const shouldCurveNorth = midLat > 0; // Northern hemisphere curves north, southern curves south
-  const curveFactor = shouldCurveNorth ? 1 : -1;
-  
-  // Create multiple intermediate points for smooth curve
   const points = [];
   points.push(fromLonLat([startLon, startLat]));
   
-  // Add curve points
-  for (let i = 1; i <= 3; i++) {
-    const ratio = i / 4;
+  // Create smooth curve with multiple points
+  for (let i = 1; i <= 5; i++) {
+    const ratio = i / 6;
     const curveRatio = Math.sin(ratio * Math.PI); // Sine curve for natural arc
     
-    const curveLon = startLon + (endLon - startLon) * ratio;
+    let curveLon = startLon + (endLon - startLon) * ratio;
     let curveLat = startLat + (endLat - startLat) * ratio;
     
-    // Add curve offset to push into sea
-    curveLat += curveDepth * curveRatio * curveFactor;
+    // Apply curve offset deeper into sea
+    if (isEastWestRoute) {
+      curveLat += curveDepth * curveRatio * curveFactor;
+    } else {
+      curveLon += curveDepth * curveRatio * curveFactor;
+    }
     
     points.push(fromLonLat([curveLon, curveLat]));
   }
   
   points.push(fromLonLat([endLon, endLat]));
-  
   return points;
 };
 
@@ -72,15 +116,29 @@ const EnhancedRouteMap = ({ cruises, hoveredCruise, selectedCruise }: EnhancedRo
   const [vectorSource, setVectorSource] = useState<VectorSource | null>(null);
   const [largeVectorSource, setLargeVectorSource] = useState<VectorSource | null>(null);
   const [isLargeView, setIsLargeView] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<LocationInfo | null>(null);
   
-  // Use hovered cruise if available, otherwise use selected cruise, otherwise use first cruise
   const displayCruise = hoveredCruise 
     ? cruises.find(c => c.id === hoveredCruise)
     : selectedCruise 
     ? cruises.find(c => c.id === selectedCruise)
     : cruises.length > 0 ? cruises[0] : null;
 
-  // Handle escape key to close large view
+  // Initialize location info with first port
+  useEffect(() => {
+    if (displayCruise && displayCruise.ports.length > 0) {
+      const firstPort = displayCruise.ports[0].name;
+      setSelectedLocation(locationData[firstPort] || {
+        name: firstPort,
+        weather: 'Sunny',
+        temperature: '75°F',
+        places: ['Explore the local area'],
+        trivia: 'A beautiful cruise destination.'
+      });
+    }
+  }, [displayCruise]);
+
+  // Handle escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isLargeView) {
@@ -90,7 +148,11 @@ const EnhancedRouteMap = ({ cruises, hoveredCruise, selectedCruise }: EnhancedRo
 
     if (isLargeView) {
       document.addEventListener('keydown', handleEscape);
-      return () => document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden'; // Disable scrolling
+      return () => {
+        document.removeEventListener('keydown', handleEscape);
+        document.body.style.overflow = 'unset';
+      };
     }
   }, [isLargeView]);
 
@@ -99,55 +161,53 @@ const EnhancedRouteMap = ({ cruises, hoveredCruise, selectedCruise }: EnhancedRo
     if (!mapRef.current) return;
 
     const vectorSourceInstance = new VectorSource();
-    
-    const vectorLayer = new VectorLayer({
-      source: vectorSourceInstance,
-    });
+    const vectorLayer = new VectorLayer({ source: vectorSourceInstance });
 
     const mapInstance = new Map({
       target: mapRef.current,
-      layers: [
-        new TileLayer({
-          source: new OSM(),
-        }),
-        vectorLayer,
-      ],
+      layers: [new TileLayer({ source: new OSM() }), vectorLayer],
       view: new View({
-        center: fromLonLat([10, 50]),
-        zoom: 3,
+        center: fromLonLat([-75, 20]), // Caribbean center
+        zoom: 4,
       }),
     });
 
     setMap(mapInstance);
     setVectorSource(vectorSourceInstance);
 
-    return () => {
-      mapInstance.setTarget(undefined);
-    };
+    return () => mapInstance.setTarget(undefined);
   }, []);
 
-  // Initialize large map when opened
+  // Initialize large map
   useEffect(() => {
     if (!largeMapRef.current || !isLargeView) return;
 
     const vectorSourceInstance = new VectorSource();
-    
-    const vectorLayer = new VectorLayer({
-      source: vectorSourceInstance,
-    });
+    const vectorLayer = new VectorLayer({ source: vectorSourceInstance });
 
     const mapInstance = new Map({
       target: largeMapRef.current,
-      layers: [
-        new TileLayer({
-          source: new OSM(),
-        }),
-        vectorLayer,
-      ],
+      layers: [new TileLayer({ source: new OSM() }), vectorLayer],
       view: new View({
-        center: fromLonLat([10, 50]),
-        zoom: 3,
+        center: fromLonLat([-75, 20]),
+        zoom: 4,
       }),
+    });
+
+    // Add click handler for large map
+    mapInstance.on('click', (evt) => {
+      const feature = mapInstance.forEachFeatureAtPixel(evt.pixel, (feature) => feature);
+      if (feature && feature.get('portName')) {
+        const portName = feature.get('portName');
+        const locationInfo = locationData[portName] || {
+          name: portName,
+          weather: 'Sunny',
+          temperature: '75°F',
+          places: ['Explore the local area'],
+          trivia: 'A beautiful cruise destination.'
+        };
+        setSelectedLocation(locationInfo);
+      }
     });
 
     setLargeMap(mapInstance);
@@ -160,50 +220,36 @@ const EnhancedRouteMap = ({ cruises, hoveredCruise, selectedCruise }: EnhancedRo
     };
   }, [isLargeView]);
 
-  // Update both maps when cruise changes
+  // Update maps when cruise changes
   useEffect(() => {
     const updateMap = (mapInstance: Map | null, vectorSourceInstance: VectorSource | null) => {
       if (!mapInstance || !vectorSourceInstance || !displayCruise) return;
 
-      // Clear existing features
       vectorSourceInstance.clear();
-
-      // Add route for display cruise with curved sea routes
       const ports = displayCruise.ports;
       
+      // Add curved sea routes
       for (let i = 0; i < ports.length - 1; i++) {
-        const startPort = ports[i];
-        const endPort = ports[i + 1];
+        const routePoints = createSeaRoute(ports[i].coordinates, ports[i + 1].coordinates);
         
-        // Create curved sea route
-        const routePoints = createSeaRoute(startPort.coordinates, endPort.coordinates);
-        
-        const routeFeature = new Feature({
-          geometry: new LineString(routePoints),
-        });
-        
+        const routeFeature = new Feature({ geometry: new LineString(routePoints) });
         routeFeature.setStyle(new Style({
-          stroke: new Stroke({
-            color: '#ff6b35',
-            width: 3,
-          }),
+          stroke: new Stroke({ color: '#ff6b35', width: 3 }),
         }));
         
         vectorSourceInstance.addFeature(routeFeature);
       }
 
-      // Add port markers
+      // Add port markers with click data
       ports.forEach((port, index) => {
-        const coord = fromLonLat([port.coordinates[0], port.coordinates[1]]);
-        const pointFeature = new Feature({
-          geometry: new Point(coord),
-        });
+        const coord = fromLonLat(port.coordinates);
+        const pointFeature = new Feature({ geometry: new Point(coord) });
+        pointFeature.set('portName', port.name);
         
         const color = index === 0 ? '#22c55e' : index === ports.length - 1 ? '#ef4444' : '#3b82f6';
-        
         pointFeature.setStyle(new Style({
           image: new Circle({
-            radius: 6,
+            radius: 8,
             fill: new Fill({ color }),
             stroke: new Stroke({ color: 'white', width: 2 }),
           }),
@@ -219,10 +265,7 @@ const EnhancedRouteMap = ({ cruises, hoveredCruise, selectedCruise }: EnhancedRo
       }
     };
 
-    // Update main map
     updateMap(map, vectorSource);
-    
-    // Update large map if it's open
     if (isLargeView) {
       updateMap(largeMap, largeVectorSource);
     }
@@ -254,29 +297,115 @@ const EnhancedRouteMap = ({ cruises, hoveredCruise, selectedCruise }: EnhancedRo
           </div>
         </div>
 
-        {/* Map Container */}
         <div ref={mapRef} className="absolute inset-0 pt-12" />
       </div>
 
-      {/* Large View Modal - Highest z-index */}
+      {/* Large View Modal with highest z-index and overlay */}
       {isLargeView && (
-        <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg w-full h-full max-w-6xl max-h-[90vh] flex flex-col relative">
-            <div className="p-4 border-b border-border-gray flex justify-between items-center relative z-[10000]">
-              <h3 className="font-semibold text-charcoal">Route Map - Large View</h3>
-              <Button
-                variant="outline"
-                onClick={() => setIsLargeView(false)}
-                className="text-slate-gray h-8 w-8 p-0"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-            <div className="flex-1 relative">
-              <div ref={largeMapRef} className="w-full h-full" />
+        <>
+          {/* Backdrop overlay */}
+          <div className="fixed inset-0 bg-black/50 z-[99998]" onClick={() => setIsLargeView(false)} />
+          
+          {/* Modal content */}
+          <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 pointer-events-none">
+            <div className="bg-white rounded-lg w-full h-full max-w-7xl max-h-[95vh] flex flex-col relative pointer-events-auto">
+              {/* Header */}
+              <div className="p-4 border-b border-border-gray flex justify-between items-center bg-white relative z-[100000]">
+                <h3 className="font-semibold text-charcoal">Route Map - Large View</h3>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsLargeView(false)}
+                  className="text-slate-gray h-8 w-8 p-0"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              
+              {/* Content */}
+              <div className="flex-1 flex relative overflow-hidden">
+                {/* Map Section */}
+                <div className="flex-1 relative">
+                  <div ref={largeMapRef} className="w-full h-full" />
+                </div>
+                
+                {/* Right Panel - Location Information */}
+                <div className="w-80 border-l border-border-gray bg-white flex flex-col">
+                  {selectedLocation && (
+                    <>
+                      {/* Location Header */}
+                      <div className="p-4 border-b border-border-gray">
+                        <h4 className="font-semibold text-charcoal text-lg flex items-center gap-2">
+                          <MapPin className="w-5 h-5 text-ocean-blue" />
+                          {selectedLocation.name}
+                        </h4>
+                        <div className="flex items-center gap-4 mt-2 text-sm">
+                          <div className="flex items-center gap-1">
+                            <Cloud className="w-4 h-4 text-blue-500" />
+                            <span>{selectedLocation.weather}</span>
+                          </div>
+                          <span className="font-medium text-coral-pink">{selectedLocation.temperature}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Places to Visit */}
+                      <div className="p-4 border-b border-border-gray">
+                        <h5 className="font-medium text-charcoal mb-2">Places to Visit</h5>
+                        <ul className="space-y-1 text-sm text-slate-gray">
+                          {selectedLocation.places.map((place, index) => (
+                            <li key={index} className="flex items-center gap-2">
+                              <div className="w-1 h-1 bg-ocean-blue rounded-full" />
+                              {place}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      {/* Trivia */}
+                      <div className="p-4">
+                        <h5 className="font-medium text-charcoal mb-2 flex items-center gap-2">
+                          <Info className="w-4 h-4 text-sunset-orange" />
+                          Did You Know?
+                        </h5>
+                        <p className="text-sm text-slate-gray">{selectedLocation.trivia}</p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+              
+              {/* Bottom Panel - Ports */}
+              {displayCruise && (
+                <div className="border-t border-border-gray bg-light-gray p-4">
+                  <h5 className="font-medium text-charcoal mb-2">Cruise Ports</h5>
+                  <div className="flex gap-2 flex-wrap">
+                    {displayCruise.ports.map((port, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          const locationInfo = locationData[port.name] || {
+                            name: port.name,
+                            weather: 'Sunny',
+                            temperature: '75°F',
+                            places: ['Explore the local area'],
+                            trivia: 'A beautiful cruise destination.'
+                          };
+                          setSelectedLocation(locationInfo);
+                        }}
+                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                          selectedLocation?.name.includes(port.name)
+                            ? 'bg-ocean-blue text-white'
+                            : 'bg-white text-slate-gray hover:bg-ocean-blue hover:text-white'
+                        }`}
+                      >
+                        {port.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        </div>
+        </>
       )}
     </>
   );
