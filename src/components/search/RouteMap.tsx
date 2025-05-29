@@ -3,16 +3,18 @@ import React, { useEffect, useRef, useState } from 'react';
 import { CruiseData } from '@/api/mockCruiseData';
 import { Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-
-// Fix for default markers in Leaflet
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
+import Map from 'ol/Map';
+import View from 'ol/View';
+import TileLayer from 'ol/layer/Tile';
+import OSM from 'ol/source/OSM';
+import VectorLayer from 'ol/layer/Vector';
+import VectorSource from 'ol/source/Vector';
+import Feature from 'ol/Feature';
+import Point from 'ol/geom/Point';
+import LineString from 'ol/geom/LineString';
+import { Style, Circle, Fill, Stroke } from 'ol/style';
+import { fromLonLat } from 'ol/proj';
+import 'ol/ol.css';
 
 interface RouteMapProps {
   cruises: CruiseData[];
@@ -22,9 +24,8 @@ interface RouteMapProps {
 
 const RouteMap = ({ cruises, hoveredCruise, selectedCruise }: RouteMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
-  const [map, setMap] = useState<L.Map | null>(null);
-  const [routeLine, setRouteLine] = useState<L.Polyline | null>(null);
-  const [markers, setMarkers] = useState<L.Marker[]>([]);
+  const [map, setMap] = useState<Map | null>(null);
+  const [vectorSource, setVectorSource] = useState<VectorSource | null>(null);
   const [isLargeView, setIsLargeView] = useState(false);
   
   // Use hovered cruise if available, otherwise use selected cruise, otherwise use first cruise
@@ -37,83 +38,86 @@ const RouteMap = ({ cruises, hoveredCruise, selectedCruise }: RouteMapProps) => 
   useEffect(() => {
     if (!mapRef.current) return;
 
-    // Initialize Leaflet map
-    const mapInstance = L.map(mapRef.current, {
-      center: [35, -30], // Atlantic Ocean center
-      zoom: 2,
-      zoomControl: true,
-      scrollWheelZoom: true
+    const vectorSourceInstance = new VectorSource();
+    
+    const vectorLayer = new VectorLayer({
+      source: vectorSourceInstance,
     });
 
-    // Add OpenStreetMap tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(mapInstance);
+    // Initialize OpenLayers map
+    const mapInstance = new Map({
+      target: mapRef.current,
+      layers: [
+        new TileLayer({
+          source: new OSM(),
+        }),
+        vectorLayer,
+      ],
+      view: new View({
+        center: fromLonLat([-30, 35]), // Atlantic Ocean center
+        zoom: 2,
+      }),
+    });
 
     setMap(mapInstance);
+    setVectorSource(vectorSourceInstance);
 
     return () => {
-      mapInstance.remove();
+      mapInstance.setTarget(undefined);
     };
   }, []);
 
   useEffect(() => {
-    if (!map || !displayCruise) return;
+    if (!map || !vectorSource || !displayCruise) return;
 
-    // Clear existing route and markers
-    if (routeLine) {
-      map.removeLayer(routeLine);
-      setRouteLine(null);
-    }
-    
-    markers.forEach(marker => map.removeLayer(marker));
-    setMarkers([]);
+    // Clear existing features
+    vectorSource.clear();
 
     // Add route for display cruise
-    const coordinates = displayCruise.ports.map(port => port.coordinates);
-    const latLngCoordinates = coordinates.map(coord => [coord[1], coord[0]] as L.LatLngTuple);
+    const coordinates = displayCruise.ports.map(port => 
+      fromLonLat([port.coordinates[0], port.coordinates[1]])
+    );
     
     // Create route line
-    const polyline = L.polyline(latLngCoordinates, {
-      color: '#ff6b35',
-      weight: 3,
-      opacity: 0.8
-    }).addTo(map);
-    
-    setRouteLine(polyline);
-
-    // Add port markers
-    const newMarkers: L.Marker[] = [];
-    coordinates.forEach((coord, index) => {
-      const icon = L.divIcon({
-        className: 'custom-cruise-marker',
-        html: `<div style="
-          width: 12px; 
-          height: 12px; 
-          border-radius: 50%; 
-          background-color: ${index === 0 ? '#22c55e' : index === coordinates.length - 1 ? '#ef4444' : '#3b82f6'};
-          border: 2px solid white;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        "></div>`,
-        iconSize: [12, 12],
-        iconAnchor: [6, 6]
-      });
-
-      const marker = L.marker([coord[1], coord[0]], { icon })
-        .bindPopup(displayCruise.ports[index].name)
-        .addTo(map);
-      
-      newMarkers.push(marker);
+    const routeFeature = new Feature({
+      geometry: new LineString(coordinates),
     });
     
-    setMarkers(newMarkers);
+    routeFeature.setStyle(new Style({
+      stroke: new Stroke({
+        color: '#ff6b35',
+        width: 3,
+      }),
+    }));
+    
+    vectorSource.addFeature(routeFeature);
+
+    // Add port markers
+    coordinates.forEach((coord, index) => {
+      const pointFeature = new Feature({
+        geometry: new Point(coord),
+      });
+      
+      const color = index === 0 ? '#22c55e' : index === coordinates.length - 1 ? '#ef4444' : '#3b82f6';
+      
+      pointFeature.setStyle(new Style({
+        image: new Circle({
+          radius: 6,
+          fill: new Fill({ color }),
+          stroke: new Stroke({ color: 'white', width: 2 }),
+        }),
+      }));
+      
+      vectorSource.addFeature(pointFeature);
+    });
 
     // Fit map to route
-    if (latLngCoordinates.length > 0) {
-      map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+    if (coordinates.length > 0) {
+      const extent = vectorSource.getExtent();
+      map.getView().fit(extent, { padding: [50, 50, 50, 50] });
     }
 
-  }, [map, displayCruise]);
+  }, [map, vectorSource, displayCruise]);
 
   return (
     <div className="h-full bg-gradient-to-br from-blue-50 to-blue-100 relative overflow-hidden">
