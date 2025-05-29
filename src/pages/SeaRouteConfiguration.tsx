@@ -284,6 +284,7 @@ const SeaRouteConfiguration = () => {
         edit: {
           featureGroup: drawnLayersRef.current,
           remove: true,
+          edit: true, // Enable edit mode for polylines
         },
         draw: {
           polyline: {
@@ -309,6 +310,17 @@ const SeaRouteConfiguration = () => {
         drawnLayersRef.current.clearLayers();
         drawnLayersRef.current.addLayer(layer);
         setCurrentDrawnPolylineLatLngs(layer.getLatLngs());
+      });
+
+      // Event listener for when a layer is edited
+      map.on((L as any).Draw.Event.EDITED, (event: any) => {
+        const layers = event.layers;
+        layers.eachLayer((layer: any) => {
+          if (layer instanceof L.Polyline) {
+            setCurrentDrawnPolylineLatLngs(layer.getLatLngs());
+            toast.info('Route updated - remember to save your changes');
+          }
+        });
       });
 
       // Event listener for when a layer is deleted
