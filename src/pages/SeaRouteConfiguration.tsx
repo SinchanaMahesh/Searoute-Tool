@@ -144,7 +144,7 @@ const SeaRouteConfiguration = () => {
       // Add the last point
       smoothedPoints.push(originalPoints[originalPoints.length - 1]);
 
-      // Create new smoothed polyline
+      // Create new smoothed polyline with edit options disabled during creation
       drawnLayersRef.current.clearLayers();
       const smoothedPolyline = window.L.polyline(smoothedPoints, {
         color: 'blue',
@@ -483,6 +483,7 @@ const SeaRouteConfiguration = () => {
         const layers = event.layers;
         layers.eachLayer((layer: any) => {
           if (layer instanceof L.Polyline) {
+            // Store the manually edited points without auto-smoothing
             setCurrentDrawnPolylineLatLngs(layer.getLatLngs());
             toast.success('Route updated - remember to save your changes');
           }
@@ -491,12 +492,12 @@ const SeaRouteConfiguration = () => {
 
       // Event listener for when editing starts
       map.on((L as any).Draw.Event.EDITSTART, () => {
-        toast.info('Edit mode active - hold Ctrl/Cmd to move map while editing');
+        toast.info('Edit mode active - hold Ctrl/Cmd to move map. Points will not auto-smooth during editing.');
       });
 
       // Event listener for when editing stops
       map.on((L as any).Draw.Event.EDITSTOP, () => {
-        toast.info('Edit mode disabled');
+        toast.info('Edit mode disabled - you can now use Smooth Curve again if needed');
       });
 
       // Event listener for when a layer is deleted
