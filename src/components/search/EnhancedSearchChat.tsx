@@ -209,7 +209,7 @@ const EnhancedSearchChat = ({ initialQuery, searchType, resultCount, quickFilter
         </div>
       )}
 
-      {/* Input Area - Fixed at bottom */}
+      {/* Input Area - Always visible at bottom */}
       <div className="p-3 border-t border-border-gray bg-pearl-white flex-shrink-0">
         <div className="flex items-center gap-2">
           <Button
