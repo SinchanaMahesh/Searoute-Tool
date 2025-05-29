@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MapPin, Save, Trash2, Route, Lock } from 'lucide-react';
+import { MapPin, Save, Trash2, Route, Lock, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Port {
@@ -56,6 +56,83 @@ const SeaRouteConfiguration = () => {
     { id: 'port_kingston', name: 'Kingston, Jamaica', lat: 17.9712, lng: -76.7936 },
     { id: 'port_cozumel', name: 'Cozumel, Mexico', lat: 20.4230, lng: -86.9223 },
   ];
+
+  // Curve smoothing function
+  const smoothCurve = useCallback(() => {
+    if (!currentDrawnPolylineLatLngs || !window.L || !drawnLayersRef.current) {
+      toast.error('No polyline to smooth. Please draw a route first.');
+      return;
+    }
+
+    try {
+      // Get the current polyline
+      const layers = drawnLayersRef.current.getLayers();
+      if (layers.length === 0) return;
+
+      const polyline = layers[0];
+      const originalPoints = polyline.getLatLngs();
+
+      if (originalPoints.length < 3) {
+        toast.info('Need at least 3 points to smooth the curve.');
+        return;
+      }
+
+      // Simple spline interpolation - add points between existing ones
+      const smoothedPoints = [];
+      
+      for (let i = 0; i < originalPoints.length - 1; i++) {
+        const current = originalPoints[i];
+        const next = originalPoints[i + 1];
+        
+        // Add the current point
+        smoothedPoints.push(current);
+        
+        // Calculate intermediate points for smoothing
+        const steps = 3; // Number of intermediate points
+        for (let j = 1; j < steps; j++) {
+          const ratio = j / steps;
+          
+          // Linear interpolation with slight curve adjustment
+          const lat = current.lat + (next.lat - current.lat) * ratio;
+          const lng = current.lng + (next.lng - current.lng) * ratio;
+          
+          // Add slight curve by considering neighboring points for natural smoothing
+          let curveFactor = 0;
+          if (i > 0) {
+            const prev = originalPoints[i - 1];
+            const curveLat = (prev.lat + next.lat) / 2;
+            const curveLng = (prev.lng + next.lng) / 2;
+            curveFactor = 0.1 * Math.sin(Math.PI * ratio);
+            
+            smoothedPoints.push({
+              lat: lat + (curveLat - current.lat) * curveFactor * 0.1,
+              lng: lng + (curveLng - current.lng) * curveFactor * 0.1
+            });
+          } else {
+            smoothedPoints.push({ lat, lng });
+          }
+        }
+      }
+      
+      // Add the last point
+      smoothedPoints.push(originalPoints[originalPoints.length - 1]);
+
+      // Create new smoothed polyline
+      drawnLayersRef.current.clearLayers();
+      const smoothedPolyline = window.L.polyline(smoothedPoints, {
+        color: 'blue',
+        weight: 3
+      });
+      
+      drawnLayersRef.current.addLayer(smoothedPolyline);
+      setCurrentDrawnPolylineLatLngs(smoothedPolyline.getLatLngs());
+      
+      toast.success(`Curve smoothed! Added ${smoothedPoints.length - originalPoints.length} interpolated points.`);
+    } catch (error) {
+      console.error('Error smoothing curve:', error);
+      toast.error('Failed to smooth curve. Please try again.');
+    }
+  }, [currentDrawnPolylineLatLngs]);
 
   // Keyboard event handlers for modifier keys
   useEffect(() => {
@@ -549,7 +626,7 @@ const SeaRouteConfiguration = () => {
         {/* Controls */}
         <Card className="mb-6">
           <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
               <div>
                 <label className="block text-sm font-medium text-charcoal mb-2">
                   Origin Port
@@ -585,6 +662,15 @@ const SeaRouteConfiguration = () => {
                   </SelectContent>
                 </Select>
               </div>
+
+              <Button
+                onClick={smoothCurve}
+                disabled={!currentDrawnPolylineLatLngs}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Smooth Curve
+              </Button>
 
               <Button
                 onClick={saveRoute}
@@ -634,7 +720,8 @@ const SeaRouteConfiguration = () => {
               <li>Use the polyline drawing tool on the map to draw your route</li>
               <li>Click points on the map to create your route path</li>
               <li>Double-click to finish drawing the route</li>
-              <li>Use the edit tool (pencil icon) to modify vertices and smooth curves</li>
+              <li>Use the edit tool (pencil icon) to modify vertices and smooth curves manually</li>
+              <li><strong>Click "Smooth Curve" to automatically add interpolated points for smoother curves</strong></li>
               <li><strong>Hold Ctrl (or Cmd on Mac) while editing to move the map</strong></li>
               <li>Click "Save Route" to store the route configuration</li>
               <li>Existing routes will appear as gray dashed lines</li>
