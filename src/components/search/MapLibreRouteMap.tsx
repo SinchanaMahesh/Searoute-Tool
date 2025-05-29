@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Map, NavigationControl, Popup } from 'maplibre-gl';
+import { Map, NavigationControl, LngLatBounds } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { CruiseData } from '@/api/mockCruiseData';
 import { Maximize2, X, Cloud, MapPin, Info, Anchor } from 'lucide-react';
@@ -120,6 +120,7 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise }: MapLibreRo
     if (map.current.getSource('cruise-route')) map.current.removeSource('cruise-route');
     if (map.current.getLayer('ports')) map.current.removeLayer('ports');
     if (map.current.getSource('ports')) map.current.removeSource('ports');
+    if (map.current.getLayer('port-labels')) map.current.removeLayer('port-labels');
 
     // Convert cruise ports to Port objects and calculate routes
     const ports: Port[] = [];
@@ -261,7 +262,7 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise }: MapLibreRo
       const coordinates = ports.map(port => port.coordinates);
       const bounds = coordinates.reduce(
         (bounds, coord) => bounds.extend(coord),
-        new maplibregl.LngLatBounds(coordinates[0], coordinates[0])
+        new LngLatBounds(coordinates[0], coordinates[0])
       );
       
       map.current.fitBounds(bounds, { padding: 50 });

@@ -97,7 +97,7 @@ export class MaritimeRouteCalculator {
     return { coordinates, distance, hasLandSegment: false };
   }
 
-  private calculateRouteAroundLand(start: [number, number], end: [number, number]): { coordinates: [number, number]; distance: number; hasLandSegment: boolean } {
+  private calculateRouteAroundLand(start: [number, number], end: [number, number]): { coordinates: [number, number][]; distance: number; hasLandSegment: boolean } {
     // Simplified routing around land - find waypoints
     const waypoints = this.findCoastalWaypoints(start, end);
     const coordinates = [start, ...waypoints, end];
