@@ -278,12 +278,20 @@ const SeaRouteConfiguration = () => {
       // Initialize the FeatureGroup for drawn items
       drawnLayersRef.current = new L.FeatureGroup().addTo(map);
 
-      // Initialize the draw control
+      // Initialize the draw control with enhanced editing options
       const drawControl = new (L as any).Control.Draw({
         edit: {
           featureGroup: drawnLayersRef.current,
           remove: true,
-          edit: true, // Enable edit mode for polylines
+          edit: {
+            selectedPathOptions: {
+              // Style for selected polyline
+              color: '#fe57a1',
+              opacity: 0.8,
+              weight: 4,
+              dashArray: '10, 10'
+            }
+          }
         },
         draw: {
           polyline: {
@@ -292,7 +300,11 @@ const SeaRouteConfiguration = () => {
               weight: 3
             },
             allowIntersection: false,
-            repeatMode: false
+            repeatMode: false,
+            showLength: true,
+            metric: true,
+            feet: false,
+            nautic: true
           },
           polygon: false,
           rectangle: false,
@@ -309,6 +321,11 @@ const SeaRouteConfiguration = () => {
         drawnLayersRef.current.clearLayers();
         drawnLayersRef.current.addLayer(layer);
         setCurrentDrawnPolylineLatLngs(layer.getLatLngs());
+        
+        // Add click handler to the polyline for selection
+        layer.on('click', () => {
+          toast.info('Polyline selected - use the edit tool to modify vertices');
+        });
       });
 
       // Event listener for when a layer is edited
@@ -317,14 +334,38 @@ const SeaRouteConfiguration = () => {
         layers.eachLayer((layer: any) => {
           if (layer instanceof L.Polyline) {
             setCurrentDrawnPolylineLatLngs(layer.getLatLngs());
-            toast.info('Route updated - remember to save your changes');
+            toast.success('Route updated - remember to save your changes');
           }
         });
+      });
+
+      // Event listener for when editing starts
+      map.on((L as any).Draw.Event.EDITSTART, () => {
+        toast.info('Edit mode active - drag vertices to smooth your route');
+      });
+
+      // Event listener for when editing stops
+      map.on((L as any).Draw.Event.EDITSTOP, () => {
+        toast.info('Edit mode disabled');
       });
 
       // Event listener for when a layer is deleted
       map.on((L as any).Draw.Event.DELETED, () => {
         setCurrentDrawnPolylineLatLngs(null);
+        toast.info('Route deleted');
+      });
+
+      // Add custom handlers for smoother interaction
+      map.on('click', (e: any) => {
+        // If there's a drawn polyline and user clicks on it, show edit hint
+        drawnLayersRef.current.eachLayer((layer: any) => {
+          if (layer instanceof L.Polyline) {
+            const distance = layer.closestLayerPoint(e.layerPoint);
+            if (distance && distance.distance < 10) {
+              toast.info('Click the edit tool (pencil icon) to modify this route');
+            }
+          }
+        });
       });
     }
 
