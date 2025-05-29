@@ -1,12 +1,13 @@
+
 import React, { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Cruise } from '@/pages/Search';
+import { CruiseData } from '@/api/mockCruiseData';
 import { Star, Heart, Share, GitCompare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface CruiseResultsProps {
-  cruises: Cruise[];
+  cruises: CruiseData[];
   isLoading: boolean;
   onCruiseHover: (cruiseId: string | null) => void;
   sortBy: string;
@@ -107,16 +108,19 @@ const CruiseResults = ({ cruises, isLoading, onCruiseHover, sortBy, onSortChange
 };
 
 // Individual Cruise Card Component
-const CruiseCard = ({ cruise, onHover, navigate }: { cruise: Cruise; onHover: (cruiseId: string | null) => void; navigate: any }) => {
+const CruiseCard = ({ cruise, onHover, navigate }: { cruise: CruiseData; onHover: (cruiseId: string | null) => void; navigate: any }) => {
   const handleBookNow = () => {
     navigate(`/cruise/${cruise.id}/book`);
   };
 
   const handleViewDetails = () => {
     // Create a details URL pattern for external cruise details
-    const detailsUrl = `https://www.royalcaribbean.com/cruise/${cruise.id}`;
+    const detailsUrl = `https://www.cruiselines.com/cruise/${cruise.id}`;
     window.open(detailsUrl, '_blank');
   };
+
+  // Convert Port objects to string array for display
+  const portNames = cruise.ports.map(port => port.name);
 
   return (
     <div 
@@ -180,14 +184,14 @@ const CruiseCard = ({ cruise, onHover, navigate }: { cruise: Cruise; onHover: (c
             </div>
 
             <div className="text-sm text-slate-gray">
-              <span className="font-medium text-charcoal">{cruise.route}</span> • {cruise.ports.length} ports
+              <span className="font-medium text-charcoal">{cruise.route}</span> • {portNames.length} ports
             </div>
 
             {/* Ports List */}
             <div className="text-sm text-slate-gray">
               <span className="font-medium text-charcoal">Ports: </span>
-              {cruise.ports.slice(0, 4).join(' → ')}
-              {cruise.ports.length > 4 && ` → +${cruise.ports.length - 4} more`}
+              {portNames.slice(0, 4).join(' → ')}
+              {portNames.length > 4 && ` → +${portNames.length - 4} more`}
             </div>
 
             <div className="flex items-center gap-2">
