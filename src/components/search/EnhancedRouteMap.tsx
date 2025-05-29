@@ -1,9 +1,8 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { CruiseData } from '@/api/mockCruiseData';
 import { Maximize2, X, Cloud, MapPin, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 
 interface EnhancedRouteMapProps {
   cruises: CruiseData[];
@@ -51,59 +50,48 @@ const locationData: Record<string, LocationInfo> = {
   }
 };
 
+// Convert real coordinates to canvas coordinates
+const convertToCanvasCoords = (longitude: number, latitude: number, canvasWidth: number, canvasHeight: number) => {
+  // Caribbean region bounds: roughly -85 to -60 longitude, 10 to 30 latitude
+  const minLon = -85;
+  const maxLon = -60;
+  const minLat = 10;
+  const maxLat = 30;
+  
+  const x = ((longitude - minLon) / (maxLon - minLon)) * canvasWidth;
+  const y = canvasHeight - ((latitude - minLat) / (maxLat - minLat)) * canvasHeight;
+  
+  return { x, y };
+};
+
 // Helper function to create curved sea routes avoiding land
-const createSeaRoute = (startCoord: number[], endCoord: number[]) => {
-  const [startLon, startLat] = startCoord;
-  const [endLon, endLat] = endCoord;
+const createSeaRoute = (start: { x: number; y: number }, end: { x: number; y: number }) => {
+  const controlPoints = [];
+  const distance = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
+  const curveDepth = distance * 0.3;
   
-  // Calculate distance and direction
-  const distance = Math.sqrt(Math.pow(endLon - startLon, 2) + Math.pow(endLat - startLat, 2));
-  
-  // For Caribbean routes, create deeper sea curves
-  const curveDepth = distance * 0.6; // Even deeper curve for sea routes
-  
-  // Determine curve direction based on geography
-  const midLon = (startLon + endLon) / 2;
-  const midLat = (startLat + endLat) / 2;
-  
-  // For Caribbean, curve outward into Atlantic or Caribbean Sea
-  const isEastWestRoute = Math.abs(endLon - startLon) > Math.abs(endLat - startLat);
-  const curveFactor = isEastWestRoute ? 
-    (midLat > 25 ? -1 : 1) : // North of 25°N curve south, south curve north
-    (midLon > -70 ? 1 : -1); // East of 70°W curve east, west curve west
-  
-  const points: [number, number][] = [];
-  points.push([startLat, startLon]);
-  
-  // Create smooth curve with multiple points
-  for (let i = 1; i <= 5; i++) {
-    const ratio = i / 6;
-    const curveRatio = Math.sin(ratio * Math.PI); // Sine curve for natural arc
+  // Create curve points
+  for (let i = 0; i <= 10; i++) {
+    const t = i / 10;
+    const x = start.x + (end.x - start.x) * t;
+    const y = start.y + (end.y - start.y) * t;
     
-    let curveLon = startLon + (endLon - startLon) * ratio;
-    let curveLat = startLat + (endLat - startLat) * ratio;
+    // Add curve offset (simulate going around land)
+    const curveOffset = Math.sin(t * Math.PI) * curveDepth;
+    const curvedY = y + curveOffset;
     
-    // Apply curve offset deeper into sea
-    if (isEastWestRoute) {
-      curveLat += curveDepth * curveRatio * curveFactor;
-    } else {
-      curveLon += curveDepth * curveRatio * curveFactor;
-    }
-    
-    points.push([curveLat, curveLon]);
+    controlPoints.push({ x, y: curvedY });
   }
   
-  points.push([endLat, endLon]);
-  return points;
+  return controlPoints;
 };
 
 const EnhancedRouteMap = ({ cruises, hoveredCruise, selectedCruise }: EnhancedRouteMapProps) => {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const largeMapRef = useRef<HTMLDivElement>(null);
-  const [map, setMap] = useState<L.Map | null>(null);
-  const [largeMap, setLargeMap] = useState<L.Map | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const largeCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isLargeView, setIsLargeView] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<LocationInfo | null>(null);
+  const [clickedPort, setClickedPort] = useState<string | null>(null);
   
   const displayCruise = hoveredCruise 
     ? cruises.find(c => c.id === hoveredCruise)
@@ -143,152 +131,153 @@ const EnhancedRouteMap = ({ cruises, hoveredCruise, selectedCruise }: EnhancedRo
     }
   }, [isLargeView]);
 
-  // Initialize main map - Fixed cleanup function
-  useEffect(() => {
-    if (!mapRef.current) return;
+  // Draw map on canvas
+  const drawMap = (canvas: HTMLCanvasElement, isLarge: boolean = false) => {
+    if (!canvas || !displayCruise) return;
 
-    // Fix for default markers
-    delete (L.Icon.Default.prototype as any)._getIconUrl;
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-    });
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-    const mapInstance = L.map(mapRef.current).setView([20, -75], 4);
+    const { width, height } = canvas;
     
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(mapInstance);
-
-    setMap(mapInstance);
-
-    return () => {
-      mapInstance.remove();
-    };
-  }, []);
-
-  // Initialize large map - Fixed cleanup function
-  useEffect(() => {
-    if (!largeMapRef.current || !isLargeView) return;
-
-    const mapInstance = L.map(largeMapRef.current).setView([20, -75], 4);
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
     
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(mapInstance);
-
-    // Add click handler for large map
-    mapInstance.on('click', async (e) => {
-      const lat = e.latlng.lat;
-      const lng = e.latlng.lng;
+    // Draw background (ocean)
+    const gradient = ctx.createLinearGradient(0, 0, 0, height);
+    gradient.addColorStop(0, '#e0f2fe');
+    gradient.addColorStop(1, '#0284c7');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+    
+    // Draw simplified land masses (for context)
+    ctx.fillStyle = '#10b981';
+    ctx.strokeStyle = '#065f46';
+    ctx.lineWidth = 1;
+    
+    // Draw some basic land shapes for Caribbean context
+    // Florida (top left)
+    ctx.beginPath();
+    ctx.ellipse(width * 0.15, height * 0.2, width * 0.08, height * 0.15, 0, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Cuba (center left)
+    ctx.beginPath();
+    ctx.ellipse(width * 0.25, height * 0.4, width * 0.12, height * 0.06, 0, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Jamaica (center)
+    ctx.beginPath();
+    ctx.ellipse(width * 0.35, height * 0.55, width * 0.04, height * 0.03, 0, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Puerto Rico (center right)
+    ctx.beginPath();
+    ctx.ellipse(width * 0.6, height * 0.45, width * 0.05, height * 0.02, 0, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Convert port coordinates to canvas coordinates
+    const canvasCoords = displayCruise.ports.map(port => 
+      convertToCanvasCoords(port.coordinates[0], port.coordinates[1], width, height)
+    );
+    
+    // Draw curved routes between ports
+    ctx.strokeStyle = '#ff6b35';
+    ctx.lineWidth = isLarge ? 4 : 3;
+    ctx.lineCap = 'round';
+    
+    for (let i = 0; i < canvasCoords.length - 1; i++) {
+      const routePoints = createSeaRoute(canvasCoords[i], canvasCoords[i + 1]);
       
-      // Query nearby locations using Overpass API
-      try {
-        const response = await fetch(`https://overpass-api.de/api/interpreter?data=[out:json];node(around:1000,${lat},${lng})["name"];out;`);
-        const data = await response.json();
-        
-        if (data.elements && data.elements.length > 0) {
-          const nearestPlace = data.elements[0];
-          const placeName = nearestPlace.tags?.name || 'Unknown Location';
-          
-          // Check if we have data for this location
-          const locationInfo = Object.values(locationData).find(loc => 
-            loc.name.toLowerCase().includes(placeName.toLowerCase())
-          ) || locationData[placeName] || {
-            name: placeName,
-            weather: 'Sunny',
-            temperature: '75°F',
-            places: ['Explore the local area'],
-            trivia: 'A beautiful destination with rich history and culture.'
-          };
-          
-          setSelectedLocation(locationInfo);
-        }
-      } catch (error) {
-        console.log('Could not fetch location data:', error);
-      }
-    });
-
-    setLargeMap(mapInstance);
-
-    return () => {
-      mapInstance.remove();
-      setLargeMap(null);
-    };
-  }, [isLargeView]);
-
-  // Update maps when cruise changes
-  useEffect(() => {
-    const updateMap = (mapInstance: L.Map | null) => {
-      if (!mapInstance || !displayCruise) return;
-
-      // Clear existing layers
-      mapInstance.eachLayer((layer) => {
-        if (layer instanceof L.Polyline || layer instanceof L.Marker) {
-          mapInstance.removeLayer(layer);
-        }
-      });
+      ctx.beginPath();
+      ctx.moveTo(routePoints[0].x, routePoints[0].y);
       
-      const ports = displayCruise.ports;
+      for (let j = 1; j < routePoints.length; j++) {
+        ctx.lineTo(routePoints[j].x, routePoints[j].y);
+      }
       
-      // Add curved sea routes
-      for (let i = 0; i < ports.length - 1; i++) {
-        const routePoints = createSeaRoute(ports[i].coordinates, ports[i + 1].coordinates);
-        
-        const routeLine = L.polyline(routePoints, {
-          color: '#ff6b35',
-          weight: 3,
-          opacity: 0.8
-        }).addTo(mapInstance);
-      }
-
-      // Add port markers
-      ports.forEach((port, index) => {
-        const color = index === 0 ? '#22c55e' : index === ports.length - 1 ? '#ef4444' : '#3b82f6';
-        
-        const marker = L.circleMarker([port.coordinates[1], port.coordinates[0]], {
-          radius: 8,
-          fillColor: color,
-          color: 'white',
-          weight: 2,
-          opacity: 1,
-          fillOpacity: 0.8
-        }).addTo(mapInstance);
-
-        marker.bindPopup(`<b>${port.name}</b><br/>Port ${index + 1}`);
-        
-        // Add click handler for large map
-        if (mapInstance === largeMap) {
-          marker.on('click', () => {
-            const locationInfo = locationData[port.name] || {
-              name: port.name,
-              weather: 'Sunny',
-              temperature: '75°F',
-              places: ['Explore the local area'],
-              trivia: 'A beautiful cruise destination.'
-            };
-            setSelectedLocation(locationInfo);
-          });
-        }
-      });
-
-      // Fit map to route
-      if (ports.length > 0) {
-        const group = new L.FeatureGroup();
-        ports.forEach(port => {
-          group.addLayer(L.marker([port.coordinates[1], port.coordinates[0]]));
-        });
-        mapInstance.fitBounds(group.getBounds(), { padding: [20, 20] });
-      }
-    };
-
-    updateMap(map);
-    if (isLargeView) {
-      updateMap(largeMap);
+      ctx.stroke();
     }
+    
+    // Draw port markers
+    canvasCoords.forEach((coord, index) => {
+      const port = displayCruise.ports[index];
+      const color = index === 0 ? '#22c55e' : index === canvasCoords.length - 1 ? '#ef4444' : '#3b82f6';
+      const radius = isLarge ? 12 : 8;
+      
+      // Port circle
+      ctx.fillStyle = color;
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(coord.x, coord.y, radius, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Port label (only on large view)
+      if (isLarge) {
+        ctx.fillStyle = '#1f2937';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(port.name, coord.x, coord.y + radius + 15);
+      }
+      
+      // Store port info for click detection
+      (coord as any).portName = port.name;
+      (coord as any).radius = radius;
+    });
+    
+    // Store coordinates for click detection
+    (canvas as any).portCoords = canvasCoords;
+  };
 
-  }, [map, largeMap, displayCruise, isLargeView]);
+  // Handle canvas click (only for large view)
+  const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isLargeView) return;
+    
+    const canvas = event.currentTarget;
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    
+    const portCoords = (canvas as any).portCoords || [];
+    
+    // Check if click is on a port
+    for (const coord of portCoords) {
+      const distance = Math.sqrt(Math.pow(x - coord.x, 2) + Math.pow(y - coord.y, 2));
+      if (distance <= (coord as any).radius + 5) {
+        const portName = (coord as any).portName;
+        setClickedPort(portName);
+        
+        const locationInfo = locationData[portName] || {
+          name: portName,
+          weather: 'Sunny',
+          temperature: '75°F',
+          places: ['Explore the local area'],
+          trivia: 'A beautiful cruise destination.'
+        };
+        setSelectedLocation(locationInfo);
+        break;
+      }
+    }
+  };
+
+  // Draw on canvas when cruise changes
+  useEffect(() => {
+    if (canvasRef.current) {
+      drawMap(canvasRef.current);
+    }
+  }, [displayCruise]);
+
+  useEffect(() => {
+    if (largeCanvasRef.current && isLargeView) {
+      drawMap(largeCanvasRef.current, true);
+    }
+  }, [displayCruise, isLargeView]);
 
   return (
     <>
@@ -315,20 +304,26 @@ const EnhancedRouteMap = ({ cruises, hoveredCruise, selectedCruise }: EnhancedRo
           </div>
         </div>
 
-        <div ref={mapRef} className="absolute inset-0 pt-12" />
+        <canvas 
+          ref={canvasRef}
+          width={400}
+          height={280}
+          className="absolute inset-0 pt-12 w-full h-full"
+          style={{ width: '100%', height: 'calc(100% - 48px)', marginTop: '48px' }}
+        />
       </div>
 
-      {/* Large View Modal - Fixed z-index and overlay */}
+      {/* Large View Modal */}
       {isLargeView && (
         <>
-          {/* Backdrop overlay with highest z-index */}
+          {/* Backdrop overlay */}
           <div 
             className="fixed inset-0 bg-black/50 z-[999998]" 
             onClick={() => setIsLargeView(false)}
             style={{ zIndex: 999998 }}
           />
           
-          {/* Modal content with even higher z-index */}
+          {/* Modal content */}
           <div 
             className="fixed inset-0 z-[999999] flex items-center justify-center p-4 pointer-events-none"
             style={{ zIndex: 999999 }}
@@ -336,7 +331,7 @@ const EnhancedRouteMap = ({ cruises, hoveredCruise, selectedCruise }: EnhancedRo
             <div className="bg-white rounded-lg w-full h-full max-w-7xl max-h-[95vh] flex flex-col relative pointer-events-auto shadow-2xl">
               {/* Header */}
               <div className="p-4 border-b border-border-gray flex justify-between items-center bg-white relative z-[1000000]">
-                <h3 className="font-semibold text-charcoal">Route Map - OpenStreetMap View</h3>
+                <h3 className="font-semibold text-charcoal">Route Map - Interactive View</h3>
                 <Button
                   variant="outline"
                   onClick={() => setIsLargeView(false)}
@@ -350,7 +345,14 @@ const EnhancedRouteMap = ({ cruises, hoveredCruise, selectedCruise }: EnhancedRo
               <div className="flex-1 flex relative overflow-hidden">
                 {/* Map Section */}
                 <div className="flex-1 relative">
-                  <div ref={largeMapRef} className="w-full h-full" />
+                  <canvas 
+                    ref={largeCanvasRef}
+                    width={800}
+                    height={600}
+                    onClick={handleCanvasClick}
+                    className="w-full h-full cursor-pointer"
+                    style={{ width: '100%', height: '100%' }}
+                  />
                 </div>
                 
                 {/* Right Panel - Location Information */}
@@ -415,9 +417,10 @@ const EnhancedRouteMap = ({ cruises, hoveredCruise, selectedCruise }: EnhancedRo
                             trivia: 'A beautiful cruise destination.'
                           };
                           setSelectedLocation(locationInfo);
+                          setClickedPort(port.name);
                         }}
                         className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                          selectedLocation?.name.includes(port.name)
+                          selectedLocation?.name.includes(port.name) || clickedPort === port.name
                             ? 'bg-ocean-blue text-white'
                             : 'bg-white text-slate-gray hover:bg-ocean-blue hover:text-white'
                         }`}
