@@ -1,0 +1,519 @@
+
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MapPin, Save, Trash2, Route, Lock } from 'lucide-react';
+import { toast } from 'sonner';
+
+interface Port {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+}
+
+interface SavedRoute {
+  id: string;
+  originPort: Port;
+  destinationPort: Port;
+  polyline: [number, number][];
+  timestamp: string;
+}
+
+const SeaRouteConfiguration = () => {
+  // Authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+
+  // Map and drawing state
+  const mapRef = useRef<any>(null);
+  const drawnLayersRef = useRef<any>(null);
+  const [isLeafletLoaded, setIsLeafletLoaded] = useState(false);
+  const [currentDrawnPolylineLatLngs, setCurrentDrawnPolylineLatLngs] = useState<any>(null);
+
+  // Route selection state
+  const [selectedOriginPortId, setSelectedOriginPortId] = useState('');
+  const [selectedDestinationPortId, setSelectedDestinationPortId] = useState('');
+  const [savedRoutes, setSavedRoutes] = useState<SavedRoute[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Predefined ports (from your portData)
+  const ports: Port[] = [
+    { id: 'port_miami', name: 'Miami', lat: 25.7617, lng: -80.1918 },
+    { id: 'port_nassau', name: 'Nassau', lat: 25.0343, lng: -77.3554 },
+    { id: 'port_st_thomas', name: 'St. Thomas', lat: 18.3381, lng: -64.9306 },
+    { id: 'port_barbados', name: 'Barbados', lat: 13.1939, lng: -59.5432 },
+    { id: 'port_kingston', name: 'Kingston, Jamaica', lat: 17.9712, lng: -76.7936 },
+    { id: 'port_cozumel', name: 'Cozumel, Mexico', lat: 20.4230, lng: -86.9223 },
+  ];
+
+  // Simple authentication check
+  const handleAuthentication = () => {
+    if (password === 'admin123') {
+      setIsAuthenticated(true);
+      localStorage.setItem('admin_authenticated', 'true');
+      toast.success('Authentication successful');
+    } else {
+      toast.error('Invalid password');
+    }
+  };
+
+  // Check authentication on load
+  useEffect(() => {
+    const authStatus = localStorage.getItem('admin_authenticated');
+    if (authStatus === 'true') {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  // Load saved routes from localStorage
+  const loadSavedRoutes = useCallback(() => {
+    const saved = localStorage.getItem('sea_routes');
+    if (saved) {
+      try {
+        setSavedRoutes(JSON.parse(saved));
+      } catch (error) {
+        console.error('Error loading saved routes:', error);
+      }
+    }
+  }, []);
+
+  // Save route to localStorage
+  const saveRoute = useCallback(() => {
+    if (!selectedOriginPortId || !selectedDestinationPortId || !currentDrawnPolylineLatLngs) {
+      toast.error('Please select both ports and draw a route before saving.');
+      return;
+    }
+
+    if (selectedOriginPortId === selectedDestinationPortId) {
+      toast.error('Origin and Destination ports cannot be the same.');
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const originPort = ports.find(p => p.id === selectedOriginPortId);
+      const destinationPort = ports.find(p => p.id === selectedDestinationPortId);
+
+      if (!originPort || !destinationPort) {
+        toast.error('Selected ports not found.');
+        return;
+      }
+
+      // Create route key for checking existing routes
+      const routeKey = `${selectedOriginPortId}-${selectedDestinationPortId}`;
+      
+      // Construct the final polyline
+      const finalPolyline: [number, number][] = [
+        [originPort.lat, originPort.lng],
+        ...currentDrawnPolylineLatLngs.map((latlng: any) => [latlng.lat, latlng.lng]),
+        [destinationPort.lat, destinationPort.lng]
+      ];
+
+      const routeData: SavedRoute = {
+        id: routeKey,
+        originPort,
+        destinationPort,
+        polyline: finalPolyline,
+        timestamp: new Date().toISOString(),
+      };
+
+      // Get existing routes
+      const existingRoutes = JSON.parse(localStorage.getItem('sea_routes') || '[]');
+      
+      // Remove existing route with same origin-destination if exists
+      const filteredRoutes = existingRoutes.filter((route: SavedRoute) => route.id !== routeKey);
+      
+      // Add new route
+      const updatedRoutes = [...filteredRoutes, routeData];
+      
+      localStorage.setItem('sea_routes', JSON.stringify(updatedRoutes));
+      setSavedRoutes(updatedRoutes);
+      
+      toast.success('Route saved successfully!');
+      clearRoute();
+    } catch (error) {
+      console.error('Error saving route:', error);
+      toast.error('Failed to save route');
+    } finally {
+      setIsSaving(false);
+    }
+  }, [selectedOriginPortId, selectedDestinationPortId, currentDrawnPolylineLatLngs, ports]);
+
+  // Clear drawn route
+  const clearRoute = useCallback(() => {
+    if (drawnLayersRef.current) {
+      drawnLayersRef.current.clearLayers();
+    }
+    setCurrentDrawnPolylineLatLngs(null);
+  }, []);
+
+  // Load existing route for selected port pair
+  const loadExistingRoute = useCallback(() => {
+    if (!selectedOriginPortId || !selectedDestinationPortId) return;
+    
+    const routeKey = `${selectedOriginPortId}-${selectedDestinationPortId}`;
+    const existingRoute = savedRoutes.find(route => route.id === routeKey);
+    
+    if (existingRoute && window.L && drawnLayersRef.current) {
+      // Clear existing drawn layers
+      drawnLayersRef.current.clearLayers();
+      
+      // Add the existing route as an editable polyline
+      const polyline = window.L.polyline(existingRoute.polyline, {
+        color: 'blue',
+        weight: 3
+      });
+      
+      drawnLayersRef.current.addLayer(polyline);
+      setCurrentDrawnPolylineLatLngs(polyline.getLatLngs());
+      
+      toast.info('Existing route loaded for editing');
+    }
+  }, [selectedOriginPortId, selectedDestinationPortId, savedRoutes]);
+
+  // Load existing route when ports are selected
+  useEffect(() => {
+    if (selectedOriginPortId && selectedDestinationPortId && savedRoutes.length > 0) {
+      loadExistingRoute();
+    }
+  }, [selectedOriginPortId, selectedDestinationPortId, loadExistingRoute]);
+
+  // Load saved routes on component mount
+  useEffect(() => {
+    loadSavedRoutes();
+  }, [loadSavedRoutes]);
+
+  // Leaflet initialization
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    // Load Leaflet CSS
+    const leafletLink = document.createElement('link');
+    leafletLink.rel = 'stylesheet';
+    leafletLink.href = 'https://unpkg.com/leaflet@1.7.1/dist/leaflet.css';
+    document.head.appendChild(leafletLink);
+
+    // Load Leaflet.draw CSS
+    const leafletDrawLink = document.createElement('link');
+    leafletDrawLink.rel = 'stylesheet';
+    leafletDrawLink.href = 'https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css';
+    document.head.appendChild(leafletDrawLink);
+
+    // Load Leaflet JS
+    const leafletScript = document.createElement('script');
+    leafletScript.src = 'https://unpkg.com/leaflet@1.7.1/dist/leaflet.js';
+    leafletScript.onload = () => {
+      // Load Leaflet.draw JS after Leaflet is loaded
+      const leafletDrawScript = document.createElement('script');
+      leafletDrawScript.src = 'https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js';
+      leafletDrawScript.onload = () => {
+        setIsLeafletLoaded(true);
+      };
+      leafletDrawScript.onerror = (e) => {
+        console.error('Failed to load Leaflet.draw script:', e);
+        setIsLeafletLoaded(true);
+      };
+      document.body.appendChild(leafletDrawScript);
+    };
+    leafletScript.onerror = (e) => {
+      console.error('Failed to load Leaflet script:', e);
+    };
+    document.body.appendChild(leafletScript);
+
+    return () => {
+      if (document.head.contains(leafletLink)) {
+        document.head.removeChild(leafletLink);
+      }
+      if (document.head.contains(leafletDrawLink)) {
+        document.head.removeChild(leafletDrawLink);
+      }
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, [isAuthenticated]);
+
+  // Map setup and drawing logic
+  useEffect(() => {
+    if (!isLeafletLoaded || !window.L || !window.L.Draw || !isAuthenticated) {
+      return;
+    }
+
+    const L = window.L;
+
+    // Fix for default marker icon issue
+    if (L.Icon && L.Icon.Default && L.Icon.Default.prototype._getIconUrl) {
+      delete L.Icon.Default.prototype._getIconUrl;
+    }
+    if (L.Icon && L.Icon.Default) {
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+        iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+      });
+    }
+
+    // Initialize the map
+    if (!mapRef.current) {
+      const map = L.map('route-map').setView([25.0, -80.0], 6);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+      mapRef.current = map;
+
+      // Initialize the FeatureGroup for drawn items
+      drawnLayersRef.current = new L.FeatureGroup().addTo(map);
+
+      // Initialize the draw control
+      const drawControl = new L.Control.Draw({
+        edit: {
+          featureGroup: drawnLayersRef.current,
+          remove: true,
+        },
+        draw: {
+          polyline: {
+            shapeOptions: {
+              color: 'blue',
+              weight: 3
+            },
+            allowIntersection: false,
+            repeatMode: false
+          },
+          polygon: false,
+          rectangle: false,
+          circle: false,
+          marker: false,
+          circlemarker: false,
+        },
+      });
+      map.addControl(drawControl);
+
+      // Event listener for when a new shape is drawn
+      map.on(L.Draw.Event.CREATED, (event: any) => {
+        const layer = event.layer;
+        drawnLayersRef.current.clearLayers();
+        drawnLayersRef.current.addLayer(layer);
+        setCurrentDrawnPolylineLatLngs(layer.getLatLngs());
+      });
+
+      // Event listener for when a layer is deleted
+      map.on(L.Draw.Event.DELETED, () => {
+        setCurrentDrawnPolylineLatLngs(null);
+      });
+    }
+
+    // Clear existing markers and routes
+    mapRef.current.eachLayer((layer: any) => {
+      if (layer instanceof L.Marker && layer.options.isPortMarker) {
+        mapRef.current.removeLayer(layer);
+      }
+      if (layer instanceof L.Polyline && layer.options.isSavedRoute) {
+        mapRef.current.removeLayer(layer);
+      }
+    });
+
+    // Add port markers
+    ports.forEach(port => {
+      const isOrigin = selectedOriginPortId === port.id;
+      const isDestination = selectedDestinationPortId === port.id;
+      const markerColor = isOrigin ? 'green' : (isDestination ? 'red' : 'blue');
+
+      const portIcon = new L.Icon({
+        iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${markerColor}.png`,
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+      });
+
+      L.marker([port.lat, port.lng], { icon: portIcon, isPortMarker: true })
+        .addTo(mapRef.current)
+        .bindPopup(`<b>${port.name}</b><br>Port`);
+    });
+
+    // Draw saved routes
+    savedRoutes.forEach(route => {
+      if (route.polyline && route.polyline.length > 1) {
+        L.polyline(route.polyline, {
+          color: 'gray',
+          weight: 2,
+          dashArray: '5, 5',
+          opacity: 0.7,
+          isSavedRoute: true
+        })
+        .addTo(mapRef.current)
+        .bindPopup(`Saved Route: ${route.originPort.name} to ${route.destinationPort.name}`);
+      }
+    });
+
+    // Fit map bounds to all ports
+    const allPoints = ports.map(p => [p.lat, p.lng]);
+    if (mapRef.current && allPoints.length > 0) {
+      const bounds = L.latLngBounds(allPoints);
+      mapRef.current.fitBounds(bounds.pad(0.1));
+    }
+
+  }, [isLeafletLoaded, isAuthenticated, ports, selectedOriginPortId, selectedDestinationPortId, savedRoutes]);
+
+  // Authentication form
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-ocean-blue to-deep-blue flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="flex items-center justify-center gap-2 text-charcoal">
+              <Lock className="w-6 h-6 text-ocean-blue" />
+              Administration Access
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-charcoal mb-2">
+                Admin Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleAuthentication()}
+                className="w-full px-3 py-2 border border-border-gray rounded-md focus:outline-none focus:ring-2 focus:ring-ocean-blue"
+                placeholder="Enter admin password"
+              />
+            </div>
+            <Button 
+              onClick={handleAuthentication}
+              className="w-full bg-ocean-blue hover:bg-deep-blue"
+            >
+              Login
+            </Button>
+            <p className="text-xs text-slate-gray text-center">
+              Demo password: admin123
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-light-gray p-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-charcoal">
+              <Route className="w-6 h-6 text-ocean-blue" />
+              Sea Route Configuration
+            </CardTitle>
+            <p className="text-slate-gray">
+              Configure and manage maritime routes between ports
+            </p>
+          </CardHeader>
+        </Card>
+
+        {/* Controls */}
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+              <div>
+                <label className="block text-sm font-medium text-charcoal mb-2">
+                  Origin Port
+                </label>
+                <Select value={selectedOriginPortId} onValueChange={setSelectedOriginPortId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Origin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ports.map(port => (
+                      <SelectItem key={port.id} value={port.id}>
+                        {port.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-charcoal mb-2">
+                  Destination Port
+                </label>
+                <Select value={selectedDestinationPortId} onValueChange={setSelectedDestinationPortId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Destination" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ports.map(port => (
+                      <SelectItem key={port.id} value={port.id}>
+                        {port.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button
+                onClick={saveRoute}
+                disabled={!selectedOriginPortId || !selectedDestinationPortId || !currentDrawnPolylineLatLngs || isSaving}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {isSaving ? 'Saving...' : 'Save Route'}
+              </Button>
+
+              <Button
+                onClick={clearRoute}
+                variant="destructive"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Clear Route
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Map Container */}
+        <Card>
+          <CardContent className="p-0">
+            <div 
+              id="route-map" 
+              className="w-full h-[600px] rounded-lg bg-gray-200 flex items-center justify-center text-gray-500"
+            >
+              {!isLeafletLoaded && (
+                <div className="flex flex-col items-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ocean-blue"></div>
+                  <p className="mt-4 text-lg">Loading map libraries...</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Instructions */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="text-charcoal">Instructions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ol className="list-decimal list-inside space-y-2 text-slate-gray">
+              <li>Select an Origin Port and Destination Port from the dropdowns</li>
+              <li>Use the polyline drawing tool on the map to draw your route</li>
+              <li>Click points on the map to create your route path</li>
+              <li>Double-click to finish drawing the route</li>
+              <li>Click "Save Route" to store the route configuration</li>
+              <li>Existing routes will appear as gray dashed lines</li>
+              <li>Green markers show origin ports, red markers show destinations</li>
+            </ol>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default SeaRouteConfiguration;
