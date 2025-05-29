@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { CruiseData } from '@/api/mockCruiseData';
 import { Maximize2 } from 'lucide-react';
@@ -126,8 +125,8 @@ const RouteMap = ({ cruises, hoveredCruise, selectedCruise }: RouteMapProps) => 
       map.removeSource('route');
     }
 
-    // Add route for display cruise
-    const coordinates = displayCruise.ports.map(port => getPortCoordinates(port));
+    // Add route for display cruise - use coordinates directly from the port objects
+    const coordinates = displayCruise.ports.map(port => port.coordinates);
     
     map.addSource('route', {
       type: 'geojson',
