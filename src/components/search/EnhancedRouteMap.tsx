@@ -1,8 +1,17 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { CruiseData } from '@/api/mockCruiseData';
 import { Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Fix for default markers in Leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 interface EnhancedRouteMapProps {
   cruises: CruiseData[];
@@ -12,8 +21,9 @@ interface EnhancedRouteMapProps {
 
 const EnhancedRouteMap = ({ cruises, hoveredCruise, selectedCruise }: EnhancedRouteMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
-  const [map, setMap] = useState<any>(null);
-  const [mapboxToken, setMapboxToken] = useState('');
+  const [map, setMap] = useState<L.Map | null>(null);
+  const [routeLine, setRouteLine] = useState<L.Polyline | null>(null);
+  const [markers, setMarkers] = useState<L.Marker[]>([]);
   const [isLargeView, setIsLargeView] = useState(false);
   
   // Use hovered cruise if available, otherwise use selected cruise, otherwise use first cruise
@@ -24,110 +34,82 @@ const EnhancedRouteMap = ({ cruises, hoveredCruise, selectedCruise }: EnhancedRo
     : cruises.length > 0 ? cruises[0] : null;
 
   useEffect(() => {
-    // Load Mapbox GL JS
-    const script = document.createElement('script');
-    script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
-    script.onload = initializeMap;
-    document.head.appendChild(script);
+    if (!mapRef.current) return;
 
-    const link = document.createElement('link');
-    link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
-    link.rel = 'stylesheet';
-    document.head.appendChild(link);
-
-    return () => {
-      if (document.head.contains(script)) document.head.removeChild(script);
-      if (document.head.contains(link)) document.head.removeChild(link);
-    };
-  }, []);
-
-  const initializeMap = () => {
-    if (!mapRef.current || !window.mapboxgl || !mapboxToken) return;
-
-    window.mapboxgl.accessToken = mapboxToken;
-    
-    const mapInstance = new window.mapboxgl.Map({
-      container: mapRef.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [10, 50], // Europe center
+    // Initialize Leaflet map
+    const mapInstance = L.map(mapRef.current, {
+      center: [50, 10], // Europe center
       zoom: 3,
-      projection: 'globe'
+      zoomControl: true,
+      scrollWheelZoom: true
     });
 
-    mapInstance.on('load', () => {
-      // Add atmosphere for globe view
-      mapInstance.setFog({
-        color: 'rgb(186, 210, 235)',
-        'high-color': 'rgb(36, 92, 223)',
-        'horizon-blend': 0.02,
-        'space-color': 'rgb(11, 11, 25)',
-        'star-intensity': 0.6
-      });
-    });
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(mapInstance);
 
     setMap(mapInstance);
-  };
+
+    return () => {
+      mapInstance.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (!map || !displayCruise) return;
 
-    // Clear existing routes and markers
-    if (map.getLayer('route')) {
-      map.removeLayer('route');
+    // Clear existing route and markers
+    if (routeLine) {
+      map.removeLayer(routeLine);
+      setRouteLine(null);
     }
-    if (map.getSource('route')) {
-      map.removeSource('route');
-    }
-
-    // Clear existing markers
-    const markers = document.querySelectorAll('.mapboxgl-marker');
-    markers.forEach(marker => marker.remove());
+    
+    markers.forEach(marker => map.removeLayer(marker));
+    setMarkers([]);
 
     // Add route for display cruise
     const coordinates = displayCruise.ports.map(port => port.coordinates);
+    const latLngCoordinates = coordinates.map(coord => [coord[1], coord[0]] as L.LatLngTuple);
     
-    map.addSource('route', {
-      type: 'geojson',
-      data: {
-        type: 'Feature',
-        properties: {},
-        geometry: {
-          type: 'LineString',
-          coordinates: coordinates
-        }
-      }
-    });
-
-    map.addLayer({
-      id: 'route',
-      type: 'line',
-      source: 'route',
-      layout: {
-        'line-join': 'round',
-        'line-cap': 'round'
-      },
-      paint: {
-        'line-color': '#ff6b35',
-        'line-width': 3,
-        'line-opacity': 0.8
-      }
-    });
+    // Create route line
+    const polyline = L.polyline(latLngCoordinates, {
+      color: '#ff6b35',
+      weight: 3,
+      opacity: 0.8
+    }).addTo(map);
+    
+    setRouteLine(polyline);
 
     // Add port markers
+    const newMarkers: L.Marker[] = [];
     coordinates.forEach((coord, index) => {
-      const marker = new window.mapboxgl.Marker({
-        color: index === 0 ? '#22c55e' : index === coordinates.length - 1 ? '#ef4444' : '#3b82f6'
-      })
-        .setLngLat(coord)
-        .setPopup(new window.mapboxgl.Popup().setText(displayCruise.ports[index].name))
+      const icon = L.divIcon({
+        className: 'custom-cruise-marker',
+        html: `<div style="
+          width: 12px; 
+          height: 12px; 
+          border-radius: 50%; 
+          background-color: ${index === 0 ? '#22c55e' : index === coordinates.length - 1 ? '#ef4444' : '#3b82f6'};
+          border: 2px solid white;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        "></div>`,
+        iconSize: [12, 12],
+        iconAnchor: [6, 6]
+      });
+
+      const marker = L.marker([coord[1], coord[0]], { icon })
+        .bindPopup(displayCruise.ports[index].name)
         .addTo(map);
+      
+      newMarkers.push(marker);
     });
+    
+    setMarkers(newMarkers);
 
     // Fit map to route
-    if (coordinates.length > 0) {
-      const bounds = new window.mapboxgl.LngLatBounds();
-      coordinates.forEach(coord => bounds.extend(coord));
-      map.fitBounds(bounds, { padding: 20 });
+    if (latLngCoordinates.length > 0) {
+      map.fitBounds(polyline.getBounds(), { padding: [20, 20] });
     }
 
   }, [map, displayCruise]);
@@ -156,77 +138,8 @@ const EnhancedRouteMap = ({ cruises, hoveredCruise, selectedCruise }: EnhancedRo
         </div>
       </div>
 
-      {/* Mapbox Token Input */}
-      {!mapboxToken && (
-        <div className="absolute inset-0 pt-16 flex items-center justify-center bg-white/95 z-10">
-          <div className="p-4 max-w-sm text-center">
-            <h4 className="font-semibold text-charcoal mb-2 text-sm">Enable Interactive Maps</h4>
-            <p className="text-xs text-slate-gray mb-3">
-              Enter your Mapbox token to see cruise routes.
-            </p>
-            <input
-              type="text"
-              placeholder="pk.eyJ1..."
-              className="w-full p-2 border border-border-gray rounded mb-2 text-xs"
-              onChange={(e) => setMapboxToken(e.target.value)}
-            />
-            <p className="text-xs text-slate-gray">
-              Get your token from <a href="https://mapbox.com" target="_blank" rel="noopener noreferrer" className="text-ocean-blue underline">mapbox.com</a>
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Map Container */}
-      {mapboxToken && (
-        <div ref={mapRef} className="absolute inset-0 pt-16" />
-      )}
-
-      {/* Fallback Map for Demo */}
-      {!mapboxToken && (
-        <div className="absolute inset-0 pt-16">
-          <svg viewBox="0 0 400 300" className="w-full h-full">
-            {/* Ocean Background */}
-            <rect width="400" height="300" fill="#e0f2fe" />
-            
-            {/* Simplified coastlines */}
-            <path
-              d="M 50 50 L 150 60 L 200 80 L 250 70 L 300 90 L 350 80"
-              stroke="#64748b"
-              strokeWidth="2"
-              fill="none"
-            />
-            <path
-              d="M 80 120 L 120 125 L 160 130 L 200 125 L 240 130 L 280 125"
-              stroke="#64748b"
-              strokeWidth="2"
-              fill="none"
-            />
-            
-            {displayCruise && (
-              <g>
-                {/* Route line */}
-                <path
-                  d="M 100 140 Q 140 160 180 170 Q 220 155 260 150 Q 200 135 100 140"
-                  stroke="#f97316"
-                  strokeWidth="3"
-                  fill="none"
-                  strokeDasharray="5,5"
-                  className="animate-pulse"
-                />
-                {/* Port markers */}
-                <circle cx="100" cy="140" r="5" fill="#22c55e" className="animate-pulse" />
-                <circle cx="180" cy="170" r="4" fill="#3b82f6" className="animate-pulse" />
-                <circle cx="260" cy="150" r="5" fill="#ef4444" className="animate-pulse" />
-                
-                {/* Port labels */}
-                <text x="105" y="135" fontSize="10" fill="#0f172a">{displayCruise.ports[0]?.name}</text>
-                <text x="265" y="145" fontSize="10" fill="#0f172a">{displayCruise.ports[displayCruise.ports.length - 1]?.name}</text>
-              </g>
-            )}
-          </svg>
-        </div>
-      )}
+      <div ref={mapRef} className="absolute inset-0 pt-16" />
 
       {/* Large View Modal */}
       {isLargeView && (

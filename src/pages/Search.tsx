@@ -14,14 +14,14 @@ const Search = () => {
   const [searchParams] = useSearchParams();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   
-  // Simplified filters to ensure results show
+  // Simplified filters - start with wide ranges to show results
   const [filters, setFilters] = useState({
-    priceRange: [0, 10000],
-    duration: [],
-    departurePorts: [],
-    cruiseLines: [],
-    amenities: [],
-    destinations: [],
+    priceRange: [0, 15000], // Increased range to include all cruises
+    duration: [] as number[],
+    departurePorts: [] as string[],
+    cruiseLines: [] as string[],
+    amenities: [] as string[],
+    destinations: [] as string[],
   });
   const [sortBy, setSortBy] = useState('price');
   const [hoveredCruise, setHoveredCruise] = useState<string | null>(null);
@@ -29,41 +29,48 @@ const Search = () => {
   const query = searchParams.get('q') || '';
   const searchType = searchParams.get('type') || 'chat';
 
-  // Use mock data directly
+  // Use mock data directly - all 5 cruises
   const cruises: CruiseData[] = mockCruiseData;
 
   console.log('Available Cruises:', cruises.length);
+  console.log('Current filters:', filters);
 
-  // Simple filtering that ensures results are shown
+  // Simplified filtering logic - start by showing all cruises
   const filteredCruises = cruises.filter(cruise => {
-    // Basic text search if there's a query
-    if (query && query.trim()) {
+    // Only apply text search if there's a meaningful query
+    if (query && query.trim() && query.length > 2) {
       const searchTerm = query.toLowerCase();
       const matchesSearch = 
         cruise.route.toLowerCase().includes(searchTerm) ||
         cruise.shipName.toLowerCase().includes(searchTerm) ||
         cruise.cruiseLine.toLowerCase().includes(searchTerm) ||
         cruise.departurePort.toLowerCase().includes(searchTerm) ||
-        cruise.ports.some(port => port.name.toLowerCase().includes(searchTerm)) ||
-        searchTerm.includes('cruise') ||
-        searchTerm.includes('deal');
+        cruise.ports.some(port => port.name.toLowerCase().includes(searchTerm));
       
       if (!matchesSearch) return false;
     }
     
-    // Apply filters only if they're set
+    // Price range filter
     if (cruise.priceFrom < filters.priceRange[0] || cruise.priceFrom > filters.priceRange[1]) {
       return false;
     }
 
+    // Duration filter - only apply if specific durations are selected
+    if (filters.duration.length > 0 && !filters.duration.includes(cruise.duration)) {
+      return false;
+    }
+
+    // Cruise lines filter - only apply if specific lines are selected
     if (filters.cruiseLines.length > 0 && !filters.cruiseLines.includes(cruise.cruiseLine)) {
       return false;
     }
 
+    // Departure ports filter - only apply if specific ports are selected
     if (filters.departurePorts.length > 0 && !filters.departurePorts.includes(cruise.departurePort)) {
       return false;
     }
 
+    // Amenities filter - only apply if specific amenities are selected
     if (filters.amenities.length > 0) {
       const hasAmenity = filters.amenities.some((amenity: string) => 
         cruise.amenities.some(cruiseAmenity => cruiseAmenity.toLowerCase().includes(amenity.toLowerCase()))
@@ -78,34 +85,21 @@ const Search = () => {
 
   // Generate context-based quick filters
   const getQuickFilters = () => {
-    if (!query) return [
+    const baseFilters = [
       { label: 'Best Deals', action: () => setSortBy('price') },
       { label: 'Family Friendly', action: () => setFilters(prev => ({ ...prev, amenities: ['Kids Club'] })) },
-      { label: 'Luxury', action: () => setFilters(prev => ({ ...prev, priceRange: [3000, 10000] })) }
+      { label: 'Under $2000', action: () => setFilters(prev => ({ ...prev, priceRange: [0, 2000] })) }
     ];
     
-    const queryLower = query.toLowerCase();
-    const quickFilters = [];
+    if (!query) return baseFilters;
     
-    if (queryLower.includes('family') || queryLower.includes('kids')) {
-      quickFilters.push({ 
-        label: 'Family Friendly', 
-        action: () => setFilters(prev => ({ ...prev, amenities: ['Kids Club'] }))
-      });
-    }
+    const queryLower = query.toLowerCase();
+    const quickFilters = [...baseFilters];
+    
     if (queryLower.includes('luxury') || queryLower.includes('premium')) {
       quickFilters.push({ 
         label: 'Luxury Cruises', 
-        action: () => setFilters(prev => ({ ...prev, priceRange: [3000, 10000] }))
-      });
-    }
-    if (queryLower.includes('deal') || queryLower.includes('cheap') || queryLower.includes('budget')) {
-      quickFilters.push({ 
-        label: 'Best Deals', 
-        action: () => {
-          setFilters(prev => ({ ...prev, priceRange: [0, 2000] }));
-          setSortBy('price');
-        }
+        action: () => setFilters(prev => ({ ...prev, priceRange: [3000, 15000] }))
       });
     }
     if (queryLower.includes('caribbean')) {
