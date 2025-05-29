@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { Map, NavigationControl, LngLatBounds } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -462,7 +461,7 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise }: MapLibreRo
                           <div className="space-y-1 text-sm">
                             <p><span className="font-medium">Ports:</span> {displayCruise.ports.length} destinations</p>
                             <p><span className="font-medium">Departure:</span> {displayCruise.ports[0]?.name}</p>
-                            <p><span className="font-medium">Region:</span> {displayCruise.region}</p>
+                            <p><span className="font-medium">Route:</span> {displayCruise.route}</p>
                             <div className="flex gap-1 mt-2 flex-wrap">
                               {displayCruise.ports.slice(0, 3).map((port, idx) => (
                                 <span key={idx} className="px-2 py-1 bg-ocean-blue/10 text-ocean-blue text-xs rounded-full">
