@@ -38,6 +38,9 @@ const SeaRouteConfiguration = () => {
   const [isLeafletLoaded, setIsLeafletLoaded] = useState(false);
   const [currentDrawnPolylineLatLngs, setCurrentDrawnPolylineLatLngs] = useState<any>(null);
 
+  // Keyboard modifier state
+  const [isCtrlPressed, setIsCtrlPressed] = useState(false);
+
   // Route selection state
   const [selectedOriginPortId, setSelectedOriginPortId] = useState('');
   const [selectedDestinationPortId, setSelectedDestinationPortId] = useState('');
@@ -53,6 +56,34 @@ const SeaRouteConfiguration = () => {
     { id: 'port_kingston', name: 'Kingston, Jamaica', lat: 17.9712, lng: -76.7936 },
     { id: 'port_cozumel', name: 'Cozumel, Mexico', lat: 20.4230, lng: -86.9223 },
   ];
+
+  // Keyboard event handlers for modifier keys
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        setIsCtrlPressed(true);
+        if (mapRef.current) {
+          mapRef.current.dragging.enable();
+          mapRef.current.scrollWheelZoom.enable();
+        }
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (!e.ctrlKey && !e.metaKey) {
+        setIsCtrlPressed(false);
+        // Don't disable dragging here as it might interfere with editing
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
 
   // Simple authentication check
   const handleAuthentication = () => {
@@ -315,6 +346,23 @@ const SeaRouteConfiguration = () => {
       });
       map.addControl(drawControl);
 
+      // Custom map interaction handling based on modifier keys
+      const originalOnMouseMove = map._onMouseMove;
+      map._onMouseMove = function(e: any) {
+        // Only allow map dragging when Ctrl/Cmd is pressed during editing
+        if (this._panAnim && this._panAnim._inProgress) {
+          return originalOnMouseMove.call(this, e);
+        }
+        
+        const isEditing = drawnLayersRef.current && drawnLayersRef.current.getLayers().length > 0;
+        if (isEditing && !isCtrlPressed && this.dragging._enabled) {
+          // Temporarily disable dragging when editing without modifier
+          return;
+        }
+        
+        return originalOnMouseMove.call(this, e);
+      };
+
       // Event listener for when a new shape is drawn
       map.on((L as any).Draw.Event.CREATED, (event: any) => {
         const layer = event.layer;
@@ -338,7 +386,7 @@ const SeaRouteConfiguration = () => {
 
       // Event listener for when editing starts
       map.on((L as any).Draw.Event.EDITSTART, () => {
-        toast.info('Edit mode active - drag vertices to smooth your route');
+        toast.info('Edit mode active - hold Ctrl/Cmd to move map while editing');
       });
 
       // Event listener for when editing stops
@@ -440,7 +488,7 @@ const SeaRouteConfiguration = () => {
       }
     }
 
-  }, [isLeafletLoaded, isAuthenticated, ports, selectedOriginPortId, selectedDestinationPortId, savedRoutes]);
+  }, [isLeafletLoaded, isAuthenticated, ports, selectedOriginPortId, selectedDestinationPortId, savedRoutes, isCtrlPressed]);
 
   // Authentication form
   if (!isAuthenticated) {
@@ -586,6 +634,8 @@ const SeaRouteConfiguration = () => {
               <li>Use the polyline drawing tool on the map to draw your route</li>
               <li>Click points on the map to create your route path</li>
               <li>Double-click to finish drawing the route</li>
+              <li>Use the edit tool (pencil icon) to modify vertices and smooth curves</li>
+              <li><strong>Hold Ctrl (or Cmd on Mac) while editing to move the map</strong></li>
               <li>Click "Save Route" to store the route configuration</li>
               <li>Existing routes will appear as gray dashed lines</li>
               <li>Green markers show origin ports, red markers show destinations</li>
