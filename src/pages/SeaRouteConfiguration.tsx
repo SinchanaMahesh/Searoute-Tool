@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -364,7 +363,7 @@ const SeaRouteConfiguration = () => {
     // Draw saved routes
     savedRoutes.forEach(route => {
       if (route.polyline && route.polyline.length > 1) {
-        const polyline = L.polyline(route.polyline.map(coord => [coord[0], coord[1]]), {
+        const polyline = L.polyline(route.polyline, {
           color: 'gray',
           weight: 2,
           dashArray: '5, 5',
@@ -379,10 +378,31 @@ const SeaRouteConfiguration = () => {
     });
 
     // Fit map bounds to all ports
-    const allPoints = ports.map(p => [p.lat, p.lng]);
-    if (mapRef.current && allPoints.length > 0) {
-      const bounds = L.latLngBounds(allPoints);
-      mapRef.current.fitBounds(bounds.pad(0.1));
+    if (mapRef.current && ports.length > 0) {
+      try {
+        // Validate that all ports have valid coordinates
+        const validPorts = ports.filter(p => 
+          typeof p.lat === 'number' && 
+          typeof p.lng === 'number' && 
+          !isNaN(p.lat) && 
+          !isNaN(p.lng) &&
+          p.lat >= -90 && p.lat <= 90 &&
+          p.lng >= -180 && p.lng <= 180
+        );
+        
+        if (validPorts.length > 0) {
+          const allPoints = validPorts.map(p => [p.lat, p.lng] as [number, number]);
+          const bounds = L.latLngBounds(allPoints);
+          mapRef.current.fitBounds(bounds.pad(0.1));
+        } else {
+          // Fallback to default view if no valid ports
+          mapRef.current.setView([25.0, -80.0], 6);
+        }
+      } catch (error) {
+        console.error('Error fitting bounds:', error);
+        // Fallback to default view
+        mapRef.current.setView([25.0, -80.0], 6);
+      }
     }
 
   }, [isLeafletLoaded, isAuthenticated, ports, selectedOriginPortId, selectedDestinationPortId, savedRoutes]);
