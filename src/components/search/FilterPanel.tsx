@@ -6,7 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { X, RotateCcw, MessageCircle, CalendarIcon } from 'lucide-react';
-import { Cruise } from '@/pages/Search';
+import { CruiseData } from '@/api/mockCruiseData';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -14,7 +14,7 @@ interface FilterPanelProps {
   filters: any;
   onFiltersChange: (filters: any) => void;
   onClose: () => void;
-  cruises: Cruise[];
+  cruises: CruiseData[];
 }
 
 const FilterPanel = ({ filters, onFiltersChange, onClose, cruises }: FilterPanelProps) => {

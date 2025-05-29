@@ -1,10 +1,11 @@
+
 import React, { useEffect, useRef, useState } from 'react';
-import { Cruise } from '@/pages/Search';
+import { CruiseData } from '@/api/mockCruiseData';
 import { Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface RouteMapProps {
-  cruises: Cruise[];
+  cruises: CruiseData[];
   hoveredCruise: string | null;
   selectedCruise?: string | null;
 }

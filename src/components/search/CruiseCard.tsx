@@ -2,10 +2,10 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Heart, Share, Plus, Star, Calendar, MapPin, ExternalLink } from 'lucide-react';
-import { Cruise } from '@/pages/Search';
+import { CruiseData } from '@/api/mockCruiseData';
 
 interface CruiseCardProps {
-  cruise: Cruise;
+  cruise: CruiseData;
   showHoverIcon?: boolean;
 }
 

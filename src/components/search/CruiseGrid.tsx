@@ -2,10 +2,10 @@
 import React from 'react';
 import CruiseCard from './CruiseCard';
 import CruiseListItem from './CruiseListItem';
-import { Cruise } from '@/pages/Search';
+import { CruiseData } from '@/api/mockCruiseData';
 
 interface CruiseGridProps {
-  cruises: Cruise[];
+  cruises: CruiseData[];
   viewMode: 'grid' | 'list';
   isLoading: boolean;
 }

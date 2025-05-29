@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { Cruise } from '@/pages/Search';
+import { CruiseData } from '@/api/mockCruiseData';
 
 interface InteractiveMapProps {
-  cruises: Cruise[];
+  cruises: CruiseData[];
   selectedCruise?: string | null;
 }
 
