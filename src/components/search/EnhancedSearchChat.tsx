@@ -145,7 +145,7 @@ const EnhancedSearchChat = ({ initialQuery, searchType, resultCount, quickFilter
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Chat Header */}
-      <div className="p-3 border-b border-border-gray bg-gradient-to-r from-ocean-blue to-deep-navy text-white">
+      <div className="p-2 border-b border-border-gray bg-gradient-to-r from-ocean-blue to-deep-navy text-white flex-shrink-0">
         <div className="flex items-center gap-2">
           <MessageCircle className="w-4 h-4" />
           <div className="font-medium text-sm">Chat Assistant</div>
@@ -153,7 +153,7 @@ const EnhancedSearchChat = ({ initialQuery, searchType, resultCount, quickFilter
         </div>
       </div>
 
-      {/* Messages */}
+      {/* Messages - Flexible height */}
       <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
         {messages.map((message) => (
           <div
@@ -189,9 +189,9 @@ const EnhancedSearchChat = ({ initialQuery, searchType, resultCount, quickFilter
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick Filters */}
+      {/* Quick Filters - Fixed height */}
       {quickFilters.length > 0 && (
-        <div className="px-3 py-2 border-t border-border-gray bg-pearl-white">
+        <div className="px-3 py-2 border-t border-border-gray bg-pearl-white flex-shrink-0">
           <div className="text-xs text-slate-gray mb-2 font-medium">Quick filters:</div>
           <div className="flex flex-wrap gap-2">
             {quickFilters.map((filter, index) => (
@@ -209,8 +209,8 @@ const EnhancedSearchChat = ({ initialQuery, searchType, resultCount, quickFilter
         </div>
       )}
 
-      {/* Input Area */}
-      <div className="p-3 border-t border-border-gray bg-pearl-white">
+      {/* Input Area - Fixed at bottom */}
+      <div className="p-3 border-t border-border-gray bg-pearl-white flex-shrink-0">
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -220,7 +220,7 @@ const EnhancedSearchChat = ({ initialQuery, searchType, resultCount, quickFilter
               isListening 
                 ? 'bg-coral-pink text-white border-coral-pink' 
                 : 'text-slate-gray border-border-gray hover:border-ocean-blue'
-            } transition-all duration-200`}
+            } transition-all duration-200 h-8 w-8 p-0 flex-shrink-0`}
           >
             <Mic className="w-4 h-4" />
           </Button>
@@ -228,14 +228,14 @@ const EnhancedSearchChat = ({ initialQuery, searchType, resultCount, quickFilter
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             placeholder={isListening ? "🎤 Listening..." : "Ask about these cruises..."}
-            className="flex-1 border-border-gray focus:border-ocean-blue text-sm"
+            className="flex-1 border-border-gray focus:border-ocean-blue text-sm h-8"
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
             disabled={isListening}
           />
           <Button
             onClick={handleSendMessage}
             disabled={!inputText.trim() || isListening}
-            className="bg-ocean-blue hover:bg-deep-navy text-white disabled:opacity-50"
+            className="bg-ocean-blue hover:bg-deep-navy text-white disabled:opacity-50 h-8 w-8 p-0 flex-shrink-0"
             size="sm"
           >
             <Send className="w-4 h-4" />
