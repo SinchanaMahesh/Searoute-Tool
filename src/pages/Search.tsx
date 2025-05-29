@@ -69,10 +69,10 @@ const Search = () => {
       <Header />
       
       <div className="pt-20 h-screen flex">
-        {/* Left Pane - Fixed width (35%) */}
-        <div className="w-[35%] border-r border-border-gray bg-white flex flex-col fixed h-full top-20 left-0">
-          {/* Map Section - Reduced height to 35% */}
-          <div className="h-[35%] border-b border-border-gray">
+        {/* Left Pane - Fixed width (35%) with scrolling capability */}
+        <div className="w-[35%] border-r border-border-gray bg-white flex flex-col fixed h-full top-20 left-0 overflow-hidden">
+          {/* Map Section - Reduced height to 30% */}
+          <div className="h-[30%] border-b border-border-gray flex-shrink-0">
             <EnhancedRouteMap 
               cruises={filteredCruises}
               hoveredCruise={hoveredCruise}
@@ -80,8 +80,8 @@ const Search = () => {
             />
           </div>
           
-          {/* Chat Interface Section - Increased to 65% */}
-          <div className="h-[65%]">
+          {/* Chat Interface Section - Flexible height 70% with overflow handling */}
+          <div className="h-[70%] flex-shrink-0 overflow-hidden">
             <EnhancedSearchChat 
               initialQuery={query}
               searchType={searchType}
@@ -93,11 +93,11 @@ const Search = () => {
 
         {/* Right Pane - Flexible width (65%) */}
         <div className="flex-1 flex flex-col ml-[35%]">
-          {/* Results Header - Reduced height */}
-          <div className="bg-white border-b border-border-gray p-3 sticky top-20 z-10">
+          {/* Results Header - Aligned height with map header */}
+          <div className="bg-white border-b border-border-gray p-2 sticky top-20 z-10">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-charcoal">
+                <h2 className="text-sm font-semibold text-charcoal">
                   {filteredCruises.length} Cruises Found
                 </h2>
                 <p className="text-xs text-slate-gray">
@@ -108,10 +108,9 @@ const Search = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => setIsFilterOpen(true)}
-                className="text-ocean-blue border-ocean-blue hover:bg-ocean-blue hover:text-white"
+                className="text-ocean-blue border-ocean-blue hover:bg-ocean-blue hover:text-white h-6 w-6 p-0"
               >
-                <Filter className="w-4 h-4 mr-2" />
-                Filters
+                <Filter className="w-3 h-3" />
               </Button>
             </div>
           </div>

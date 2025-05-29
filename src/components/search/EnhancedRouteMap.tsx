@@ -3,18 +3,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { CruiseData } from '@/api/mockCruiseData';
 import { Maximize2, X, Cloud, MapPin, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Map from 'ol/Map';
-import View from 'ol/View';
-import TileLayer from 'ol/layer/Tile';
-import OSM from 'ol/source/OSM';
-import VectorLayer from 'ol/layer/Vector';
-import VectorSource from 'ol/source/Vector';
-import Feature from 'ol/Feature';
-import Point from 'ol/geom/Point';
-import LineString from 'ol/geom/LineString';
-import { Style, Circle, Fill, Stroke } from 'ol/style';
-import { fromLonLat } from 'ol/proj';
-import 'ol/ol.css';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 interface EnhancedRouteMapProps {
   cruises: CruiseData[];
@@ -71,7 +61,7 @@ const createSeaRoute = (startCoord: number[], endCoord: number[]) => {
   const distance = Math.sqrt(Math.pow(endLon - startLon, 2) + Math.pow(endLat - startLat, 2));
   
   // For Caribbean routes, create deeper sea curves
-  const curveDepth = distance * 0.4; // Deeper curve for sea routes
+  const curveDepth = distance * 0.6; // Even deeper curve for sea routes
   
   // Determine curve direction based on geography
   const midLon = (startLon + endLon) / 2;
@@ -83,8 +73,8 @@ const createSeaRoute = (startCoord: number[], endCoord: number[]) => {
     (midLat > 25 ? -1 : 1) : // North of 25°N curve south, south curve north
     (midLon > -70 ? 1 : -1); // East of 70°W curve east, west curve west
   
-  const points = [];
-  points.push(fromLonLat([startLon, startLat]));
+  const points: [number, number][] = [];
+  points.push([startLat, startLon]);
   
   // Create smooth curve with multiple points
   for (let i = 1; i <= 5; i++) {
@@ -101,20 +91,18 @@ const createSeaRoute = (startCoord: number[], endCoord: number[]) => {
       curveLon += curveDepth * curveRatio * curveFactor;
     }
     
-    points.push(fromLonLat([curveLon, curveLat]));
+    points.push([curveLat, curveLon]);
   }
   
-  points.push(fromLonLat([endLon, endLat]));
+  points.push([endLat, endLon]);
   return points;
 };
 
 const EnhancedRouteMap = ({ cruises, hoveredCruise, selectedCruise }: EnhancedRouteMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const largeMapRef = useRef<HTMLDivElement>(null);
-  const [map, setMap] = useState<Map | null>(null);
-  const [largeMap, setLargeMap] = useState<Map | null>(null);
-  const [vectorSource, setVectorSource] = useState<VectorSource | null>(null);
-  const [largeVectorSource, setLargeVectorSource] = useState<VectorSource | null>(null);
+  const [map, setMap] = useState<L.Map | null>(null);
+  const [largeMap, setLargeMap] = useState<L.Map | null>(null);
   const [isLargeView, setIsLargeView] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<LocationInfo | null>(null);
   
@@ -148,7 +136,7 @@ const EnhancedRouteMap = ({ cruises, hoveredCruise, selectedCruise }: EnhancedRo
 
     if (isLargeView) {
       document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden'; // Disable scrolling
+      document.body.style.overflow = 'hidden';
       return () => {
         document.removeEventListener('keydown', handleEscape);
         document.body.style.overflow = 'unset';
@@ -160,117 +148,146 @@ const EnhancedRouteMap = ({ cruises, hoveredCruise, selectedCruise }: EnhancedRo
   useEffect(() => {
     if (!mapRef.current) return;
 
-    const vectorSourceInstance = new VectorSource();
-    const vectorLayer = new VectorLayer({ source: vectorSourceInstance });
-
-    const mapInstance = new Map({
-      target: mapRef.current,
-      layers: [new TileLayer({ source: new OSM() }), vectorLayer],
-      view: new View({
-        center: fromLonLat([-75, 20]), // Caribbean center
-        zoom: 4,
-      }),
+    // Fix for default markers
+    delete (L.Icon.Default.prototype as any)._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
     });
 
-    setMap(mapInstance);
-    setVectorSource(vectorSourceInstance);
+    const mapInstance = L.map(mapRef.current).setView([20, -75], 4);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(mapInstance);
 
-    return () => mapInstance.setTarget(undefined);
+    setMap(mapInstance);
+
+    return () => mapInstance.remove();
   }, []);
 
   // Initialize large map
   useEffect(() => {
     if (!largeMapRef.current || !isLargeView) return;
 
-    const vectorSourceInstance = new VectorSource();
-    const vectorLayer = new VectorLayer({ source: vectorSourceInstance });
-
-    const mapInstance = new Map({
-      target: largeMapRef.current,
-      layers: [new TileLayer({ source: new OSM() }), vectorLayer],
-      view: new View({
-        center: fromLonLat([-75, 20]),
-        zoom: 4,
-      }),
-    });
+    const mapInstance = L.map(largeMapRef.current).setView([20, -75], 4);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(mapInstance);
 
     // Add click handler for large map
-    mapInstance.on('click', (evt) => {
-      const feature = mapInstance.forEachFeatureAtPixel(evt.pixel, (feature) => feature);
-      if (feature && feature.get('portName')) {
-        const portName = feature.get('portName');
-        const locationInfo = locationData[portName] || {
-          name: portName,
-          weather: 'Sunny',
-          temperature: '75°F',
-          places: ['Explore the local area'],
-          trivia: 'A beautiful cruise destination.'
-        };
-        setSelectedLocation(locationInfo);
+    mapInstance.on('click', async (e) => {
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
+      
+      // Query nearby locations using Overpass API
+      try {
+        const response = await fetch(`https://overpass-api.de/api/interpreter?data=[out:json];node(around:1000,${lat},${lng})["name"];out;`);
+        const data = await response.json();
+        
+        if (data.elements && data.elements.length > 0) {
+          const nearestPlace = data.elements[0];
+          const placeName = nearestPlace.tags?.name || 'Unknown Location';
+          
+          // Check if we have data for this location
+          const locationInfo = Object.values(locationData).find(loc => 
+            loc.name.toLowerCase().includes(placeName.toLowerCase())
+          ) || locationData[placeName] || {
+            name: placeName,
+            weather: 'Sunny',
+            temperature: '75°F',
+            places: ['Explore the local area'],
+            trivia: 'A beautiful destination with rich history and culture.'
+          };
+          
+          setSelectedLocation(locationInfo);
+        }
+      } catch (error) {
+        console.log('Could not fetch location data:', error);
       }
     });
 
     setLargeMap(mapInstance);
-    setLargeVectorSource(vectorSourceInstance);
 
     return () => {
-      mapInstance.setTarget(undefined);
+      mapInstance.remove();
       setLargeMap(null);
-      setLargeVectorSource(null);
     };
   }, [isLargeView]);
 
   // Update maps when cruise changes
   useEffect(() => {
-    const updateMap = (mapInstance: Map | null, vectorSourceInstance: VectorSource | null) => {
-      if (!mapInstance || !vectorSourceInstance || !displayCruise) return;
+    const updateMap = (mapInstance: L.Map | null) => {
+      if (!mapInstance || !displayCruise) return;
 
-      vectorSourceInstance.clear();
+      // Clear existing layers
+      mapInstance.eachLayer((layer) => {
+        if (layer instanceof L.Polyline || layer instanceof L.Marker) {
+          mapInstance.removeLayer(layer);
+        }
+      });
+      
       const ports = displayCruise.ports;
       
       // Add curved sea routes
       for (let i = 0; i < ports.length - 1; i++) {
         const routePoints = createSeaRoute(ports[i].coordinates, ports[i + 1].coordinates);
         
-        const routeFeature = new Feature({ geometry: new LineString(routePoints) });
-        routeFeature.setStyle(new Style({
-          stroke: new Stroke({ color: '#ff6b35', width: 3 }),
-        }));
-        
-        vectorSourceInstance.addFeature(routeFeature);
+        const routeLine = L.polyline(routePoints, {
+          color: '#ff6b35',
+          weight: 3,
+          opacity: 0.8
+        }).addTo(mapInstance);
       }
 
-      // Add port markers with click data
+      // Add port markers
       ports.forEach((port, index) => {
-        const coord = fromLonLat(port.coordinates);
-        const pointFeature = new Feature({ geometry: new Point(coord) });
-        pointFeature.set('portName', port.name);
-        
         const color = index === 0 ? '#22c55e' : index === ports.length - 1 ? '#ef4444' : '#3b82f6';
-        pointFeature.setStyle(new Style({
-          image: new Circle({
-            radius: 8,
-            fill: new Fill({ color }),
-            stroke: new Stroke({ color: 'white', width: 2 }),
-          }),
-        }));
         
-        vectorSourceInstance.addFeature(pointFeature);
+        const marker = L.circleMarker([port.coordinates[1], port.coordinates[0]], {
+          radius: 8,
+          fillColor: color,
+          color: 'white',
+          weight: 2,
+          opacity: 1,
+          fillOpacity: 0.8
+        }).addTo(mapInstance);
+
+        marker.bindPopup(`<b>${port.name}</b><br/>Port ${index + 1}`);
+        
+        // Add click handler for large map
+        if (mapInstance === largeMap) {
+          marker.on('click', () => {
+            const locationInfo = locationData[port.name] || {
+              name: port.name,
+              weather: 'Sunny',
+              temperature: '75°F',
+              places: ['Explore the local area'],
+              trivia: 'A beautiful cruise destination.'
+            };
+            setSelectedLocation(locationInfo);
+          });
+        }
       });
 
       // Fit map to route
       if (ports.length > 0) {
-        const extent = vectorSourceInstance.getExtent();
-        mapInstance.getView().fit(extent, { padding: [20, 20, 20, 20] });
+        const group = new L.FeatureGroup();
+        ports.forEach(port => {
+          group.addLayer(L.marker([port.coordinates[1], port.coordinates[0]]));
+        });
+        mapInstance.fitBounds(group.getBounds(), { padding: [20, 20] });
       }
     };
 
-    updateMap(map, vectorSource);
+    updateMap(map);
     if (isLargeView) {
-      updateMap(largeMap, largeVectorSource);
+      updateMap(largeMap);
     }
 
-  }, [map, vectorSource, largeMap, largeVectorSource, displayCruise, isLargeView]);
+  }, [map, largeMap, displayCruise, isLargeView]);
 
   return (
     <>
@@ -300,18 +317,25 @@ const EnhancedRouteMap = ({ cruises, hoveredCruise, selectedCruise }: EnhancedRo
         <div ref={mapRef} className="absolute inset-0 pt-12" />
       </div>
 
-      {/* Large View Modal with highest z-index and overlay */}
+      {/* Large View Modal - Fixed z-index and overlay */}
       {isLargeView && (
         <>
-          {/* Backdrop overlay */}
-          <div className="fixed inset-0 bg-black/50 z-[99998]" onClick={() => setIsLargeView(false)} />
+          {/* Backdrop overlay with highest z-index */}
+          <div 
+            className="fixed inset-0 bg-black/50 z-[999998]" 
+            onClick={() => setIsLargeView(false)}
+            style={{ zIndex: 999998 }}
+          />
           
-          {/* Modal content */}
-          <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 pointer-events-none">
-            <div className="bg-white rounded-lg w-full h-full max-w-7xl max-h-[95vh] flex flex-col relative pointer-events-auto">
+          {/* Modal content with even higher z-index */}
+          <div 
+            className="fixed inset-0 z-[999999] flex items-center justify-center p-4 pointer-events-none"
+            style={{ zIndex: 999999 }}
+          >
+            <div className="bg-white rounded-lg w-full h-full max-w-7xl max-h-[95vh] flex flex-col relative pointer-events-auto shadow-2xl">
               {/* Header */}
-              <div className="p-4 border-b border-border-gray flex justify-between items-center bg-white relative z-[100000]">
-                <h3 className="font-semibold text-charcoal">Route Map - Large View</h3>
+              <div className="p-4 border-b border-border-gray flex justify-between items-center bg-white relative z-[1000000]">
+                <h3 className="font-semibold text-charcoal">Route Map - OpenStreetMap View</h3>
                 <Button
                   variant="outline"
                   onClick={() => setIsLargeView(false)}
