@@ -13,6 +13,7 @@ import EnhancedSearchChat from '@/components/search/EnhancedSearchChat';
 const Search = () => {
   const [searchParams] = useSearchParams();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [selectedCruiseId, setSelectedCruiseId] = useState<string | null>(null);
   
   // Simplified filters - start with wide ranges to show results
   const [filters, setFilters] = useState({
@@ -32,8 +33,16 @@ const Search = () => {
   // Use all mock data without filtering for now
   const filteredCruises: CruiseData[] = mockCruiseData;
 
+  // Set initial selected cruise
+  useEffect(() => {
+    if (filteredCruises.length > 0 && !selectedCruiseId) {
+      setSelectedCruiseId(filteredCruises[0].id);
+    }
+  }, [filteredCruises, selectedCruiseId]);
+
   console.log('Available Cruises:', mockCruiseData.length);
   console.log('Showing Cruises:', filteredCruises.length);
+  console.log('Selected Cruise ID:', selectedCruiseId);
 
   // Generate context-based quick filters
   const getQuickFilters = () => {
@@ -64,24 +73,32 @@ const Search = () => {
     return quickFilters;
   };
 
+  const handleCruiseSelect = (cruiseId: string) => {
+    setSelectedCruiseId(cruiseId);
+    console.log('Cruise selected:', cruiseId);
+  };
+
   return (
     <div className="min-h-screen bg-light-gray">
       <Header />
       
       <div className="pt-20 h-screen flex">
-        {/* Left Pane - Fixed width (35%) with scrolling capability */}
-        <div className="w-[35%] border-r border-border-gray bg-white flex flex-col fixed h-full top-20 left-0 overflow-hidden">
-          {/* Map Section - Reduced height to 35% */}
+        {/* Left Pane - Fixed width (35%) with proper flex layout */}
+        <div className="w-[35%] border-r border-border-gray bg-white flex flex-col fixed h-full top-20 left-0">
+          {/* Map Section - Fixed height (35%) */}
           <div className="h-[35%] border-b border-border-gray flex-shrink-0">
             <MapLibreRouteMap 
               cruises={filteredCruises}
               hoveredCruise={hoveredCruise}
-              selectedCruise={filteredCruises.length > 0 ? filteredCruises[0].id : null}
+              selectedCruise={selectedCruiseId}
+              onLocationClick={(locationName, insights) => {
+                console.log('Location clicked:', locationName, insights);
+              }}
             />
           </div>
           
-          {/* Chat Interface Section - Flexible height 65% with overflow handling */}
-          <div className="h-[65%] flex-shrink-0 overflow-hidden">
+          {/* Chat Interface Section - Flexible height (65%) with proper overflow */}
+          <div className="flex-1 min-h-0 flex flex-col">
             <EnhancedSearchChat 
               initialQuery={query}
               searchType={searchType}
@@ -121,6 +138,8 @@ const Search = () => {
               cruises={filteredCruises}
               isLoading={false}
               onCruiseHover={setHoveredCruise}
+              onCruiseSelect={handleCruiseSelect}
+              selectedCruiseId={selectedCruiseId}
               sortBy={sortBy}
               onSortChange={setSortBy}
             />

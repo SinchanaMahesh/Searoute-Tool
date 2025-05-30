@@ -1,21 +1,36 @@
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CruiseData } from '@/api/mockCruiseData';
-import { Star, Heart, Share, GitCompare } from 'lucide-react';
+import { Star, Heart, Share, GitCompare, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import SailingDatesSelector from './SailingDatesSelector';
 
 interface CruiseResultsProps {
   cruises: CruiseData[];
   isLoading: boolean;
   onCruiseHover: (cruiseId: string | null) => void;
+  onCruiseSelect: (cruiseId: string) => void;
+  selectedCruiseId: string | null;
   sortBy: string;
   onSortChange: (value: string) => void;
 }
 
-const CruiseResults = ({ cruises, isLoading, onCruiseHover, sortBy, onSortChange }: CruiseResultsProps) => {
+const CruiseResults = ({ cruises, isLoading, onCruiseHover, onCruiseSelect, selectedCruiseId, sortBy, onSortChange }: CruiseResultsProps) => {
   const navigate = useNavigate();
+  const [selectedDates, setSelectedDates] = useState<{ [cruiseId: string]: string }>({});
+
+  // Initialize selected dates
+  useMemo(() => {
+    const initialDates: { [cruiseId: string]: string } = {};
+    cruises.forEach(cruise => {
+      if (!selectedDates[cruise.id]) {
+        initialDates[cruise.id] = cruise.departureDate;
+      }
+    });
+    setSelectedDates(prev => ({ ...prev, ...initialDates }));
+  }, [cruises]);
 
   // Memoize the sorted cruises to prevent continuous re-sorting
   const sortedCruises = useMemo(() => {
@@ -38,6 +53,10 @@ const CruiseResults = ({ cruises, isLoading, onCruiseHover, sortBy, onSortChange
   const handleSortChange = useCallback((value: string) => {
     onSortChange(value);
   }, [onSortChange]);
+
+  const handleDateSelect = (cruiseId: string, date: string) => {
+    setSelectedDates(prev => ({ ...prev, [cruiseId]: date }));
+  };
 
   if (isLoading) {
     return (
@@ -98,6 +117,10 @@ const CruiseResults = ({ cruises, isLoading, onCruiseHover, sortBy, onSortChange
               key={cruise.id} 
               cruise={cruise} 
               onHover={onCruiseHover}
+              onSelect={onCruiseSelect}
+              isSelected={selectedCruiseId === cruise.id}
+              selectedDate={selectedDates[cruise.id] || cruise.departureDate}
+              onDateSelect={(date) => handleDateSelect(cruise.id, date)}
               navigate={navigate}
             />
           ))}
@@ -107,16 +130,37 @@ const CruiseResults = ({ cruises, isLoading, onCruiseHover, sortBy, onSortChange
   );
 };
 
-// Individual Cruise Card Component
-const CruiseCard = ({ cruise, onHover, navigate }: { cruise: CruiseData; onHover: (cruiseId: string | null) => void; navigate: any }) => {
+// Individual Cruise Card Component with enhanced functionality
+const CruiseCard = ({ 
+  cruise, 
+  onHover, 
+  onSelect, 
+  isSelected, 
+  selectedDate, 
+  onDateSelect, 
+  navigate 
+}: { 
+  cruise: CruiseData; 
+  onHover: (cruiseId: string | null) => void; 
+  onSelect: (cruiseId: string) => void;
+  isSelected: boolean;
+  selectedDate: string;
+  onDateSelect: (date: string) => void;
+  navigate: any;
+}) => {
+  const [showDateSelector, setShowDateSelector] = useState(false);
+
   const handleBookNow = () => {
     navigate(`/cruise/${cruise.id}/book`);
   };
 
   const handleViewDetails = () => {
-    // Create a details URL pattern for external cruise details
     const detailsUrl = `https://www.cruiselines.com/cruise/${cruise.id}`;
     window.open(detailsUrl, '_blank');
+  };
+
+  const handleCardClick = () => {
+    onSelect(cruise.id);
   };
 
   // Convert Port objects to string array for display
@@ -124,9 +168,12 @@ const CruiseCard = ({ cruise, onHover, navigate }: { cruise: CruiseData; onHover
 
   return (
     <div 
-      className="bg-white rounded-lg border border-border-gray overflow-hidden hover:shadow-level-2 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+      className={`bg-white rounded-lg border overflow-hidden hover:shadow-level-2 transition-all duration-300 hover:scale-[1.02] cursor-pointer ${
+        isSelected ? 'border-ocean-blue shadow-level-2 scale-[1.02]' : 'border-border-gray'
+      }`}
       onMouseEnter={() => onHover(cruise.id)}
       onMouseLeave={() => onHover(null)}
+      onClick={handleCardClick}
     >
       <div className="flex">
         {/* Image Section */}
@@ -136,13 +183,19 @@ const CruiseCard = ({ cruise, onHover, navigate }: { cruise: CruiseData; onHover
             alt={cruise.shipName}
             className="w-full h-full object-cover"
           />
+          {/* Selection Indicator */}
+          {isSelected && (
+            <div className="absolute top-3 left-3 bg-ocean-blue text-white px-2 py-1 rounded-full text-xs font-medium">
+              Viewing Route
+            </div>
+          )}
           {/* Price Badge */}
           <div className="absolute top-3 right-3 bg-ocean-blue text-white px-3 py-1 rounded-full text-sm font-semibold">
             ${cruise.priceFrom}
           </div>
           {/* Savings Badge */}
           {cruise.savings && (
-            <div className="absolute top-3 left-3 bg-coral-pink text-white px-2 py-1 rounded text-xs font-medium">
+            <div className="absolute bottom-3 right-3 bg-coral-pink text-white px-2 py-1 rounded text-xs font-medium">
               Save ${cruise.savings}
             </div>
           )}
@@ -178,7 +231,7 @@ const CruiseCard = ({ cruise, onHover, navigate }: { cruise: CruiseData; onHover
             <div className="flex items-center gap-4 text-sm">
               <span className="font-medium text-charcoal">{cruise.duration} days</span>
               <span className="text-slate-gray">•</span>
-              <span className="text-slate-gray">Departs {new Date(cruise.departureDate).toLocaleDateString()}</span>
+              <span className="text-slate-gray">Departs {new Date(selectedDate).toLocaleDateString()}</span>
               <span className="text-slate-gray">•</span>
               <span className="text-slate-gray">{cruise.departurePort}</span>
             </div>
@@ -193,6 +246,37 @@ const CruiseCard = ({ cruise, onHover, navigate }: { cruise: CruiseData; onHover
               {portNames.slice(0, 4).join(' → ')}
               {portNames.length > 4 && ` → +${portNames.length - 4} more`}
             </div>
+
+            {/* Sailing Dates Section */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowDateSelector(!showDateSelector);
+                }}
+                className="text-xs"
+              >
+                <Calendar className="w-3 h-3 mr-1" />
+                {cruise.sailingDates.length} Dates Available
+              </Button>
+              <span className="text-xs text-slate-gray">
+                Selected: {new Date(selectedDate).toLocaleDateString()}
+              </span>
+            </div>
+
+            {/* Expandable Date Selector */}
+            {showDateSelector && (
+              <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+                <SailingDatesSelector
+                  sailingDates={cruise.sailingDates}
+                  selectedDate={selectedDate}
+                  onDateSelect={onDateSelect}
+                  shipName={cruise.shipName}
+                />
+              </div>
+            )}
 
             <div className="flex items-center gap-2">
               <div className="flex items-center">
@@ -235,12 +319,18 @@ const CruiseCard = ({ cruise, onHover, navigate }: { cruise: CruiseData; onHover
                   <Button 
                     variant="outline"
                     size="sm"
-                    onClick={handleViewDetails}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleViewDetails();
+                    }}
                   >
                     View Details
                   </Button>
                   <Button 
-                    onClick={handleBookNow}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleBookNow();
+                    }}
                     className="bg-ocean-blue hover:bg-deep-navy text-white"
                   >
                     Book Now

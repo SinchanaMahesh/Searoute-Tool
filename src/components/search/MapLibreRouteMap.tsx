@@ -1,29 +1,23 @@
+
 import React, { useEffect, useRef, useState } from 'react';
-import { Map, NavigationControl, LngLatBounds } from 'maplibre-gl';
-import 'maplibre-gl/dist/maplibre-gl.css';
 import { CruiseData } from '@/api/mockCruiseData';
-import { Maximize2, X, Cloud, MapPin, Info, Anchor, Calendar, Ship, Users } from 'lucide-react';
+import { Maximize2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { MaritimeRouteCalculator, Port } from '@/utils/maritimeRouteCalculator';
-import { getPortByName } from '@/utils/portData';
+import LocationInsightsModal from './LocationInsightsModal';
 
 interface MapLibreRouteMapProps {
   cruises: CruiseData[];
   hoveredCruise: string | null;
   selectedCruise?: string | null;
+  onLocationClick?: (locationName: string, insights: any) => void;
 }
 
-const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise }: MapLibreRouteMapProps) => {
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const largeMapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<Map | null>(null);
-  const largeMap = useRef<Map | null>(null);
+const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise, onLocationClick }: MapLibreRouteMapProps) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const largeCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isLargeView, setIsLargeView] = useState(false);
-  const [selectedPort, setSelectedPort] = useState<Port | null>(null);
-  const [isMapLoaded, setIsMapLoaded] = useState(false);
-  const [isLargeMapLoaded, setIsLargeMapLoaded] = useState(false);
-  const routeCalculator = useRef(new MaritimeRouteCalculator());
-  const animationRef = useRef<number | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<any>(null);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   
   const displayCruise = hoveredCruise 
     ? cruises.find(c => c.id === hoveredCruise)
@@ -31,334 +25,178 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise }: MapLibreRo
     ? cruises.find(c => c.id === selectedCruise)
     : cruises.length > 0 ? cruises[0] : null;
 
-  // Initialize small map
-  useEffect(() => {
-    if (!mapContainer.current || map.current) return;
-
-    map.current = new Map({
-      container: mapContainer.current,
-      style: {
-        version: 8,
-        sources: {
-          'osm': {
-            type: 'raster',
-            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-            tileSize: 256,
-            attribution: '© OpenStreetMap contributors'
-          }
-        },
-        layers: [
-          {
-            id: 'osm',
-            type: 'raster',
-            source: 'osm'
-          }
-        ]
-      },
-      center: [-75, 25],
-      zoom: 5,
-      maxZoom: 18,
-      minZoom: 2
-    });
-
-    map.current.addControl(new NavigationControl(), 'top-right');
-    map.current.on('load', () => setIsMapLoaded(true));
-
-    return () => {
-      map.current?.remove();
-    };
-  }, []);
-
-  // Initialize large map when modal opens
-  useEffect(() => {
-    if (!isLargeView || !largeMapContainer.current || largeMap.current) return;
-
-    largeMap.current = new Map({
-      container: largeMapContainer.current,
-      style: {
-        version: 8,
-        sources: {
-          'osm': {
-            type: 'raster',
-            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-            tileSize: 256,
-            attribution: '© OpenStreetMap contributors'
-          }
-        },
-        layers: [
-          {
-            id: 'osm',
-            type: 'raster',
-            source: 'osm'
-          }
-        ]
-      },
-      center: [-75, 25],
-      zoom: 5,
-      maxZoom: 18,
-      minZoom: 2
-    });
-
-    largeMap.current.addControl(new NavigationControl(), 'top-right');
-    
-    largeMap.current.on('load', () => {
-      setIsLargeMapLoaded(true);
-    });
-
-    largeMap.current.on('click', 'large-ports', (e) => {
-      if (e.features && e.features[0] && e.features[0].properties) {
-        const portName = e.features[0].properties.name;
-        const port = getPortByName(portName);
-        if (port) {
-          setSelectedPort(port);
-        }
-      }
-    });
-
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-      largeMap.current?.remove();
-      largeMap.current = null;
-      setIsLargeMapLoaded(false);
-    };
-  }, [isLargeView]);
-
   // Handle escape key for large view
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isLargeView) {
-        setIsLargeView(false);
+      if (e.key === 'Escape') {
+        if (isLargeView) {
+          setIsLargeView(false);
+        }
+        if (isLocationModalOpen) {
+          setIsLocationModalOpen(false);
+        }
       }
     };
 
-    if (isLargeView) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.removeEventListener('keydown', handleEscape);
-        document.body.style.overflow = 'unset';
-      };
-    }
-  }, [isLargeView]);
-
-  // Animate route direction
-  const animateRoute = (mapInstance: Map, routeId: string) => {
-    if (!mapInstance.getLayer(routeId)) return;
-
-    let dashOffset = 0;
-    const animate = () => {
-      dashOffset = (dashOffset + 0.5) % 10;
-      
-      if (mapInstance.getLayer(routeId)) {
-        mapInstance.setPaintProperty(routeId, 'line-dasharray', [2, 2]);
-        mapInstance.setPaintProperty(routeId, 'line-translate', [dashOffset, 0]);
-      }
-      
-      animationRef.current = requestAnimationFrame(animate);
-    };
+    document.addEventListener('keydown', handleEscape);
     
-    animate();
-  };
-
-  // Update routes for both maps
-  const updateRoutes = (mapInstance: Map, isLarge: boolean = false) => {
-    if (!mapInstance || (!isMapLoaded && !isLarge) || (!isLargeMapLoaded && isLarge) || !displayCruise) return;
-
-    const routeLayerId = isLarge ? 'large-cruise-route' : 'cruise-route';
-    const routeSourceId = isLarge ? 'large-cruise-route' : 'cruise-route';
-    const portsLayerId = isLarge ? 'large-ports' : 'ports';
-    const portsSourceId = isLarge ? 'large-ports' : 'ports';
-    const portLabelsId = isLarge ? 'large-port-labels' : 'port-labels';
-
-    // Clear existing layers
-    if (mapInstance.getLayer(routeLayerId)) mapInstance.removeLayer(routeLayerId);
-    if (mapInstance.getSource(routeSourceId)) mapInstance.removeSource(routeSourceId);
-    if (mapInstance.getLayer(portsLayerId)) mapInstance.removeLayer(portsLayerId);
-    if (mapInstance.getSource(portsSourceId)) mapInstance.removeSource(portsSourceId);
-    if (mapInstance.getLayer(portLabelsId)) mapInstance.removeLayer(portLabelsId);
-
-    const ports: Port[] = [];
-    displayCruise.ports.forEach((cruisePort) => {
-      const port = getPortByName(cruisePort.name);
-      if (port) {
-        ports.push(port);
-      }
-    });
-
-    // Add port markers
-    if (ports.length > 0) {
-      mapInstance.addSource(portsSourceId, {
-        type: 'geojson',
-        data: {
-          type: 'FeatureCollection',
-          features: ports.map((port, index) => ({
-            type: 'Feature',
-            geometry: {
-              type: 'Point',
-              coordinates: port.coordinates
-            },
-            properties: {
-              name: port.name,
-              type: port.type,
-              index: index
-            }
-          }))
-        }
-      });
-
-      mapInstance.addLayer({
-        id: portsLayerId,
-        type: 'circle',
-        source: portsSourceId,
-        paint: {
-          'circle-radius': isLarge ? [
-            'case',
-            ['==', ['get', 'index'], 0], 15,
-            ['==', ['get', 'index'], ports.length - 1], 15,
-            10
-          ] : [
-            'case',
-            ['==', ['get', 'index'], 0], 12,
-            ['==', ['get', 'index'], ports.length - 1], 12,
-            8
-          ],
-          'circle-color': [
-            'case',
-            ['==', ['get', 'index'], 0], '#22c55e',
-            ['==', ['get', 'index'], ports.length - 1], '#ef4444',
-            '#3b82f6'
-          ],
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#ffffff'
-        }
-      });
-
-      if (isLarge) {
-        mapInstance.addLayer({
-          id: portLabelsId,
-          type: 'symbol',
-          source: portsSourceId,
-          layout: {
-            'text-field': ['get', 'name'],
-            'text-font': ['Open Sans Regular'],
-            'text-offset': [0, 2],
-            'text-anchor': 'top',
-            'text-size': 14
-          },
-          paint: {
-            'text-color': '#1f2937',
-            'text-halo-color': '#ffffff',
-            'text-halo-width': 2
-          }
-        });
-      }
+    if (isLargeView) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
     }
 
-    // Calculate and add maritime routes
-    if (ports.length > 1) {
-      const allRouteSegments: any[] = [];
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isLargeView, isLocationModalOpen]);
+
+  // Convert real coordinates to canvas coordinates
+  const convertToCanvasCoords = (longitude: number, latitude: number, canvasWidth: number, canvasHeight: number) => {
+    // Dynamic bounds based on cruise data
+    if (!displayCruise || displayCruise.ports.length === 0) {
+      return { x: canvasWidth / 2, y: canvasHeight / 2 };
+    }
+
+    const ports = displayCruise.ports;
+    const lons = ports.map(p => p.coordinates[0]);
+    const lats = ports.map(p => p.coordinates[1]);
+    
+    const minLon = Math.min(...lons) - 2;
+    const maxLon = Math.max(...lons) + 2;
+    const minLat = Math.min(...lats) - 2;
+    const maxLat = Math.max(...lats) + 2;
+    
+    const x = ((longitude - minLon) / (maxLon - minLon)) * canvasWidth;
+    const y = canvasHeight - ((latitude - minLat) / (maxLat - minLat)) * canvasHeight;
+    
+    return { x, y };
+  };
+
+  // Draw map on canvas with polyline support
+  const drawMap = (canvas: HTMLCanvasElement, isLarge: boolean = false) => {
+    if (!canvas || !displayCruise) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const { width, height } = canvas;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
+    
+    // Draw background (ocean)
+    const gradient = ctx.createLinearGradient(0, 0, 0, height);
+    gradient.addColorStop(0, '#e0f2fe');
+    gradient.addColorStop(1, '#0284c7');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+    
+    // Draw route using polyline coordinates if available
+    if (displayCruise.polylineCoordinates && displayCruise.polylineCoordinates.length > 0) {
+      ctx.strokeStyle = '#ff6b35';
+      ctx.lineWidth = isLarge ? 4 : 3;
+      ctx.lineCap = 'round';
       
-      for (let i = 0; i < ports.length - 1; i++) {
-        const route = routeCalculator.current.calculateSeaRoute(ports[i], ports[i + 1]);
+      ctx.beginPath();
+      
+      displayCruise.polylineCoordinates.forEach((coord, index) => {
+        const canvasCoord = convertToCanvasCoords(coord[0], coord[1], width, height);
         
-        route.segments.forEach((segment, segIndex) => {
-          allRouteSegments.push({
-            type: 'Feature',
-            geometry: {
-              type: 'LineString',
-              coordinates: [segment.start, segment.end]
-            },
-            properties: {
-              segmentType: segment.type,
-              routeIndex: i,
-              segmentIndex: segIndex
-            }
-          });
-        });
-      }
-
-      if (allRouteSegments.length > 0) {
-        mapInstance.addSource(routeSourceId, {
-          type: 'geojson',
-          data: {
-            type: 'FeatureCollection',
-            features: allRouteSegments
-          }
-        });
-
-        mapInstance.addLayer({
-          id: routeLayerId,
-          type: 'line',
-          source: routeSourceId,
-          layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
-          },
-          paint: {
-            'line-color': [
-              'case',
-              ['==', ['get', 'segmentType'], 'sea'], '#006994',
-              '#ff4444'
-            ],
-            'line-width': isLarge ? [
-              'case',
-              ['==', ['get', 'segmentType'], 'sea'], 4,
-              3
-            ] : [
-              'case',
-              ['==', ['get', 'segmentType'], 'sea'], 3,
-              2
-            ],
-            'line-dasharray': [
-              'case',
-              ['==', ['get', 'segmentType'], 'sea'], ['literal', [1, 0]],
-              ['literal', [5, 5]]
-            ]
-          }
-        });
-
-        // Start route animation for large view
-        if (isLarge) {
-          setTimeout(() => animateRoute(mapInstance, routeLayerId), 500);
+        if (index === 0) {
+          ctx.moveTo(canvasCoord.x, canvasCoord.y);
+        } else {
+          ctx.lineTo(canvasCoord.x, canvasCoord.y);
         }
-      }
-
-      // Fit map to show all ports
-      const coordinates = ports.map(port => port.coordinates);
-      const bounds = coordinates.reduce(
-        (bounds, coord) => bounds.extend(coord),
-        new LngLatBounds(coordinates[0], coordinates[0])
-      );
+      });
       
-      mapInstance.fitBounds(bounds, { padding: isLarge ? 80 : 50 });
+      ctx.stroke();
+    }
+    
+    // Convert port coordinates and draw markers
+    const canvasCoords = displayCruise.ports.map(port => 
+      convertToCanvasCoords(port.coordinates[0], port.coordinates[1], width, height)
+    );
+    
+    // Draw port markers
+    canvasCoords.forEach((coord, index) => {
+      const port = displayCruise.ports[index];
+      const color = index === 0 ? '#22c55e' : index === canvasCoords.length - 1 ? '#ef4444' : '#3b82f6';
+      const radius = isLarge ? 12 : 8;
+      
+      // Port circle
+      ctx.fillStyle = color;
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(coord.x, coord.y, radius, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Port label (only on large view)
+      if (isLarge) {
+        ctx.fillStyle = '#1f2937';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(port.name, coord.x, coord.y + radius + 15);
+      }
+      
+      // Store port info for click detection
+      (coord as any).port = port;
+      (coord as any).radius = radius;
+    });
+    
+    // Store coordinates for click detection
+    (canvas as any).portCoords = canvasCoords;
+  };
+
+  // Handle canvas click for location insights
+  const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isLargeView) return;
+    
+    const canvas = event.currentTarget;
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    
+    const portCoords = (canvas as any).portCoords || [];
+    
+    // Check if click is on a port
+    for (const coord of portCoords) {
+      const distance = Math.sqrt(Math.pow(x - coord.x, 2) + Math.pow(y - coord.y, 2));
+      if (distance <= (coord as any).radius + 5) {
+        const port = (coord as any).port;
+        
+        if (port.insights) {
+          setSelectedLocation({
+            name: port.name,
+            insights: port.insights
+          });
+          setIsLocationModalOpen(true);
+          
+          // Call the optional callback
+          if (onLocationClick) {
+            onLocationClick(port.name, port.insights);
+          }
+        }
+        break;
+      }
     }
   };
 
-  // Update small map routes
+  // Draw on canvas when cruise changes
   useEffect(() => {
-    if (map.current && isMapLoaded) {
-      updateRoutes(map.current, false);
+    if (canvasRef.current) {
+      drawMap(canvasRef.current);
     }
-  }, [displayCruise, isMapLoaded]);
+  }, [displayCruise]);
 
-  // Update large map routes
   useEffect(() => {
-    if (largeMap.current && isLargeMapLoaded) {
-      updateRoutes(largeMap.current, true);
+    if (largeCanvasRef.current && isLargeView) {
+      drawMap(largeCanvasRef.current, true);
     }
-  }, [displayCruise, isLargeMapLoaded]);
-
-  // Set initial selected port
-  useEffect(() => {
-    if (displayCruise && displayCruise.ports.length > 0 && !selectedPort) {
-      const firstPort = getPortByName(displayCruise.ports[0].name);
-      if (firstPort) {
-        setSelectedPort(firstPort);
-      }
-    }
-  }, [displayCruise, selectedPort]);
+  }, [displayCruise, isLargeView]);
 
   return (
     <>
@@ -367,14 +205,11 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise }: MapLibreRo
         <div className="absolute top-0 left-0 right-0 bg-white/95 backdrop-blur-sm p-2 border-b border-border-gray z-20">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-medium text-charcoal text-xs flex items-center gap-1">
-                <Anchor className="w-3 h-3 text-ocean-blue" />
-                Maritime Routes
-              </h3>
+              <h3 className="font-medium text-charcoal text-xs">Interactive Route Map</h3>
               <p className="text-xs text-slate-gray">
                 {displayCruise 
                   ? `${displayCruise.shipName} - ${displayCruise.ports.length} ports` 
-                  : 'Select a cruise to view route'}
+                  : 'Select a cruise to view its route'}
               </p>
             </div>
             <Button
@@ -388,178 +223,66 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise }: MapLibreRo
           </div>
         </div>
 
-        {/* Map Container */}
-        <div 
-          ref={mapContainer} 
-          className="absolute inset-0 pt-12 w-full h-full"
-          style={{ height: 'calc(100% - 48px)', marginTop: '48px' }}
+        <canvas 
+          ref={canvasRef}
+          width={400}
+          height={280}
+          className="absolute inset-0 pt-12 w-full h-full cursor-pointer"
+          style={{ width: '100%', height: 'calc(100% - 48px)', marginTop: '48px' }}
         />
       </div>
 
-      {/* Large View Modal - Maximum Z-Index */}
+      {/* Large View Modal */}
       {isLargeView && (
         <>
-          {/* Backdrop overlay - Highest priority */}
+          {/* Backdrop overlay */}
           <div 
-            className="fixed inset-0 bg-black/60 z-[9999998]" 
+            className="fixed inset-0 bg-black/50 z-[999998]" 
             onClick={() => setIsLargeView(false)}
           />
           
-          {/* Modal content - Top layer */}
-          <div 
-            className="fixed inset-0 z-[9999999] flex items-center justify-center p-6 pointer-events-none"
-          >
-            <div className="bg-white rounded-xl w-full h-full max-w-[95vw] max-h-[95vh] flex flex-col relative pointer-events-auto shadow-2xl border border-gray-200">
+          {/* Modal content */}
+          <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 pointer-events-none">
+            <div className="bg-white rounded-lg w-full h-full max-w-7xl max-h-[95vh] flex flex-col relative pointer-events-auto shadow-2xl">
               {/* Header */}
-              <div className="p-6 border-b border-border-gray flex justify-between items-center bg-white relative z-[10000000] rounded-t-xl">
-                <h3 className="font-semibold text-charcoal flex items-center gap-2 text-lg">
-                  <Anchor className="w-6 h-6 text-ocean-blue" />
-                  Maritime Navigation - Interactive View
-                </h3>
+              <div className="p-4 border-b border-border-gray flex justify-between items-center bg-white relative z-[1000000]">
+                <div>
+                  <h3 className="font-semibold text-charcoal">Interactive Route Map</h3>
+                  <p className="text-sm text-slate-gray mt-1">Click on ports to view location insights</p>
+                </div>
                 <Button
                   variant="outline"
                   onClick={() => setIsLargeView(false)}
-                  className="text-slate-gray h-8 w-8 p-0 hover:bg-gray-100"
+                  className="text-slate-gray h-8 w-8 p-0"
                 >
                   <X className="w-4 h-4" />
                 </Button>
               </div>
               
-              {/* Main Content - Two Pane Layout */}
-              <div className="flex-1 flex relative overflow-hidden">
-                {/* Left Pane - Map (75%) + Sailing Info (25%) */}
-                <div className="flex-1 flex flex-col border-r border-border-gray">
-                  {/* Map Section - 75% */}
-                  <div className="h-3/4 relative">
-                    <div 
-                      ref={largeMapContainer}
-                      className="w-full h-full"
-                    />
-                  </div>
-                  
-                  {/* Sailing Info Section - 25% */}
-                  {displayCruise && (
-                    <div className="h-1/4 border-t border-border-gray bg-gradient-to-r from-blue-50 to-white p-4 overflow-y-auto">
-                      <div className="grid grid-cols-2 gap-4 h-full">
-                        <div>
-                          <h5 className="font-semibold text-charcoal mb-2 flex items-center gap-2">
-                            <Ship className="w-4 h-4 text-ocean-blue" />
-                            Cruise Details
-                          </h5>
-                          <div className="space-y-1 text-sm">
-                            <p><span className="font-medium">Ship:</span> {displayCruise.shipName}</p>
-                            <p><span className="font-medium">Line:</span> {displayCruise.cruiseLine}</p>
-                            <p><span className="font-medium">Duration:</span> {displayCruise.duration} nights</p>
-                            <p><span className="font-medium">From:</span> <span className="text-coral-pink font-bold">${displayCruise.priceFrom}</span></p>
-                          </div>
-                        </div>
-                        <div>
-                          <h5 className="font-semibold text-charcoal mb-2 flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-sunset-orange" />
-                            Route Information
-                          </h5>
-                          <div className="space-y-1 text-sm">
-                            <p><span className="font-medium">Ports:</span> {displayCruise.ports.length} destinations</p>
-                            <p><span className="font-medium">Departure:</span> {displayCruise.ports[0]?.name}</p>
-                            <p><span className="font-medium">Route:</span> {displayCruise.route}</p>
-                            <div className="flex gap-1 mt-2 flex-wrap">
-                              {displayCruise.ports.slice(0, 3).map((port, idx) => (
-                                <span key={idx} className="px-2 py-1 bg-ocean-blue/10 text-ocean-blue text-xs rounded-full">
-                                  {port.name}
-                                </span>
-                              ))}
-                              {displayCruise.ports.length > 3 && (
-                                <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                                  +{displayCruise.ports.length - 3} more
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                {/* Right Panel - Port Information */}
-                {selectedPort && (
-                  <div className="w-80 bg-white flex flex-col">
-                    {/* Port Header */}
-                    <div className="p-6 border-b border-border-gray">
-                      <h4 className="font-semibold text-charcoal text-xl flex items-center gap-2 mb-2">
-                        <MapPin className="w-6 h-6 text-ocean-blue" />
-                        {selectedPort.name}
-                      </h4>
-                      <p className="text-slate-gray mb-3">{selectedPort.country}</p>
-                      <div className="flex items-center gap-4 text-sm">
-                        <div className="flex items-center gap-2 bg-blue-50 px-3 py-1 rounded-full">
-                          <Cloud className="w-4 h-4 text-blue-500" />
-                          <span>{selectedPort.weather.condition}</span>
-                        </div>
-                        <span className="font-bold text-lg text-coral-pink">{selectedPort.weather.temp}°F</span>
-                      </div>
-                    </div>
-                    
-                    {/* Port Description */}
-                    <div className="p-6 border-b border-border-gray">
-                      <p className="text-slate-gray leading-relaxed">{selectedPort.description}</p>
-                    </div>
-                    
-                    {/* Attractions */}
-                    <div className="p-6 border-b border-border-gray flex-1 overflow-y-auto">
-                      <h5 className="font-semibold text-charcoal mb-3">Top Attractions</h5>
-                      <ul className="space-y-2">
-                        {selectedPort.attractions.map((attraction, index) => (
-                          <li key={index} className="flex items-start gap-3 text-sm">
-                            <div className="w-2 h-2 bg-ocean-blue rounded-full mt-2 flex-shrink-0" />
-                            <span className="text-slate-gray">{attraction}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    
-                    {/* Port Info */}
-                    <div className="p-6 bg-light-gray">
-                      <h5 className="font-semibold text-charcoal mb-3 flex items-center gap-2">
-                        <Info className="w-5 h-5 text-sunset-orange" />
-                        Port Details
-                      </h5>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div className="text-center">
-                          <div className="font-bold text-lg text-ocean-blue">{selectedPort.capacity.toLocaleString()}</div>
-                          <div className="text-slate-gray">Capacity</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="font-bold text-lg text-sunset-orange">{selectedPort.rating}/5</div>
-                          <div className="text-slate-gray">{selectedPort.reviews.toLocaleString()} reviews</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+              {/* Map Content */}
+              <div className="flex-1 relative overflow-hidden">
+                <canvas 
+                  ref={largeCanvasRef}
+                  width={800}
+                  height={600}
+                  onClick={handleCanvasClick}
+                  className="w-full h-full cursor-pointer"
+                  style={{ width: '100%', height: '100%' }}
+                />
               </div>
               
-              {/* Bottom Panel - Route Navigation */}
+              {/* Bottom Panel - Cruise Info */}
               {displayCruise && (
                 <div className="border-t border-border-gray bg-light-gray p-4">
-                  <h5 className="font-medium text-charcoal mb-3">Cruise Itinerary</h5>
-                  <div className="flex gap-2 flex-wrap">
-                    {displayCruise.ports.map((port, index) => {
-                      const portData = getPortByName(port.name);
-                      return (
-                        <button
-                          key={index}
-                          onClick={() => portData && setSelectedPort(portData)}
-                          className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                            selectedPort?.name === port.name
-                              ? 'bg-ocean-blue text-white shadow-md'
-                              : 'bg-white text-slate-gray hover:bg-ocean-blue hover:text-white border border-gray-200'
-                          }`}
-                        >
-                          {index + 1}. {port.name}
-                        </button>
-                      );
-                    })}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h5 className="font-medium text-charcoal">{displayCruise.shipName}</h5>
+                      <p className="text-sm text-slate-gray">{displayCruise.route} • {displayCruise.duration} days</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold text-ocean-blue">From ${displayCruise.priceFrom}</div>
+                      <div className="text-xs text-slate-gray">per person</div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -567,6 +290,14 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise }: MapLibreRo
           </div>
         </>
       )}
+
+      {/* Location Insights Modal */}
+      <LocationInsightsModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+        locationName={selectedLocation?.name || ''}
+        insights={selectedLocation?.insights || null}
+      />
     </>
   );
 };

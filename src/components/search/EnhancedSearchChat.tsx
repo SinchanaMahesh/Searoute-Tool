@@ -1,8 +1,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, Filter, MapPin, Calendar, Users } from 'lucide-react';
+import { Send, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import VoiceInput from './VoiceInput';
 
 interface QuickFilter {
   label: string;
@@ -28,7 +29,6 @@ const EnhancedSearchChat = ({ initialQuery = '', searchType = 'chat', resultCoun
   const [currentMessage, setCurrentMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // Initialize chat with welcome message
   useEffect(() => {
@@ -62,13 +62,15 @@ const EnhancedSearchChat = ({ initialQuery = '', searchType = 'chat', resultCoun
     setCurrentMessage('');
     setIsTyping(true);
 
-    // Simulate AI response
+    // Simulate AI response with more contextual responses
     setTimeout(() => {
       const responses = [
-        "I can help you find cruises based on that criteria. Let me search for options that match your preferences.",
-        "That's a great choice! I can show you similar cruises or help you compare different options.",
-        "I found several cruises that might interest you. Would you like me to filter by price range, departure date, or destination?",
-        "Let me help you narrow down the options. Are you looking for a specific cruise line or do you have a budget in mind?"
+        "I can help you filter these results. What's most important to you - price, destination, or ship amenities?",
+        "Let me refine your search. Are you looking for a specific cruise line or departure port?",
+        "I can show you cruises with the best value. Would you like to see family-friendly options or adult-only experiences?",
+        "Based on your preferences, I can recommend cruises with excellent ratings and reviews.",
+        "I noticed you're interested in that route. Would you like to see similar itineraries or different departure dates?",
+        "That's a great choice! I can help you compare prices across different sailing dates for the same itinerary."
       ];
 
       const aiResponse: ChatMessage = {
@@ -101,10 +103,14 @@ const EnhancedSearchChat = ({ initialQuery = '', searchType = 'chat', resultCoun
     setMessages(prev => [...prev, filterMessage]);
   };
 
+  const handleVoiceTranscript = (transcript: string) => {
+    setCurrentMessage(transcript);
+  };
+
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Chat Header */}
-      <div className="p-3 border-b border-border-gray bg-gradient-to-r from-ocean-blue to-deep-navy text-white">
+      <div className="p-3 border-b border-border-gray bg-gradient-to-r from-ocean-blue to-deep-navy text-white flex-shrink-0">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4" />
           <h3 className="font-medium text-sm">Cruise Assistant</h3>
@@ -113,7 +119,7 @@ const EnhancedSearchChat = ({ initialQuery = '', searchType = 'chat', resultCoun
       </div>
 
       {/* Quick Filters */}
-      <div className="p-3 border-b border-border-gray bg-light-gray">
+      <div className="p-3 border-b border-border-gray bg-light-gray flex-shrink-0">
         <div className="flex flex-wrap gap-2">
           {quickFilters.slice(0, 3).map((filter, index) => (
             <button
@@ -127,12 +133,8 @@ const EnhancedSearchChat = ({ initialQuery = '', searchType = 'chat', resultCoun
         </div>
       </div>
 
-      {/* Chat Messages - Flexible height with scroll */}
-      <div 
-        ref={chatContainerRef}
-        className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0"
-        style={{ maxHeight: 'calc(100% - 140px)' }}
-      >
+      {/* Chat Messages - Flexible with proper scrolling */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
         {messages.map((message) => (
           <div
             key={message.id}
@@ -165,15 +167,21 @@ const EnhancedSearchChat = ({ initialQuery = '', searchType = 'chat', resultCoun
       </div>
 
       {/* Chat Input - Fixed at bottom */}
-      <div className="p-3 border-t border-border-gray bg-white">
-        <div className="flex gap-2">
-          <Input
-            value={currentMessage}
-            onChange={(e) => setCurrentMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Ask about cruises, destinations, or dates..."
-            className="flex-1 text-sm"
-            disabled={isTyping}
+      <div className="p-3 border-t border-border-gray bg-white flex-shrink-0">
+        <div className="flex gap-2 items-end">
+          <div className="flex-1">
+            <Input
+              value={currentMessage}
+              onChange={(e) => setCurrentMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Ask about cruises, destinations, or dates..."
+              className="text-sm"
+              disabled={isTyping}
+            />
+          </div>
+          <VoiceInput 
+            onTranscript={handleVoiceTranscript}
+            isDisabled={isTyping}
           />
           <Button
             onClick={handleSendMessage}
