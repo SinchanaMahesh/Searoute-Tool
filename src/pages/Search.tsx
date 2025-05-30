@@ -5,10 +5,10 @@ import Header from '@/components/layout/Header';
 import MapLibreRouteMap from '@/components/search/MapLibreRouteMap';
 import CruiseResults from '@/components/search/CruiseResults';
 import FilterDrawer from '@/components/search/FilterDrawer';
+import SearchResultsChat from '@/components/search/SearchResultsChat';
 import { Button } from '@/components/ui/button';
 import { Filter } from 'lucide-react';
 import { mockCruiseData, CruiseData } from '@/api/mockCruiseData';
-import EnhancedSearchChat from '@/components/search/EnhancedSearchChat';
 
 const Search = () => {
   const [searchParams] = useSearchParams();
@@ -99,7 +99,7 @@ const Search = () => {
           
           {/* Chat Interface Section - Flexible height (65%) with proper overflow */}
           <div className="flex-1 min-h-0 flex flex-col">
-            <EnhancedSearchChat 
+            <SearchResultsChat 
               initialQuery={query}
               searchType={searchType}
               resultCount={filteredCruises.length}
