@@ -19,9 +19,8 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   
-  const displayCruise = hoveredCruise 
-    ? cruises.find(c => c.id === hoveredCruise)
-    : selectedCruise 
+  // Use selectedCruise as primary, fallback to first cruise if none selected
+  const displayCruise = selectedCruise 
     ? cruises.find(c => c.id === selectedCruise)
     : cruises.length > 0 ? cruises[0] : null;
 
@@ -54,7 +53,6 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
 
   // Convert real coordinates to canvas coordinates
   const convertToCanvasCoords = (longitude: number, latitude: number, canvasWidth: number, canvasHeight: number) => {
-    // Dynamic bounds based on cruise data
     if (!displayCruise || displayCruise.ports.length === 0) {
       return { x: canvasWidth / 2, y: canvasHeight / 2 };
     }
@@ -205,11 +203,11 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
         <div className="absolute top-0 left-0 right-0 bg-white/95 backdrop-blur-sm p-2 border-b border-border-gray z-20">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-medium text-charcoal text-xs">Interactive Route Map</h3>
+              <h3 className="font-medium text-charcoal text-xs">Route Map</h3>
               <p className="text-xs text-slate-gray">
                 {displayCruise 
                   ? `${displayCruise.shipName} - ${displayCruise.ports.length} ports` 
-                  : 'Select a cruise to view its route'}
+                  : 'Click a cruise to view its route'}
               </p>
             </div>
             <Button
@@ -235,16 +233,13 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
       {/* Large View Modal */}
       {isLargeView && (
         <>
-          {/* Backdrop overlay */}
           <div 
             className="fixed inset-0 bg-black/50 z-[999998]" 
             onClick={() => setIsLargeView(false)}
           />
           
-          {/* Modal content */}
           <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 pointer-events-none">
             <div className="bg-white rounded-lg w-full h-full max-w-7xl max-h-[95vh] flex flex-col relative pointer-events-auto shadow-2xl">
-              {/* Header */}
               <div className="p-4 border-b border-border-gray flex justify-between items-center bg-white relative z-[1000000]">
                 <div>
                   <h3 className="font-semibold text-charcoal">Interactive Route Map</h3>
@@ -259,7 +254,6 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
                 </Button>
               </div>
               
-              {/* Map Content */}
               <div className="flex-1 relative overflow-hidden">
                 <canvas 
                   ref={largeCanvasRef}
@@ -271,7 +265,6 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
                 />
               </div>
               
-              {/* Bottom Panel - Cruise Info */}
               {displayCruise && (
                 <div className="border-t border-border-gray bg-light-gray p-4">
                   <div className="flex items-center justify-between">
@@ -291,7 +284,6 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
         </>
       )}
 
-      {/* Location Insights Modal */}
       <LocationInsightsModal
         isOpen={isLocationModalOpen}
         onClose={() => setIsLocationModalOpen(false)}

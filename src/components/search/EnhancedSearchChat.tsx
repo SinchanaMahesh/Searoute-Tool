@@ -62,7 +62,7 @@ const EnhancedSearchChat = ({ initialQuery = '', searchType = 'chat', resultCoun
     setCurrentMessage('');
     setIsTyping(true);
 
-    // Simulate AI response with more contextual responses
+    // Simulate AI response
     setTimeout(() => {
       const responses = [
         "I can help you filter these results. What's most important to you - price, destination, or ship amenities?",
@@ -109,18 +109,17 @@ const EnhancedSearchChat = ({ initialQuery = '', searchType = 'chat', resultCoun
 
   return (
     <div className="h-full flex flex-col bg-white">
-      {/* Chat Header */}
-      <div className="p-3 border-b border-border-gray bg-gradient-to-r from-ocean-blue to-deep-navy text-white flex-shrink-0">
+      {/* Compact Chat Header */}
+      <div className="p-2 border-b border-border-gray bg-gradient-to-r from-ocean-blue to-deep-navy text-white flex-shrink-0">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4" />
-          <h3 className="font-medium text-sm">Cruise Assistant</h3>
+          <h3 className="font-medium text-sm">AI Assistant</h3>
         </div>
-        <p className="text-xs text-blue-100 mt-1">Ask me anything about cruises, destinations, or booking</p>
       </div>
 
-      {/* Quick Filters */}
-      <div className="p-3 border-b border-border-gray bg-light-gray flex-shrink-0">
-        <div className="flex flex-wrap gap-2">
+      {/* Compact Quick Filters */}
+      <div className="px-2 py-1 border-b border-border-gray bg-light-gray flex-shrink-0">
+        <div className="flex flex-wrap gap-1">
           {quickFilters.slice(0, 3).map((filter, index) => (
             <button
               key={index}
@@ -134,17 +133,17 @@ const EnhancedSearchChat = ({ initialQuery = '', searchType = 'chat', resultCoun
       </div>
 
       {/* Chat Messages - Flexible with proper scrolling */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
+      <div className="flex-1 overflow-y-auto p-2 space-y-2 min-h-0">
         {messages.map((message) => (
           <div
             key={message.id}
             className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[80%] p-2 rounded-lg text-sm ${
+              className={`max-w-[85%] p-2 rounded-lg text-xs ${
                 message.type === 'user'
-                  ? 'bg-ocean-blue text-white ml-4'
-                  : 'bg-light-gray text-charcoal mr-4'
+                  ? 'bg-ocean-blue text-white ml-2'
+                  : 'bg-light-gray text-charcoal mr-2'
               }`}
             >
               {message.content}
@@ -154,11 +153,11 @@ const EnhancedSearchChat = ({ initialQuery = '', searchType = 'chat', resultCoun
         
         {isTyping && (
           <div className="flex justify-start">
-            <div className="bg-light-gray text-charcoal p-2 rounded-lg text-sm mr-4">
+            <div className="bg-light-gray text-charcoal p-2 rounded-lg text-xs mr-2">
               <div className="flex gap-1">
-                <div className="w-2 h-2 bg-slate-gray rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-2 h-2 bg-slate-gray rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-2 h-2 bg-slate-gray rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                <div className="w-1 h-1 bg-slate-gray rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-1 h-1 bg-slate-gray rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-1 h-1 bg-slate-gray rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
               </div>
             </div>
           </div>
@@ -166,16 +165,16 @@ const EnhancedSearchChat = ({ initialQuery = '', searchType = 'chat', resultCoun
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Chat Input - Fixed at bottom */}
-      <div className="p-3 border-t border-border-gray bg-white flex-shrink-0">
+      {/* Compact Chat Input */}
+      <div className="p-2 border-t border-border-gray bg-white flex-shrink-0">
         <div className="flex gap-2 items-end">
           <div className="flex-1">
             <Input
               value={currentMessage}
               onChange={(e) => setCurrentMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask about cruises, destinations, or dates..."
-              className="text-sm"
+              placeholder="Ask about cruises..."
+              className="text-xs h-8"
               disabled={isTyping}
             />
           </div>
@@ -187,9 +186,9 @@ const EnhancedSearchChat = ({ initialQuery = '', searchType = 'chat', resultCoun
             onClick={handleSendMessage}
             disabled={!currentMessage.trim() || isTyping}
             size="sm"
-            className="bg-ocean-blue hover:bg-deep-navy text-white px-3"
+            className="bg-ocean-blue hover:bg-deep-navy text-white px-2 h-8"
           >
-            <Send className="w-4 h-4" />
+            <Send className="w-3 h-3" />
           </Button>
         </div>
       </div>

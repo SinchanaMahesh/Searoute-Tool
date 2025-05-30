@@ -1,366 +1,152 @@
 
-import React, { useCallback, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import React, { useState } from 'react';
 import { CruiseData } from '@/api/mockCruiseData';
-import { Star, Heart, Share, GitCompare, Calendar } from 'lucide-react';
+import CruiseCard from './CruiseCard';
+import CruiseListItem from './CruiseListItem';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Grid, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import SailingDatesSelector from './SailingDatesSelector';
+import CompactDateSelector from './CompactDateSelector';
+import { getImageWithFallback } from '@/utils/imageUtils';
 
 interface CruiseResultsProps {
   cruises: CruiseData[];
   isLoading: boolean;
-  onCruiseHover: (cruiseId: string | null) => void;
+  onCruiseHover?: (cruiseId: string | null) => void;
   onCruiseSelect: (cruiseId: string) => void;
-  selectedCruiseId: string | null;
+  selectedCruiseId?: string | null;
   sortBy: string;
   onSortChange: (value: string) => void;
 }
 
-const CruiseResults = ({ cruises, isLoading, onCruiseHover, onCruiseSelect, selectedCruiseId, sortBy, onSortChange }: CruiseResultsProps) => {
-  const navigate = useNavigate();
-  const [selectedDates, setSelectedDates] = useState<{ [cruiseId: string]: string }>({});
-
-  // Initialize selected dates
-  useMemo(() => {
-    const initialDates: { [cruiseId: string]: string } = {};
-    cruises.forEach(cruise => {
-      if (!selectedDates[cruise.id]) {
-        initialDates[cruise.id] = cruise.departureDate;
-      }
-    });
-    setSelectedDates(prev => ({ ...prev, ...initialDates }));
-  }, [cruises]);
-
-  // Memoize the sorted cruises to prevent continuous re-sorting
-  const sortedCruises = useMemo(() => {
-    return [...cruises].sort((a, b) => {
-      switch (sortBy) {
-        case 'price':
-          return a.priceFrom - b.priceFrom;
-        case 'duration':
-          return a.duration - b.duration;
-        case 'rating':
-          return b.rating - a.rating;
-        case 'departure':
-          return new Date(a.departureDate).getTime() - new Date(b.departureDate).getTime();
-        default:
-          return 0;
-      }
-    });
-  }, [cruises, sortBy]);
-
-  const handleSortChange = useCallback((value: string) => {
-    onSortChange(value);
-  }, [onSortChange]);
+const CruiseResults = ({ 
+  cruises, 
+  isLoading, 
+  onCruiseHover, 
+  onCruiseSelect, 
+  selectedCruiseId, 
+  sortBy, 
+  onSortChange 
+}: CruiseResultsProps) => {
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [selectedDates, setSelectedDates] = useState<Record<string, string>>({});
 
   const handleDateSelect = (cruiseId: string, date: string) => {
     setSelectedDates(prev => ({ ...prev, [cruiseId]: date }));
   };
 
+  const handleCruiseClick = (cruiseId: string) => {
+    onCruiseSelect(cruiseId);
+  };
+
   if (isLoading) {
     return (
-      <div className="p-6">
-        <div className="grid gap-6">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <CruiseCardSkeleton key={i} />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (cruises.length === 0) {
-    return (
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="text-center">
-          <div className="w-24 h-24 mx-auto mb-4 bg-light-gray rounded-full flex items-center justify-center">
-            <span className="text-3xl">🚢</span>
-          </div>
-          <h3 className="text-xl font-semibold text-charcoal mb-2">No cruises found</h3>
-          <p className="text-slate-gray mb-6">Try adjusting your search or chat with our AI for suggestions</p>
-        </div>
+      <div className="p-8 flex items-center justify-center">
+        <div className="text-slate-gray">Loading cruises...</div>
       </div>
     );
   }
 
   return (
     <div className="h-full flex flex-col">
-      {/* Sort Controls */}
-      <div className="p-4 border-b border-border-gray bg-white">
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-slate-gray">
-            Showing {cruises.length} results
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-gray">Sort by:</span>
-            <Select value={sortBy} onValueChange={handleSortChange}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="price">Price</SelectItem>
-                <SelectItem value="duration">Duration</SelectItem>
-                <SelectItem value="rating">Rating</SelectItem>
-                <SelectItem value="departure">Departure</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      {/* Controls Header */}
+      <div className="flex items-center justify-between p-4 border-b border-border-gray bg-white">
+        <div className="flex items-center gap-4">
+          <Select value={sortBy} onValueChange={onSortChange}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="price">Price</SelectItem>
+              <SelectItem value="duration">Duration</SelectItem>
+              <SelectItem value="rating">Rating</SelectItem>
+              <SelectItem value="departure">Departure</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="flex items-center bg-light-gray rounded-lg p-1">
+          <Button
+            variant={viewMode === 'grid' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('grid')}
+            className="rounded-md h-8 w-8 p-0"
+          >
+            <Grid className="w-4 h-4" />
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('list')}
+            className="rounded-md h-8 w-8 p-0"
+          >
+            <List className="w-4 h-4" />
+          </Button>
         </div>
       </div>
 
-      {/* Results Grid */}
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="grid gap-6">
-          {sortedCruises.map((cruise) => (
-            <CruiseCard 
-              key={cruise.id} 
-              cruise={cruise} 
-              onHover={onCruiseHover}
-              onSelect={onCruiseSelect}
-              isSelected={selectedCruiseId === cruise.id}
-              selectedDate={selectedDates[cruise.id] || cruise.departureDate}
-              onDateSelect={(date) => handleDateSelect(cruise.id, date)}
-              navigate={navigate}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Individual Cruise Card Component with enhanced functionality
-const CruiseCard = ({ 
-  cruise, 
-  onHover, 
-  onSelect, 
-  isSelected, 
-  selectedDate, 
-  onDateSelect, 
-  navigate 
-}: { 
-  cruise: CruiseData; 
-  onHover: (cruiseId: string | null) => void; 
-  onSelect: (cruiseId: string) => void;
-  isSelected: boolean;
-  selectedDate: string;
-  onDateSelect: (date: string) => void;
-  navigate: any;
-}) => {
-  const [showDateSelector, setShowDateSelector] = useState(false);
-
-  const handleBookNow = () => {
-    navigate(`/cruise/${cruise.id}/book`);
-  };
-
-  const handleViewDetails = () => {
-    const detailsUrl = `https://www.cruiselines.com/cruise/${cruise.id}`;
-    window.open(detailsUrl, '_blank');
-  };
-
-  const handleCardClick = () => {
-    onSelect(cruise.id);
-  };
-
-  // Convert Port objects to string array for display
-  const portNames = cruise.ports.map(port => port.name);
-
-  return (
-    <div 
-      className={`bg-white rounded-lg border overflow-hidden hover:shadow-level-2 transition-all duration-300 hover:scale-[1.02] cursor-pointer ${
-        isSelected ? 'border-ocean-blue shadow-level-2 scale-[1.02]' : 'border-border-gray'
-      }`}
-      onMouseEnter={() => onHover(cruise.id)}
-      onMouseLeave={() => onHover(null)}
-      onClick={handleCardClick}
-    >
-      <div className="flex">
-        {/* Image Section */}
-        <div className="w-80 h-48 relative">
-          <img 
-            src={cruise.images[0]} 
-            alt={cruise.shipName}
-            className="w-full h-full object-cover"
-          />
-          {/* Selection Indicator */}
-          {isSelected && (
-            <div className="absolute top-3 left-3 bg-ocean-blue text-white px-2 py-1 rounded-full text-xs font-medium">
-              Viewing Route
-            </div>
-          )}
-          {/* Price Badge */}
-          <div className="absolute top-3 right-3 bg-ocean-blue text-white px-3 py-1 rounded-full text-sm font-semibold">
-            ${cruise.priceFrom}
-          </div>
-          {/* Savings Badge */}
-          {cruise.savings && (
-            <div className="absolute bottom-3 right-3 bg-coral-pink text-white px-2 py-1 rounded text-xs font-medium">
-              Save ${cruise.savings}
-            </div>
-          )}
-          {/* Popular Badge */}
-          {cruise.isPopular && (
-            <div className="absolute bottom-3 left-3 bg-sunset-orange text-white px-2 py-1 rounded text-xs font-medium">
-              Popular
-            </div>
-          )}
-        </div>
-
-        {/* Content Section */}
-        <div className="flex-1 p-6">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h3 className="text-lg font-semibold text-charcoal mb-1">{cruise.shipName}</h3>
-              <p className="text-sm text-slate-gray">{cruise.cruiseLine}</p>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="ghost" size="sm" className="text-slate-gray hover:text-coral-pink">
-                <Heart className="w-4 h-4" />
-              </Button>
-              <Button variant="ghost" size="sm" className="text-slate-gray hover:text-ocean-blue">
-                <Share className="w-4 h-4" />
-              </Button>
-              <Button variant="ghost" size="sm" className="text-slate-gray hover:text-sunset-orange">
-                <GitCompare className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center gap-4 text-sm">
-              <span className="font-medium text-charcoal">{cruise.duration} days</span>
-              <span className="text-slate-gray">•</span>
-              <span className="text-slate-gray">Departs {new Date(selectedDate).toLocaleDateString()}</span>
-              <span className="text-slate-gray">•</span>
-              <span className="text-slate-gray">{cruise.departurePort}</span>
-            </div>
-
-            <div className="text-sm text-slate-gray">
-              <span className="font-medium text-charcoal">{cruise.route}</span> • {portNames.length} ports
-            </div>
-
-            {/* Ports List */}
-            <div className="text-sm text-slate-gray">
-              <span className="font-medium text-charcoal">Ports: </span>
-              {portNames.slice(0, 4).join(' → ')}
-              {portNames.length > 4 && ` → +${portNames.length - 4} more`}
-            </div>
-
-            {/* Sailing Dates Section */}
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowDateSelector(!showDateSelector);
-                }}
-                className="text-xs"
+      {/* Results */}
+      <div className="flex-1 overflow-y-auto p-4">
+        {viewMode === 'grid' ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {cruises.map((cruise) => (
+              <div
+                key={cruise.id}
+                onClick={() => handleCruiseClick(cruise.id)}
+                className={`cursor-pointer transition-all duration-200 ${
+                  selectedCruiseId === cruise.id 
+                    ? 'ring-2 ring-ocean-blue shadow-lg transform scale-105' 
+                    : 'hover:shadow-md'
+                }`}
               >
-                <Calendar className="w-3 h-3 mr-1" />
-                {cruise.sailingDates.length} Dates Available
-              </Button>
-              <span className="text-xs text-slate-gray">
-                Selected: {new Date(selectedDate).toLocaleDateString()}
-              </span>
-            </div>
-
-            {/* Expandable Date Selector */}
-            {showDateSelector && (
-              <div className="mt-2" onClick={(e) => e.stopPropagation()}>
-                <SailingDatesSelector
-                  sailingDates={cruise.sailingDates}
-                  selectedDate={selectedDate}
-                  onDateSelect={onDateSelect}
-                  shipName={cruise.shipName}
-                />
-              </div>
-            )}
-
-            <div className="flex items-center gap-2">
-              <div className="flex items-center">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star 
-                    key={i} 
-                    className={`w-4 h-4 ${
-                      i < Math.floor(cruise.rating) 
-                        ? 'text-yellow-400 fill-current' 
-                        : 'text-gray-300'
-                    }`} 
+                <CruiseCard cruise={{
+                  ...cruise,
+                  image: getImageWithFallback(cruise.image, 'cruise')
+                }} />
+                <div className="mt-2 px-4">
+                  <CompactDateSelector
+                    sailingDates={cruise.sailingDates}
+                    selectedDate={selectedDates[cruise.id] || cruise.sailingDates[0]}
+                    onDateSelect={(date) => handleDateSelect(cruise.id, date)}
+                    shipName={cruise.shipName}
                   />
-                ))}
-              </div>
-              <span className="text-sm font-medium text-charcoal">{cruise.rating.toFixed(1)}</span>
-              <span className="text-sm text-slate-gray">({cruise.reviewCount.toLocaleString()} reviews)</span>
-            </div>
-
-            <div className="flex items-center justify-between pt-2">
-              <div className="flex flex-wrap gap-2">
-                {cruise.amenities.slice(0, 4).map((amenity, index) => (
-                  <span 
-                    key={index}
-                    className="text-xs bg-light-gray text-slate-gray px-2 py-1 rounded-full"
-                  >
-                    {amenity}
-                  </span>
-                ))}
-                {cruise.amenities.length > 4 && (
-                  <span className="text-xs text-ocean-blue">+{cruise.amenities.length - 4} more</span>
-                )}
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <div className="text-lg font-bold text-sunset-orange">${cruise.priceFrom}</div>
-                  <div className="text-xs text-slate-gray">per person</div>
-                </div>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleViewDetails();
-                    }}
-                  >
-                    View Details
-                  </Button>
-                  <Button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleBookNow();
-                    }}
-                    className="bg-ocean-blue hover:bg-deep-navy text-white"
-                  >
-                    Book Now
-                  </Button>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
-        </div>
+        ) : (
+          <div className="space-y-4">
+            {cruises.map((cruise) => (
+              <div
+                key={cruise.id}
+                onClick={() => handleCruiseClick(cruise.id)}
+                className={`cursor-pointer transition-all duration-200 border rounded-lg ${
+                  selectedCruiseId === cruise.id 
+                    ? 'border-ocean-blue bg-ocean-blue/5 shadow-lg' 
+                    : 'border-border-gray hover:border-ocean-blue/50 hover:shadow-md'
+                }`}
+              >
+                <div className="p-4">
+                  <CruiseListItem cruise={{
+                    ...cruise,
+                    image: getImageWithFallback(cruise.image, 'cruise')
+                  }} />
+                  <div className="mt-3 flex justify-end">
+                    <CompactDateSelector
+                      sailingDates={cruise.sailingDates}
+                      selectedDate={selectedDates[cruise.id] || cruise.sailingDates[0]}
+                      onDateSelect={(date) => handleDateSelect(cruise.id, date)}
+                      shipName={cruise.shipName}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 };
-
-// Skeleton component for loading state
-const CruiseCardSkeleton = () => (
-  <div className="bg-white rounded-lg border border-border-gray overflow-hidden animate-pulse">
-    <div className="flex">
-      <div className="w-80 h-48 bg-gray-200" />
-      <div className="flex-1 p-6">
-        <div className="h-4 bg-gray-200 rounded mb-2 w-3/4" />
-        <div className="h-3 bg-gray-200 rounded mb-4 w-1/2" />
-        <div className="space-y-2">
-          <div className="h-3 bg-gray-200 rounded w-full" />
-          <div className="h-3 bg-gray-200 rounded w-2/3" />
-          <div className="h-3 bg-gray-200 rounded w-1/2" />
-        </div>
-      </div>
-    </div>
-  </div>
-);
 
 export default CruiseResults;

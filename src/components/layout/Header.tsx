@@ -1,10 +1,14 @@
-
 import React, { useState } from 'react';
 import { Anchor, MessageCircle, User, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import LocationSearch from '@/components/search/LocationSearch';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleLocationSelect = (location: string, price: string) => {
+    console.log('Location selected:', location, 'Price:', price);
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-border-gray">
@@ -37,8 +41,9 @@ const Header = () => {
             </a>
           </nav>
 
-          {/* Action Buttons */}
+          {/* Location Search & Action Buttons */}
           <div className="hidden md:flex items-center space-x-4">
+            <LocationSearch onLocationSelect={handleLocationSelect} />
             <Button 
               variant="ghost" 
               size="sm" 
@@ -74,6 +79,9 @@ const Header = () => {
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-border-gray bg-white py-4 slide-in-bottom">
             <nav className="space-y-4" role="navigation" aria-label="Mobile navigation">
+              <div className="mb-4">
+                <LocationSearch onLocationSelect={handleLocationSelect} />
+              </div>
               <a href="/destinations" className="block text-slate-gray hover:text-ocean-blue transition-colors">
                 Destinations
               </a>
