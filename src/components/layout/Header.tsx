@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Anchor, MessageCircle, User, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,8 +7,8 @@ import LocationSearch from '@/components/search/LocationSearch';
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const handleLocationSelect = (location: string, price: string) => {
-    console.log('Location selected:', location, 'Price:', price);
+  const handleLocationSelect = (location: string) => {
+    console.log('Location selected:', location);
   };
 
   return (

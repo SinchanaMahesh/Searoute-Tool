@@ -108,7 +108,7 @@ const EnhancedSearchChat = ({ initialQuery = '', searchType = 'chat', resultCoun
   };
 
   return (
-    <div className="h-full flex flex-col bg-white">
+    <div className="h-full flex flex-col bg-white min-h-0">
       {/* Compact Chat Header */}
       <div className="p-2 border-b border-border-gray bg-gradient-to-r from-ocean-blue to-deep-navy text-white flex-shrink-0">
         <div className="flex items-center gap-2">
@@ -132,7 +132,7 @@ const EnhancedSearchChat = ({ initialQuery = '', searchType = 'chat', resultCoun
         </div>
       </div>
 
-      {/* Chat Messages - Flexible with proper scrolling */}
+      {/* Chat Messages - Use flex-1 with overflow */}
       <div className="flex-1 overflow-y-auto p-2 space-y-2 min-h-0">
         {messages.map((message) => (
           <div
@@ -165,9 +165,9 @@ const EnhancedSearchChat = ({ initialQuery = '', searchType = 'chat', resultCoun
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Compact Chat Input */}
-      <div className="p-2 border-t border-border-gray bg-white flex-shrink-0">
-        <div className="flex gap-2 items-end">
+      {/* Input Section - Always visible at bottom */}
+      <div className="border-t border-border-gray bg-white flex-shrink-0 p-2">
+        <div className="flex gap-2 items-center">
           <div className="flex-1">
             <Input
               value={currentMessage}

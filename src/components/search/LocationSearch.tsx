@@ -12,7 +12,7 @@ interface LocationResult {
 }
 
 interface LocationSearchProps {
-  onLocationSelect: (location: string, price: string) => void;
+  onLocationSelect: (location: string) => void;
 }
 
 const LocationSearch = ({ onLocationSelect }: LocationSearchProps) => {
@@ -20,7 +20,6 @@ const LocationSearch = ({ onLocationSelect }: LocationSearchProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState<LocationResult[]>([]);
   const [selectedLocation, setSelectedLocation] = useState('Miami, FL');
-  const [priceForLocation, setPriceForLocation] = useState('$899');
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -77,18 +76,16 @@ const LocationSearch = ({ onLocationSelect }: LocationSearchProps) => {
   const handleLocationClick = (location: LocationResult) => {
     const locationName = location.display_name.split(',').slice(0, 2).join(',');
     setSelectedLocation(locationName);
-    const randomPrice = `$${Math.floor(Math.random() * 2000) + 500}`;
-    setPriceForLocation(randomPrice);
     setIsEditing(false);
     setSuggestions([]);
     setSearchQuery('');
-    onLocationSelect(locationName, randomPrice);
+    onLocationSelect(locationName);
   };
 
   if (isEditing) {
     return (
       <div className="relative" ref={dropdownRef}>
-        <div className="flex items-center gap-2 bg-white border border-border-gray rounded-lg px-3 py-2 min-w-[300px]">
+        <div className="flex items-center gap-2 bg-white border border-border-gray rounded-lg px-3 py-2 min-w-[250px]">
           <Search className="w-4 h-4 text-slate-gray" />
           <Input
             ref={inputRef}
@@ -136,7 +133,7 @@ const LocationSearch = ({ onLocationSelect }: LocationSearchProps) => {
         <MapPin className="w-4 h-4 text-ocean-blue" />
         <div>
           <div className="text-sm font-medium text-charcoal">
-            {priceForLocation} for {selectedLocation}
+            {selectedLocation}
           </div>
           <div className="text-xs text-slate-gray">Click to change location</div>
         </div>

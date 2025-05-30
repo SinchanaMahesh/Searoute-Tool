@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Heart, Share, Plus, Star, Calendar, MapPin, Users, ExternalLink } from 'lucide-react';
 import { CruiseData } from '@/api/mockCruiseData';
+import { getImageWithFallback, handleImageError } from '@/utils/imageUtils';
 
 interface CruiseListItemProps {
   cruise: CruiseData;
@@ -11,8 +12,6 @@ interface CruiseListItemProps {
 const CruiseListItem = ({ cruise }: CruiseListItemProps) => {
   const [isSaved, setIsSaved] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-
-  const defaultImage = "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=400";
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -44,13 +43,10 @@ const CruiseListItem = ({ cruise }: CruiseListItemProps) => {
         {/* Image - increased width and height */}
         <div className="relative md:w-96 h-60 md:h-auto overflow-hidden">
           <img
-            src={cruise.images[0] || defaultImage}
+            src={getImageWithFallback(cruise.images?.[0], 'cruise')}
             alt={`${cruise.shipName} cruise ship`}
             className="w-full h-full object-cover"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = defaultImage;
-            }}
+            onError={(e) => handleImageError(e, 'cruise')}
           />
           
           {/* Badges - increased padding */}
@@ -118,7 +114,7 @@ const CruiseListItem = ({ cruise }: CruiseListItemProps) => {
                 </div>
                 <div className="flex items-center gap-3 text-base text-charcoal">
                   <MapPin className="w-5 h-5 text-charcoal" aria-hidden="true" />
-                  <span>{cruise.route} • {cruise.ports.length} ports</span>
+                  <span>{cruise.route} • {cruise.ports?.length || 0} ports</span>
                 </div>
                 <div className="flex items-center gap-3 text-base text-charcoal">
                   <Users className="w-5 h-5 text-charcoal" aria-hidden="true" />
@@ -128,14 +124,14 @@ const CruiseListItem = ({ cruise }: CruiseListItemProps) => {
                   <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" aria-hidden="true" />
                   <span className="text-base font-medium text-charcoal">{cruise.rating}</span>
                   <span className="text-base text-charcoal">
-                    ({cruise.reviewCount.toLocaleString()} reviews)
+                    ({cruise.reviewCount?.toLocaleString() || 0} reviews)
                   </span>
                 </div>
               </div>
 
               {/* Amenities - increased padding and spacing */}
               <div className="flex flex-wrap gap-2 mb-5">
-                {cruise.amenities.slice(0, 4).map((amenity) => (
+                {cruise.amenities?.slice(0, 4).map((amenity) => (
                   <span
                     key={amenity}
                     className="px-3 py-2 bg-light-gray text-charcoal text-sm rounded-full border border-border-gray"
@@ -143,9 +139,9 @@ const CruiseListItem = ({ cruise }: CruiseListItemProps) => {
                     {amenity}
                   </span>
                 ))}
-                {cruise.amenities.length > 4 && (
+                {(cruise.amenities?.length || 0) > 4 && (
                   <span className="px-3 py-2 bg-light-gray text-charcoal text-sm rounded-full border border-border-gray">
-                    +{cruise.amenities.length - 4} more
+                    +{(cruise.amenities?.length || 0) - 4} more
                   </span>
                 )}
               </div>
@@ -153,7 +149,7 @@ const CruiseListItem = ({ cruise }: CruiseListItemProps) => {
               {/* Ports Preview - increased font size */}
               <div className="text-base text-charcoal">
                 <span className="font-medium">Ports: </span>
-                {cruise.ports.join(' • ')}
+                {Array.isArray(cruise.ports) ? cruise.ports.join(' • ') : 'No ports available'}
               </div>
             </div>
 
