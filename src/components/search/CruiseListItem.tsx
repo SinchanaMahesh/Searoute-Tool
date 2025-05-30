@@ -29,14 +29,38 @@ const CruiseListItem = ({ cruise }: CruiseListItemProps) => {
     });
   };
 
-  // Safely format ports - ensure we always have a string
+  // Fix port formatting to properly display port names
   const formatPorts = (ports: any) => {
+    console.log('Formatting ports:', ports);
+    
     if (!ports) return 'No ports available';
-    if (typeof ports === 'string') return ports;
-    if (Array.isArray(ports)) {
-      return ports.filter(port => typeof port === 'string').join(' • ');
+    
+    if (typeof ports === 'string') {
+      return ports;
     }
-    return 'No ports available';
+    
+    if (Array.isArray(ports)) {
+      const validPorts = ports.filter(port => {
+        if (typeof port === 'string') return port;
+        if (typeof port === 'object' && port !== null) {
+          return port.name || port.port || port.location;
+        }
+        return false;
+      });
+      
+      const portNames = validPorts.map(port => {
+        if (typeof port === 'string') return port;
+        return port.name || port.port || port.location || 'Unknown Port';
+      });
+      
+      return portNames.length > 0 ? portNames.join(' • ') : 'No ports available';
+    }
+    
+    if (typeof ports === 'object' && ports !== null) {
+      return ports.name || ports.port || ports.location || 'Port details available';
+    }
+    
+    return 'Port information available';
   };
 
   return (
@@ -147,10 +171,10 @@ const CruiseListItem = ({ cruise }: CruiseListItemProps) => {
                 )}
               </div>
 
-              {/* Ports Preview */}
+              {/* Ports Preview - Fixed formatting */}
               <div className="text-sm text-charcoal">
                 <span className="font-medium">Ports: </span>
-                {formatPorts(cruise.ports)}
+                <span>{formatPorts(cruise.ports)}</span>
               </div>
             </div>
 
