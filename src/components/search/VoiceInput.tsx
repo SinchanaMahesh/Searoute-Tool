@@ -10,7 +10,7 @@ interface VoiceInputProps {
 
 const VoiceInput = ({ onTranscript, isDisabled = false }: VoiceInputProps) => {
   const [isListening, setIsListening] = useState(false);
-  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+  const [recognition, setRecognition] = useState<any>(null);
   const [isSupported, setIsSupported] = useState(false);
 
   useEffect(() => {
@@ -33,12 +33,12 @@ const VoiceInput = ({ onTranscript, isDisabled = false }: VoiceInputProps) => {
         setIsListening(false);
       };
       
-      recognitionInstance.onresult = (event) => {
+      recognitionInstance.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
         onTranscript(transcript);
       };
       
-      recognitionInstance.onerror = (event) => {
+      recognitionInstance.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
         setIsListening(false);
       };

@@ -99,10 +99,7 @@ const CruiseResults = ({
                     : 'hover:shadow-md'
                 }`}
               >
-                <CruiseCard cruise={{
-                  ...cruise,
-                  image: getImageWithFallback(cruise.image, 'cruise')
-                }} />
+                <CruiseCard cruise={cruise} />
                 <div className="mt-2 px-4">
                   <CompactDateSelector
                     sailingDates={cruise.sailingDates}
@@ -127,10 +124,7 @@ const CruiseResults = ({
                 }`}
               >
                 <div className="p-4">
-                  <CruiseListItem cruise={{
-                    ...cruise,
-                    image: getImageWithFallback(cruise.image, 'cruise')
-                  }} />
+                  <CruiseListItem cruise={cruise} />
                   <div className="mt-3 flex justify-end">
                     <CompactDateSelector
                       sailingDates={cruise.sailingDates}
