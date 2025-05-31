@@ -11,9 +11,10 @@ interface ComparisonTrayProps {
   selectedCruises: CruiseData[];
   onRemoveCruise: (cruiseId: string) => void;
   onCompare: () => void;
+  searchParams?: URLSearchParams;
 }
 
-const ComparisonTray = ({ isOpen, onClose, selectedCruises, onRemoveCruise, onCompare }: ComparisonTrayProps) => {
+const ComparisonTray = ({ isOpen, onClose, selectedCruises, onRemoveCruise, onCompare, searchParams }: ComparisonTrayProps) => {
   const [isComparisonModalOpen, setIsComparisonModalOpen] = useState(false);
 
   if (!isOpen) return null;
@@ -99,6 +100,7 @@ const ComparisonTray = ({ isOpen, onClose, selectedCruises, onRemoveCruise, onCo
         isOpen={isComparisonModalOpen}
         onClose={() => setIsComparisonModalOpen(false)}
         cruises={selectedCruises}
+        searchParams={searchParams}
       />
     </>
   );

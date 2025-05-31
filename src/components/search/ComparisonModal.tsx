@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { CruiseData } from '@/api/mockCruiseData';
 import { X, Star, Calendar, MapPin, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,9 +10,12 @@ interface ComparisonModalProps {
   isOpen: boolean;
   onClose: () => void;
   cruises: CruiseData[];
+  searchParams?: URLSearchParams;
 }
 
-const ComparisonModal = ({ isOpen, onClose, cruises }: ComparisonModalProps) => {
+const ComparisonModal = ({ isOpen, onClose, cruises, searchParams }: ComparisonModalProps) => {
+  const navigate = useNavigate();
+
   if (!isOpen) return null;
 
   const formatPrice = (price: number) => {
@@ -28,6 +32,17 @@ const ComparisonModal = ({ isOpen, onClose, cruises }: ComparisonModalProps) => 
       day: 'numeric',
       year: 'numeric'
     });
+  };
+
+  const handleViewDetails = (cruiseId: string) => {
+    const params = new URLSearchParams();
+    if (searchParams) {
+      searchParams.forEach((value, key) => {
+        params.set(key, value);
+      });
+    }
+    navigate(`/cruise/${cruiseId}?${params.toString()}`);
+    onClose();
   };
 
   return createPortal(
@@ -137,7 +152,10 @@ const ComparisonModal = ({ isOpen, onClose, cruises }: ComparisonModalProps) => 
                     </div>
 
                     {/* Action Button */}
-                    <Button className="w-full bg-ocean-blue hover:bg-deep-navy text-white">
+                    <Button 
+                      className="w-full bg-ocean-blue hover:bg-deep-navy text-white"
+                      onClick={() => handleViewDetails(cruise.id)}
+                    >
                       View Details
                     </Button>
                   </div>

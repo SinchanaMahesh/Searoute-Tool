@@ -13,9 +13,10 @@ interface CruiseCardProps {
   cruise: CruiseData;
   showHoverIcon?: boolean;
   onCompareAdd?: (cruise: CruiseData) => void;
+  searchParams?: URLSearchParams;
 }
 
-const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardProps) => {
+const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd, searchParams }: CruiseCardProps) => {
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
@@ -37,9 +38,21 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
 
   const sailingDates = generateSailingDates();
 
+  const handleCardClick = () => {
+    const params = new URLSearchParams();
+    if (searchParams) {
+      // Preserve search context
+      searchParams.forEach((value, key) => {
+        params.set(key, value);
+      });
+    }
+    params.set('sailDate', selectedDate);
+    navigate(`/cruise/${cruise.id}?${params.toString()}`);
+  };
+
   const handleViewDetails = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/cruise/${cruise.id}`);
+    handleCardClick();
   };
 
   return (
@@ -49,6 +62,7 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={handleCardClick}
       role="article"
       aria-labelledby={`cruise-${cruise.shipName}`}
     >

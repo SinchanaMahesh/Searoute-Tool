@@ -13,9 +13,10 @@ import PortsList from '@/components/shared/PortsList';
 interface CruiseListItemProps {
   cruise: CruiseData;
   onCompareAdd?: (cruise: CruiseData) => void;
+  searchParams?: URLSearchParams;
 }
 
-const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
+const CruiseListItem = ({ cruise, onCompareAdd, searchParams }: CruiseListItemProps) => {
   const navigate = useNavigate();
   const [isSaved, setIsSaved] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -34,18 +35,31 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
 
   const sailingDates = generateSailingDates();
 
+  const handleCardClick = () => {
+    const params = new URLSearchParams();
+    if (searchParams) {
+      // Preserve search context
+      searchParams.forEach((value, key) => {
+        params.set(key, value);
+      });
+    }
+    params.set('sailDate', selectedDate);
+    navigate(`/cruise/${cruise.id}?${params.toString()}`);
+  };
+
   const handleViewDetails = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/cruise/${cruise.id}`);
+    handleCardClick();
   };
 
   return (
     <div 
-      className={`bg-white rounded-lg border border-border-gray overflow-hidden transition-all duration-300 relative h-80 ${
+      className={`bg-white rounded-lg border border-border-gray overflow-hidden transition-all duration-300 relative h-80 cursor-pointer ${
         isHovered ? 'shadow-level-2' : 'shadow-level-1'
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={handleCardClick}
       role="article"
       aria-labelledby={`cruise-list-${cruise.shipName}`}
     >
@@ -81,7 +95,10 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
               size="icon"
               variant="secondary"
               className="w-8 h-8 bg-white/95 hover:bg-white border border-border-gray shadow-md"
-              onClick={() => setIsSaved(!isSaved)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsSaved(!isSaved);
+              }}
               aria-label={isSaved ? 'Remove from favorites' : 'Add to favorites'}
             >
               <Heart className={`w-4 h-4 ${isSaved ? 'fill-coral-pink text-coral-pink' : 'text-charcoal'}`} />
@@ -90,6 +107,7 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
               size="icon"
               variant="secondary"
               className="w-8 h-8 bg-white/95 hover:bg-white border border-border-gray shadow-md"
+              onClick={(e) => e.stopPropagation()}
               aria-label="Share cruise"
             >
               <Share className="w-4 h-4 text-charcoal" />

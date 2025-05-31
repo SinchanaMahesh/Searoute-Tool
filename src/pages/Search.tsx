@@ -212,6 +212,7 @@ const Search = () => {
               viewMode={viewMode}
               onViewModeChange={setViewMode}
               onCompareAdd={handleCompareAdd}
+              searchParams={searchParams}
             />
           </div>
         </div>
@@ -231,6 +232,7 @@ const Search = () => {
         selectedCruises={comparisonCruises}
         onRemoveCruise={handleRemoveFromComparison}
         onCompare={handleCompare}
+        searchParams={searchParams}
       />
     </div>
   );
