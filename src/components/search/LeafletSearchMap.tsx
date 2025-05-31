@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { CruiseData } from '@/api/mockCruiseData';
 import { Maximize2, X, Cloud, MapPin, Info, Shield, Utensils, Camera } from 'lucide-react';
@@ -402,28 +403,49 @@ const LeafletSearchMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
         </div>
       </div>
 
-      {/* Enhanced Modal with Location Insights */}
+      {/* Enhanced Modal with Location Insights - Fixed z-index using createPortal pattern */}
       {isModalOpen && (
         <div 
-          className="fixed inset-0 bg-black/60" 
+          className="fixed inset-0"
           style={{ 
             position: 'fixed',
             top: 0,
             left: 0,
             right: 0,
             bottom: 0,
-            zIndex: 99999
+            zIndex: 999999,
+            isolation: 'isolate'
           }}
         >
+          {/* Backdrop */}
           <div 
-            className="absolute inset-0 flex items-center justify-center p-4" 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setIsModalOpen(false)}
             style={{ 
               position: 'absolute',
-              inset: 0,
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.6)',
+              backdropFilter: 'blur(4px)'
+            }}
+          />
+          
+          {/* Modal content container */}
+          <div 
+            className="absolute inset-0 flex items-center justify-center p-4"
+            style={{ 
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '1rem'
+              padding: '1rem',
+              zIndex: 1000000
             }}
           >
             <div 
@@ -438,11 +460,20 @@ const LeafletSearchMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
                 display: 'flex',
                 flexDirection: 'column',
                 position: 'relative',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                zIndex: 1000001
               }}
+              onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="p-4 border-b border-border-gray flex justify-between items-center bg-white relative z-10">
+              <div 
+                className="p-4 border-b border-border-gray flex justify-between items-center bg-white relative"
+                style={{ 
+                  backgroundColor: 'white',
+                  borderBottom: '1px solid #e5e7eb',
+                  zIndex: 1000002
+                }}
+              >
                 <div>
                   <h3 className="font-semibold text-charcoal">Interactive Route Map</h3>
                   <p className="text-sm text-slate-gray mt-1">Click on ports to view detailed location insights</p>
@@ -451,19 +482,41 @@ const LeafletSearchMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
                   variant="outline"
                   onClick={() => setIsModalOpen(false)}
                   className="text-slate-gray h-8 w-8 p-0"
+                  style={{ zIndex: 1000003 }}
                 >
                   <X className="w-4 h-4" />
                 </Button>
               </div>
               
               {/* Two-pane content */}
-              <div className="flex-1 flex relative overflow-hidden bg-white">
+              <div 
+                className="flex-1 flex relative overflow-hidden bg-white"
+                style={{ 
+                  backgroundColor: 'white',
+                  flex: 1,
+                  display: 'flex',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+              >
                 {/* Left Pane - Map */}
-                <div className="flex-1 flex flex-col bg-white">
+                <div 
+                  className="flex-1 flex flex-col bg-white"
+                  style={{ 
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    backgroundColor: 'white'
+                  }}
+                >
                   <div 
                     id="modal-route-map" 
                     className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500"
-                    style={{ width: '100%', height: '100%' }}
+                    style={{ 
+                      width: '100%', 
+                      height: '100%',
+                      backgroundColor: '#e5e7eb'
+                    }}
                   >
                     {!isLeafletLoaded && (
                       <div className="flex flex-col items-center">
@@ -475,7 +528,16 @@ const LeafletSearchMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
                 </div>
                 
                 {/* Right Pane - Location Information */}
-                <div className="w-96 border-l border-border-gray bg-white flex flex-col">
+                <div 
+                  className="w-96 border-l border-border-gray bg-white flex flex-col"
+                  style={{ 
+                    width: '24rem',
+                    borderLeft: '1px solid #e5e7eb',
+                    backgroundColor: 'white',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}
+                >
                   {isLoading ? (
                     <div className="flex-1 flex items-center justify-center bg-white">
                       <div className="text-slate-gray">Loading location insights...</div>
@@ -602,7 +664,14 @@ const LeafletSearchMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
               
               {/* Bottom Panel - Cruise Information */}
               {displayCruise && (
-                <div className="border-t border-border-gray bg-light-gray p-4 relative z-10">
+                <div 
+                  className="border-t border-border-gray bg-light-gray p-4 relative"
+                  style={{ 
+                    borderTop: '1px solid #e5e7eb',
+                    backgroundColor: '#f8fafc',
+                    zIndex: 1000002
+                  }}
+                >
                   <div className="flex items-center justify-between">
                     <div>
                       <h5 className="font-medium text-charcoal">{displayCruise.shipName}</h5>
