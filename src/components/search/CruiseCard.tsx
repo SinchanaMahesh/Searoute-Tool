@@ -195,7 +195,7 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
 
         {/* Ports Preview - Moved to top */}
         <div className="text-sm text-charcoal mb-4">
-          <span className="font-medium text-sunset-orange">Ports: </span>
+          <span className="font-medium text-charcoal">Ports: </span>
           <span>{displayedPorts.join(' • ')}</span>
           {hasMorePorts && (
             <Popover>
@@ -229,15 +229,6 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
           </div>
         </div>
 
-        {/* Star Rating next to image */}
-        <div className="flex items-center gap-2 mb-4">
-          <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" aria-hidden="true" />
-          <span className="text-base font-medium text-charcoal">{cruise.rating}</span>
-          <span className="text-sm text-charcoal">
-            ({cruise.reviewCount.toLocaleString()})
-          </span>
-        </div>
-
         {/* Amenities Preview */}
         <div className="flex flex-wrap gap-2 mb-5">
           {cruise.amenities.slice(0, 3).map((amenity) => (
@@ -253,6 +244,15 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
               +{cruise.amenities.length - 3} more
             </span>
           )}
+        </div>
+
+        {/* Star Rating - Moved below amenities */}
+        <div className="flex items-center gap-2 mb-5">
+          <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" aria-hidden="true" />
+          <span className="text-base font-medium text-charcoal">{cruise.rating}</span>
+          <span className="text-sm text-charcoal">
+            ({cruise.reviewCount.toLocaleString()})
+          </span>
         </div>
 
         {/* Price & CTA - Push to bottom */}
@@ -278,7 +278,7 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
                   e.stopPropagation();
                   onCompareAdd?.(cruise);
                 }}
-                className="text-ocean-blue hover:text-deep-navy text-sm underline mb-4"
+                className="text-ocean-blue hover:text-deep-navy text-sm underline mb-6"
               >
                 + Compare
               </button>

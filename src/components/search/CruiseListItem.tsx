@@ -153,7 +153,7 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
 
               {/* Ports Preview - Moved to top */}
               <div className="text-sm text-charcoal mb-3">
-                <span className="font-medium text-sunset-orange">Ports: </span>
+                <span className="font-medium text-charcoal">Ports: </span>
                 <span>{displayedPorts.join(' • ')}</span>
                 {hasMorePorts && (
                   <Popover>
@@ -191,15 +191,6 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
                 </div>
               </div>
 
-              {/* Star Rating next to image */}
-              <div className="flex items-center gap-2 mb-3">
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" aria-hidden="true" />
-                <span className="text-sm font-medium text-charcoal">{cruise.rating}</span>
-                <span className="text-xs text-charcoal">
-                  ({cruise.reviewCount?.toLocaleString() || 0})
-                </span>
-              </div>
-
               {/* Amenities */}
               <div className="flex flex-wrap gap-1 mb-3">
                 {cruise.amenities?.slice(0, 3).map((amenity) => (
@@ -215,6 +206,15 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
                     +{(cruise.amenities?.length || 0) - 3} more
                   </span>
                 )}
+              </div>
+
+              {/* Star Rating - Moved below amenities */}
+              <div className="flex items-center gap-2 mb-3">
+                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" aria-hidden="true" />
+                <span className="text-sm font-medium text-charcoal">{cruise.rating}</span>
+                <span className="text-xs text-charcoal">
+                  ({cruise.reviewCount?.toLocaleString() || 0})
+                </span>
               </div>
             </div>
 

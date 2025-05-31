@@ -132,7 +132,7 @@ const LocationSearch = ({ onLocationSelect }: LocationSearchProps) => {
       <div className="flex items-center gap-2">
         <MapPin className="w-4 h-4 text-ocean-blue" />
         <div>
-          <div className="text-sm font-medium text-charcoal">
+          <div className="text-sm font-medium text-coral-pink">
             {selectedLocation}
           </div>
           <div className="text-xs text-slate-gray">Click to change location</div>
