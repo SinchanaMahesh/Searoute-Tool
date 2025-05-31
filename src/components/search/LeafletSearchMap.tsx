@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { CruiseData } from '@/api/mockCruiseData';
 import { Maximize2, X, Cloud, MapPin, Info, Shield, Utensils, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -363,6 +364,247 @@ const LeafletSearchMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
     }
   }, [isModalOpen]);
 
+  // Create modal content
+  const modalContent = isModalOpen ? (
+    <div 
+      className="fixed inset-0 bg-black/60 z-[9999]"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 9999,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)'
+      }}
+      onClick={() => setIsModalOpen(false)}
+    >
+      <div 
+        className="absolute inset-0 flex items-center justify-center p-4"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1rem'
+        }}
+      >
+        <div 
+          className="bg-white rounded-lg w-full h-full max-w-7xl max-h-[95vh] flex flex-col shadow-2xl"
+          style={{
+            backgroundColor: 'white',
+            borderRadius: '0.5rem',
+            width: '100%',
+            height: '100%',
+            maxWidth: '80rem',
+            maxHeight: '95vh',
+            display: 'flex',
+            flexDirection: 'column',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="p-4 border-b border-border-gray flex justify-between items-center bg-white">
+            <div>
+              <h3 className="font-semibold text-charcoal">Interactive Route Map</h3>
+              <p className="text-sm text-slate-gray mt-1">Click on ports to view detailed location insights</p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setIsModalOpen(false)}
+              className="text-slate-gray h-8 w-8 p-0"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          {/* Two-pane content */}
+          <div className="flex-1 flex relative overflow-hidden bg-white">
+            {/* Left Pane - Map */}
+            <div className="flex-1 flex flex-col bg-white">
+              <div 
+                id="modal-route-map" 
+                className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500"
+                style={{ width: '100%', height: '100%' }}
+              >
+                {!isLeafletLoaded && (
+                  <div className="flex flex-col items-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ocean-blue"></div>
+                    <p className="mt-4 text-lg">Loading detailed map...</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Right Pane - Location Information */}
+            <div className="w-96 border-l border-border-gray bg-white flex flex-col">
+              {isLoading ? (
+                <div className="flex-1 flex items-center justify-center bg-white">
+                  <div className="text-slate-gray">Loading location insights...</div>
+                </div>
+              ) : selectedLocation ? (
+                <div className="flex-1 overflow-y-auto bg-white">
+                  {/* Location Header */}
+                  <div className="p-4 border-b border-border-gray">
+                    <h4 className="font-semibold text-charcoal text-lg flex items-center gap-2">
+                      <MapPin className="w-5 h-5 text-ocean-blue" />
+                      {selectedLocation.name}
+                    </h4>
+                    <div className="flex items-center gap-4 mt-2 text-sm">
+                      <div className="flex items-center gap-1">
+                        <Cloud className="w-4 h-4 text-blue-500" />
+                        <span>{selectedLocation.weather.condition}</span>
+                      </div>
+                      <span className="font-medium text-coral-pink">{selectedLocation.weather.temperature}</span>
+                      <span className="text-slate-gray">Humidity: {selectedLocation.weather.humidity}</span>
+                    </div>
+                    {/* Safety Rating */}
+                    <div className="flex items-center gap-2 mt-2">
+                      <Shield className="w-4 h-4 text-green-500" />
+                      <span className="text-sm font-medium">Safety Rating: </span>
+                      <div className="flex">
+                        {[...Array(10)].map((_, i) => (
+                          <div
+                            key={i}
+                            className={`w-2 h-2 rounded-full mr-1 ${
+                              i < selectedLocation.safetyRating ? 'bg-green-500' : 'bg-gray-200'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-sm text-slate-gray">({selectedLocation.safetyRating}/10)</span>
+                    </div>
+                  </div>
+                  
+                  {/* Places to Visit */}
+                  <div className="p-4 border-b border-border-gray">
+                    <h5 className="font-medium text-charcoal mb-2 flex items-center gap-2">
+                      <Camera className="w-4 h-4 text-green-500" />
+                      Places to Visit
+                    </h5>
+                    <ul className="space-y-1 text-sm text-slate-gray">
+                      {selectedLocation.places.map((place, index) => (
+                        <li key={index} className="flex items-center gap-2">
+                          <div className="w-1 h-1 bg-ocean-blue rounded-full" />
+                          {place}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  {/* Local Dishes */}
+                  <div className="p-4 border-b border-border-gray">
+                    <h5 className="font-medium text-charcoal mb-2 flex items-center gap-2">
+                      <Utensils className="w-4 h-4 text-orange-500" />
+                      Local Dishes
+                    </h5>
+                    <ul className="space-y-1 text-sm text-slate-gray">
+                      {selectedLocation.dishes.map((dish, index) => (
+                        <li key={index} className="flex items-center gap-2">
+                          <div className="w-1 h-1 bg-orange-500 rounded-full" />
+                          {dish}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  {/* Safety Advisory */}
+                  <div className="p-4 border-b border-border-gray">
+                    <h5 className="font-medium text-charcoal mb-2 flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-red-500" />
+                      Safety & Advisory
+                    </h5>
+                    <ul className="space-y-1 text-sm text-slate-gray">
+                      {selectedLocation.advisory.map((item, index) => (
+                        <li key={index} className="flex items-center gap-2">
+                          <div className="w-1 h-1 bg-blue-500 rounded-full" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="mt-3">
+                      <p className="text-xs font-medium text-red-600 mb-1">Crime Awareness:</p>
+                      <ul className="space-y-1 text-xs text-slate-gray">
+                        {selectedLocation.crimes.map((crime, index) => (
+                          <li key={index} className="flex items-center gap-2">
+                            <div className="w-1 h-1 bg-red-500 rounded-full" />
+                            {crime}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                  
+                  {/* Attractions */}
+                  <div className="p-4">
+                    <h5 className="font-medium text-charcoal mb-2 flex items-center gap-2">
+                      <Info className="w-4 h-4 text-purple-500" />
+                      Top Attractions
+                    </h5>
+                    <ul className="space-y-1 text-sm text-slate-gray">
+                      {selectedLocation.attractions.map((attraction, index) => (
+                        <li key={index} className="flex items-center gap-2">
+                          <div className="w-1 h-1 bg-purple-500 rounded-full" />
+                          {attraction}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 flex items-center justify-center bg-white">
+                  <div className="text-slate-gray text-center">
+                    <MapPin className="w-8 h-8 text-slate-gray mx-auto mb-2" />
+                    Click on a port to view location insights
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Bottom Panel - Cruise Information */}
+          {displayCruise && (
+            <div className="border-t border-border-gray bg-light-gray p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h5 className="font-medium text-charcoal">{displayCruise.shipName}</h5>
+                  <p className="text-sm text-slate-gray">{displayCruise.route} • {displayCruise.duration} days</p>
+                  <div className="flex gap-2 mt-1">
+                    {displayCruise.ports.map((port, index) => (
+                      <button
+                        key={index}
+                        onClick={async () => {
+                          const insights = await getLocationInsights(port.name);
+                          setSelectedLocation(insights);
+                        }}
+                        className={`px-2 py-1 rounded-full text-xs font-medium transition-colors ${
+                          selectedLocation?.name.includes(port.name)
+                            ? 'bg-ocean-blue text-white'
+                            : 'bg-white text-slate-gray hover:bg-ocean-blue hover:text-white'
+                        }`}
+                      >
+                        {port.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-semibold text-ocean-blue">From ${displayCruise.priceFrom}</div>
+                  <div className="text-xs text-slate-gray">per person</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  ) : null;
+
   return (
     <>
       <div className="h-full bg-gradient-to-br from-blue-50 to-blue-100 relative overflow-hidden">
@@ -403,309 +645,8 @@ const LeafletSearchMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
         </div>
       </div>
 
-      {/* Enhanced Modal with Location Insights - Fixed z-index using createPortal pattern */}
-      {isModalOpen && (
-        <div 
-          className="fixed inset-0"
-          style={{ 
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 999999,
-            isolation: 'isolate'
-          }}
-        >
-          {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setIsModalOpen(false)}
-            style={{ 
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.6)',
-              backdropFilter: 'blur(4px)'
-            }}
-          />
-          
-          {/* Modal content container */}
-          <div 
-            className="absolute inset-0 flex items-center justify-center p-4"
-            style={{ 
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '1rem',
-              zIndex: 1000000
-            }}
-          >
-            <div 
-              className="bg-white rounded-lg w-full h-full max-w-7xl max-h-[95vh] flex flex-col relative shadow-2xl"
-              style={{
-                backgroundColor: 'white',
-                borderRadius: '0.5rem',
-                width: '100%',
-                height: '100%',
-                maxWidth: '80rem',
-                maxHeight: '95vh',
-                display: 'flex',
-                flexDirection: 'column',
-                position: 'relative',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-                zIndex: 1000001
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header */}
-              <div 
-                className="p-4 border-b border-border-gray flex justify-between items-center bg-white relative"
-                style={{ 
-                  backgroundColor: 'white',
-                  borderBottom: '1px solid #e5e7eb',
-                  zIndex: 1000002
-                }}
-              >
-                <div>
-                  <h3 className="font-semibold text-charcoal">Interactive Route Map</h3>
-                  <p className="text-sm text-slate-gray mt-1">Click on ports to view detailed location insights</p>
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsModalOpen(false)}
-                  className="text-slate-gray h-8 w-8 p-0"
-                  style={{ zIndex: 1000003 }}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-              
-              {/* Two-pane content */}
-              <div 
-                className="flex-1 flex relative overflow-hidden bg-white"
-                style={{ 
-                  backgroundColor: 'white',
-                  flex: 1,
-                  display: 'flex',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}
-              >
-                {/* Left Pane - Map */}
-                <div 
-                  className="flex-1 flex flex-col bg-white"
-                  style={{ 
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    backgroundColor: 'white'
-                  }}
-                >
-                  <div 
-                    id="modal-route-map" 
-                    className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500"
-                    style={{ 
-                      width: '100%', 
-                      height: '100%',
-                      backgroundColor: '#e5e7eb'
-                    }}
-                  >
-                    {!isLeafletLoaded && (
-                      <div className="flex flex-col items-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ocean-blue"></div>
-                        <p className="mt-4 text-lg">Loading detailed map...</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Right Pane - Location Information */}
-                <div 
-                  className="w-96 border-l border-border-gray bg-white flex flex-col"
-                  style={{ 
-                    width: '24rem',
-                    borderLeft: '1px solid #e5e7eb',
-                    backgroundColor: 'white',
-                    display: 'flex',
-                    flexDirection: 'column'
-                  }}
-                >
-                  {isLoading ? (
-                    <div className="flex-1 flex items-center justify-center bg-white">
-                      <div className="text-slate-gray">Loading location insights...</div>
-                    </div>
-                  ) : selectedLocation ? (
-                    <div className="flex-1 overflow-y-auto bg-white">
-                      {/* Location Header */}
-                      <div className="p-4 border-b border-border-gray">
-                        <h4 className="font-semibold text-charcoal text-lg flex items-center gap-2">
-                          <MapPin className="w-5 h-5 text-ocean-blue" />
-                          {selectedLocation.name}
-                        </h4>
-                        <div className="flex items-center gap-4 mt-2 text-sm">
-                          <div className="flex items-center gap-1">
-                            <Cloud className="w-4 h-4 text-blue-500" />
-                            <span>{selectedLocation.weather.condition}</span>
-                          </div>
-                          <span className="font-medium text-coral-pink">{selectedLocation.weather.temperature}</span>
-                          <span className="text-slate-gray">Humidity: {selectedLocation.weather.humidity}</span>
-                        </div>
-                        {/* Safety Rating */}
-                        <div className="flex items-center gap-2 mt-2">
-                          <Shield className="w-4 h-4 text-green-500" />
-                          <span className="text-sm font-medium">Safety Rating: </span>
-                          <div className="flex">
-                            {[...Array(10)].map((_, i) => (
-                              <div
-                                key={i}
-                                className={`w-2 h-2 rounded-full mr-1 ${
-                                  i < selectedLocation.safetyRating ? 'bg-green-500' : 'bg-gray-200'
-                                }`}
-                              />
-                            ))}
-                          </div>
-                          <span className="text-sm text-slate-gray">({selectedLocation.safetyRating}/10)</span>
-                        </div>
-                      </div>
-                      
-                      {/* Places to Visit */}
-                      <div className="p-4 border-b border-border-gray">
-                        <h5 className="font-medium text-charcoal mb-2 flex items-center gap-2">
-                          <Camera className="w-4 h-4 text-green-500" />
-                          Places to Visit
-                        </h5>
-                        <ul className="space-y-1 text-sm text-slate-gray">
-                          {selectedLocation.places.map((place, index) => (
-                            <li key={index} className="flex items-center gap-2">
-                              <div className="w-1 h-1 bg-ocean-blue rounded-full" />
-                              {place}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      
-                      {/* Local Dishes */}
-                      <div className="p-4 border-b border-border-gray">
-                        <h5 className="font-medium text-charcoal mb-2 flex items-center gap-2">
-                          <Utensils className="w-4 h-4 text-orange-500" />
-                          Local Dishes
-                        </h5>
-                        <ul className="space-y-1 text-sm text-slate-gray">
-                          {selectedLocation.dishes.map((dish, index) => (
-                            <li key={index} className="flex items-center gap-2">
-                              <div className="w-1 h-1 bg-orange-500 rounded-full" />
-                              {dish}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      
-                      {/* Safety Advisory */}
-                      <div className="p-4 border-b border-border-gray">
-                        <h5 className="font-medium text-charcoal mb-2 flex items-center gap-2">
-                          <Shield className="w-4 h-4 text-red-500" />
-                          Safety & Advisory
-                        </h5>
-                        <ul className="space-y-1 text-sm text-slate-gray">
-                          {selectedLocation.advisory.map((item, index) => (
-                            <li key={index} className="flex items-center gap-2">
-                              <div className="w-1 h-1 bg-blue-500 rounded-full" />
-                              {item}
-                            </li>
-                          ))}
-                        </ul>
-                        <div className="mt-3">
-                          <p className="text-xs font-medium text-red-600 mb-1">Crime Awareness:</p>
-                          <ul className="space-y-1 text-xs text-slate-gray">
-                            {selectedLocation.crimes.map((crime, index) => (
-                              <li key={index} className="flex items-center gap-2">
-                                <div className="w-1 h-1 bg-red-500 rounded-full" />
-                                {crime}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                      
-                      {/* Attractions */}
-                      <div className="p-4">
-                        <h5 className="font-medium text-charcoal mb-2 flex items-center gap-2">
-                          <Info className="w-4 h-4 text-purple-500" />
-                          Top Attractions
-                        </h5>
-                        <ul className="space-y-1 text-sm text-slate-gray">
-                          {selectedLocation.attractions.map((attraction, index) => (
-                            <li key={index} className="flex items-center gap-2">
-                              <div className="w-1 h-1 bg-purple-500 rounded-full" />
-                              {attraction}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex-1 flex items-center justify-center bg-white">
-                      <div className="text-slate-gray text-center">
-                        <MapPin className="w-8 h-8 text-slate-gray mx-auto mb-2" />
-                        Click on a port to view location insights
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Bottom Panel - Cruise Information */}
-              {displayCruise && (
-                <div 
-                  className="border-t border-border-gray bg-light-gray p-4 relative"
-                  style={{ 
-                    borderTop: '1px solid #e5e7eb',
-                    backgroundColor: '#f8fafc',
-                    zIndex: 1000002
-                  }}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h5 className="font-medium text-charcoal">{displayCruise.shipName}</h5>
-                      <p className="text-sm text-slate-gray">{displayCruise.route} • {displayCruise.duration} days</p>
-                      <div className="flex gap-2 mt-1">
-                        {displayCruise.ports.map((port, index) => (
-                          <button
-                            key={index}
-                            onClick={async () => {
-                              const insights = await getLocationInsights(port.name);
-                              setSelectedLocation(insights);
-                            }}
-                            className={`px-2 py-1 rounded-full text-xs font-medium transition-colors ${
-                              selectedLocation?.name.includes(port.name)
-                                ? 'bg-ocean-blue text-white'
-                                : 'bg-white text-slate-gray hover:bg-ocean-blue hover:text-white'
-                            }`}
-                          >
-                            {port.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-semibold text-ocean-blue">From ${displayCruise.priceFrom}</div>
-                      <div className="text-xs text-slate-gray">per person</div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modal rendered using createPortal to bypass stacking context issues */}
+      {modalContent && createPortal(modalContent, document.body)}
     </>
   );
 };
