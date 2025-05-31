@@ -85,7 +85,7 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
 
   return (
     <div 
-      className={`bg-white rounded-lg border border-border-gray overflow-hidden transition-all duration-300 relative ${
+      className={`bg-white rounded-lg border border-border-gray overflow-hidden transition-all duration-300 relative h-80 ${
         isHovered ? 'shadow-level-2' : 'shadow-level-1'
       }`}
       onMouseEnter={() => setIsHovered(true)}
@@ -94,13 +94,14 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
       aria-labelledby={`cruise-list-${cruise.shipName}`}
       style={{ position: 'relative' }}
     >
-      <div className="flex flex-col md:flex-row">
+      <div className="flex flex-col md:flex-row h-full">
         {/* Image */}
-        <div className="relative md:w-80 h-48 md:h-auto overflow-hidden">
+        <div className="relative md:w-80 h-48 md:h-full overflow-hidden flex-shrink-0">
           <img
             src={getImageWithFallback(cruise.images?.[0], 'cruise')}
             alt={`${cruise.shipName} cruise ship`}
             className="w-full h-full object-cover"
+            style={{ maxHeight: '192px' }}
             onError={(e) => handleImageError(e, 'cruise')}
           />
           
@@ -143,9 +144,9 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
         </div>
 
         {/* Content */}
-        <div className="flex-1 p-4">
-          <div className="flex flex-col md:flex-row md:items-start justify-between h-full">
-            <div className="flex-1">
+        <div className="flex-1 p-4 flex flex-col">
+          <div className="flex flex-col md:flex-row md:items-start justify-between flex-1">
+            <div className="flex-1 min-h-0">
               {/* Header */}
               <div className="mb-3">
                 <h3 id={`cruise-list-${cruise.shipName}`} className="text-lg font-semibold text-charcoal mb-1">{cruise.shipName}</h3>
@@ -218,7 +219,7 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
             </div>
 
             {/* Price & CTA */}
-            <div className="flex md:flex-col items-end md:items-end justify-between md:justify-start mt-4 md:mt-0 md:ml-6">
+            <div className="flex md:flex-col items-end md:items-end justify-between md:justify-start mt-4 md:mt-0 md:ml-6 flex-shrink-0">
               <div className="text-right mb-3">
                 <div className="text-xl font-bold text-charcoal">
                   {formatPrice(cruise.priceFrom)}
@@ -243,14 +244,17 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
                   + Compare
                 </button>
                 
-                {/* Sailing Dates Selector moved here */}
-                <div className="mt-2">
+                {/* Sailing Dates Selector with improved spacing */}
+                <div className="mt-4">
                   <CompactDateSelector
                     sailingDates={sailingDates}
                     selectedDate={selectedDate}
                     onDateSelect={setSelectedDate}
                     shipName={cruise.shipName}
                   />
+                  <div className="text-xs text-slate-gray mt-1 text-center">
+                    {sailingDates.length - 1} more sailing dates available
+                  </div>
                 </div>
               </div>
             </div>

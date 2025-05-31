@@ -88,7 +88,7 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
 
   return (
     <div 
-      className={`bg-white rounded-xl border border-border-gray overflow-hidden transition-all duration-300 cursor-pointer ${
+      className={`bg-white rounded-xl border border-border-gray overflow-hidden transition-all duration-300 cursor-pointer h-[800px] flex flex-col ${
         isHovered ? 'shadow-level-3' : 'shadow-level-1'
       }`}
       onMouseEnter={() => setIsHovered(true)}
@@ -98,11 +98,12 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
       style={{ position: 'relative' }}
     >
       {/* Image Gallery */}
-      <div className="relative h-64 overflow-hidden">
+      <div className="relative h-64 overflow-hidden flex-shrink-0">
         <img
           src={cruise.images[currentImageIndex] || defaultImage}
           alt={`${cruise.shipName} cruise ship`}
           className="w-full h-full object-cover transition-all duration-300"
+          style={{ maxHeight: '256px' }}
           onError={(e) => {
             const target = e.target as HTMLImageElement;
             target.src = defaultImage;
@@ -187,7 +188,7 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
       </div>
 
       {/* Card Content */}
-      <div className="p-5">
+      <div className="p-5 flex-1 flex flex-col">
         {/* Ship & Cruise Line */}
         <div className="mb-3">
           <h3 id={`cruise-${cruise.shipName}`} className="text-xl font-semibold text-charcoal mb-1">{cruise.shipName}</h3>
@@ -263,38 +264,43 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
           )}
         </div>
 
-        {/* Price & CTA */}
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-          <div className="flex-1">
-            <div className="text-2xl font-bold text-charcoal">
-              {formatPrice(cruise.priceFrom)}
+        {/* Price & CTA - Push to bottom */}
+        <div className="mt-auto">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+            <div className="flex-1">
+              <div className="text-2xl font-bold text-charcoal">
+                {formatPrice(cruise.priceFrom)}
+              </div>
+              <div className="text-sm text-charcoal">
+                ${Math.round(cruise.priceFrom / cruise.duration)} per night
+              </div>
             </div>
-            <div className="text-sm text-charcoal">
-              ${Math.round(cruise.priceFrom / cruise.duration)} per night
-            </div>
-          </div>
-          <div className="flex flex-col items-end gap-2">
-            <Button className="bg-ocean-blue hover:bg-deep-navy text-white">
-              View Details
-            </Button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onCompareAdd?.(cruise);
-              }}
-              className="text-ocean-blue hover:text-deep-navy text-sm underline"
-            >
-              + Compare
-            </button>
-            
-            {/* Sailing Dates Selector moved here */}
-            <div className="mt-2">
-              <CompactDateSelector
-                sailingDates={sailingDates}
-                selectedDate={selectedDate}
-                onDateSelect={setSelectedDate}
-                shipName={cruise.shipName}
-              />
+            <div className="flex flex-col items-end gap-2">
+              <Button className="bg-ocean-blue hover:bg-deep-navy text-white">
+                View Details
+              </Button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCompareAdd?.(cruise);
+                }}
+                className="text-ocean-blue hover:text-deep-navy text-sm underline"
+              >
+                + Compare
+              </button>
+              
+              {/* Sailing Dates Selector with improved spacing */}
+              <div className="mt-4">
+                <CompactDateSelector
+                  sailingDates={sailingDates}
+                  selectedDate={selectedDate}
+                  onDateSelect={setSelectedDate}
+                  shipName={cruise.shipName}
+                />
+                <div className="text-xs text-slate-gray mt-1 text-center">
+                  {sailingDates.length - 1} more sailing dates available
+                </div>
+              </div>
             </div>
           </div>
         </div>

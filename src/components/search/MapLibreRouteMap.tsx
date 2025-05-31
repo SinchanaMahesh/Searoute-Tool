@@ -42,7 +42,7 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
     return { x, y };
   };
 
-  // Draw map on canvas
+  // Draw simplified map representation with land masses
   const drawMap = (canvas: HTMLCanvasElement) => {
     if (!canvas || !displayCruise) return;
 
@@ -54,18 +54,41 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
     // Clear canvas
     ctx.clearRect(0, 0, width, height);
     
-    // Draw background (ocean)
-    const gradient = ctx.createLinearGradient(0, 0, 0, height);
-    gradient.addColorStop(0, '#e0f2fe');
-    gradient.addColorStop(1, '#0284c7');
-    ctx.fillStyle = gradient;
+    // Draw ocean background
+    const oceanGradient = ctx.createLinearGradient(0, 0, 0, height);
+    oceanGradient.addColorStop(0, '#87CEEB');
+    oceanGradient.addColorStop(1, '#4682B4');
+    ctx.fillStyle = oceanGradient;
     ctx.fillRect(0, 0, width, height);
+    
+    // Draw simplified land masses (Caribbean region)
+    ctx.fillStyle = '#8FBC8F';
+    ctx.strokeStyle = '#556B2F';
+    ctx.lineWidth = 1;
+    
+    // Simplified Caribbean islands representation
+    const islands = [
+      { x: width * 0.2, y: height * 0.3, w: width * 0.15, h: height * 0.1 }, // Cuba-like
+      { x: width * 0.4, y: height * 0.4, w: width * 0.08, h: height * 0.06 }, // Jamaica-like
+      { x: width * 0.6, y: height * 0.5, w: width * 0.12, h: height * 0.08 }, // Puerto Rico-like
+      { x: width * 0.7, y: height * 0.6, w: width * 0.06, h: height * 0.04 }, // Dominican Republic-like
+      { x: width * 0.8, y: height * 0.7, w: width * 0.04, h: height * 0.03 }, // Small island
+    ];
+    
+    islands.forEach(island => {
+      ctx.beginPath();
+      ctx.ellipse(island.x, island.y, island.w, island.h, 0, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+    });
     
     // Draw route using polyline coordinates if available
     if (displayCruise.polylineCoordinates && displayCruise.polylineCoordinates.length > 0) {
       ctx.strokeStyle = '#ff6b35';
       ctx.lineWidth = 3;
       ctx.lineCap = 'round';
+      ctx.shadowColor = 'rgba(255, 107, 53, 0.3)';
+      ctx.shadowBlur = 4;
       
       ctx.beginPath();
       
@@ -80,6 +103,7 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
       });
       
       ctx.stroke();
+      ctx.shadowBlur = 0; // Reset shadow
     }
     
     // Convert port coordinates and draw markers
@@ -87,20 +111,37 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
       convertToCanvasCoords(port.coordinates[0], port.coordinates[1], width, height)
     );
     
-    // Draw port markers
+    // Draw port markers with enhanced styling
     canvasCoords.forEach((coord, index) => {
       const port = displayCruise.ports[index];
       const color = index === 0 ? '#22c55e' : index === canvasCoords.length - 1 ? '#ef4444' : '#3b82f6';
       const radius = 8;
       
-      // Port circle
+      // Port circle with glow effect
       ctx.fillStyle = color;
       ctx.strokeStyle = 'white';
       ctx.lineWidth = 2;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 6;
+      
       ctx.beginPath();
       ctx.arc(coord.x, coord.y, radius, 0, 2 * Math.PI);
       ctx.fill();
       ctx.stroke();
+      
+      ctx.shadowBlur = 0; // Reset shadow
+      
+      // Port label for start and end ports
+      if (index === 0 || index === canvasCoords.length - 1) {
+        ctx.fillStyle = '#333';
+        ctx.font = '10px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(
+          index === 0 ? 'Start' : 'End', 
+          coord.x, 
+          coord.y - radius - 5
+        );
+      }
     });
   };
 
