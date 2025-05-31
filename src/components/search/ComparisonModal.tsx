@@ -126,7 +126,7 @@ const ComparisonModal = ({ isOpen, onClose, cruises }: ComparisonModalProps) => 
                       <div className="text-xs text-slate-gray">
                         {cruise.ports?.slice(0, 3).map((port, index) => (
                           <span key={index}>
-                            {typeof port === 'string' ? port : port.name || port.port || port.location}
+                            {port.name}
                             {index < Math.min(2, (cruise.ports?.length || 1) - 1) && ' • '}
                           </span>
                         ))}
