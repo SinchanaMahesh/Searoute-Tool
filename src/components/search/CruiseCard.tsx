@@ -113,15 +113,6 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
           From {formatPrice(cruise.priceFrom)}
         </div>
 
-        {/* Star Rating - Moved to bottom right of image */}
-        <div className="absolute bottom-4 right-4 flex items-center gap-2 bg-white/95 rounded-full px-3 py-2 shadow-md">
-          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" aria-hidden="true" />
-          <span className="text-sm font-medium text-charcoal">{cruise.rating}</span>
-          <span className="text-xs text-charcoal">
-            ({cruise.reviewCount.toLocaleString()})
-          </span>
-        </div>
-
         {/* Savings Badge */}
         {cruise.savings && (
           <div className="absolute top-4 left-4 bg-seafoam-green text-white px-3 py-2 rounded-full text-sm font-medium shadow-md">
@@ -204,7 +195,7 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
 
         {/* Ports Preview - Moved to top */}
         <div className="text-sm text-charcoal mb-4">
-          <span className="font-medium">Ports: </span>
+          <span className="font-medium text-sunset-orange">Ports: </span>
           <span>{displayedPorts.join(' • ')}</span>
           {hasMorePorts && (
             <Popover>
@@ -236,6 +227,15 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
             <MapPin className="w-5 h-5 text-charcoal flex-shrink-0" aria-hidden="true" />
             <span className="truncate">{cruise.route}</span>
           </div>
+        </div>
+
+        {/* Star Rating next to image */}
+        <div className="flex items-center gap-2 mb-4">
+          <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" aria-hidden="true" />
+          <span className="text-base font-medium text-charcoal">{cruise.rating}</span>
+          <span className="text-sm text-charcoal">
+            ({cruise.reviewCount.toLocaleString()})
+          </span>
         </div>
 
         {/* Amenities Preview */}
@@ -278,13 +278,13 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
                   e.stopPropagation();
                   onCompareAdd?.(cruise);
                 }}
-                className="text-ocean-blue hover:text-deep-navy text-sm underline"
+                className="text-ocean-blue hover:text-deep-navy text-sm underline mb-4"
               >
                 + Compare
               </button>
               
               {/* Sailing Dates Selector */}
-              <div className="mt-4">
+              <div className="mt-1">
                 <CompactDateSelector
                   sailingDates={sailingDates}
                   selectedDate={selectedDate}

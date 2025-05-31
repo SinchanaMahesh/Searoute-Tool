@@ -16,7 +16,7 @@ const CruiseDetails = () => {
     return (
       <div className="min-h-screen bg-light-gray">
         <Header />
-        <div className="pt-20 p-8">
+        <div className="pt-16 p-8">
           <div className="max-w-4xl mx-auto">
             <Button 
               variant="ghost" 
@@ -39,7 +39,7 @@ const CruiseDetails = () => {
   return (
     <div className="min-h-screen bg-light-gray">
       <Header />
-      <div className="pt-20 p-8">
+      <div className="pt-16 p-8">
         <div className="max-w-4xl mx-auto">
           <Button 
             variant="ghost" 

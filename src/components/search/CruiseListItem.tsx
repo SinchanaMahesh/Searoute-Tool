@@ -117,15 +117,6 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
             )}
           </div>
 
-          {/* Star Rating - Moved to bottom right of image */}
-          <div className="absolute bottom-3 right-3 flex items-center gap-2 bg-white/95 rounded-full px-2 py-1 shadow-md">
-            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" aria-hidden="true" />
-            <span className="text-sm font-medium text-charcoal">{cruise.rating}</span>
-            <span className="text-xs text-charcoal">
-              ({cruise.reviewCount?.toLocaleString() || 0})
-            </span>
-          </div>
-
           {/* Quick Actions */}
           <div className={`absolute top-3 right-3 flex gap-2 transition-opacity duration-300 ${
             isHovered ? 'opacity-100' : 'opacity-0'
@@ -162,7 +153,7 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
 
               {/* Ports Preview - Moved to top */}
               <div className="text-sm text-charcoal mb-3">
-                <span className="font-medium">Ports: </span>
+                <span className="font-medium text-sunset-orange">Ports: </span>
                 <span>{displayedPorts.join(' • ')}</span>
                 {hasMorePorts && (
                   <Popover>
@@ -198,6 +189,15 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
                   <Users className="w-4 h-4 text-charcoal" aria-hidden="true" />
                   <span>From {cruise.departurePort}</span>
                 </div>
+              </div>
+
+              {/* Star Rating next to image */}
+              <div className="flex items-center gap-2 mb-3">
+                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" aria-hidden="true" />
+                <span className="text-sm font-medium text-charcoal">{cruise.rating}</span>
+                <span className="text-xs text-charcoal">
+                  ({cruise.reviewCount?.toLocaleString() || 0})
+                </span>
               </div>
 
               {/* Amenities */}
@@ -242,13 +242,13 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
                     e.stopPropagation();
                     onCompareAdd?.(cruise);
                   }}
-                  className="text-ocean-blue hover:text-deep-navy text-sm underline text-center"
+                  className="text-ocean-blue hover:text-deep-navy text-sm underline text-center mb-6"
                 >
                   + Compare
                 </button>
                 
                 {/* Sailing Dates Selector */}
-                <div className="mt-4">
+                <div className="mt-1">
                   <CompactDateSelector
                     sailingDates={sailingDates}
                     selectedDate={selectedDate}

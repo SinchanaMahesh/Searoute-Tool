@@ -59,9 +59,9 @@ const CompactDateSelector = ({ sailingDates, selectedDate, onDateSelect, shipNam
           onClick={() => setIsOpen(!isOpen)}
         >
           <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-ocean-blue" />
+            <Calendar className="w-4 h-4 text-coral-pink" />
             <div>
-              <div className="font-medium text-sm">{formatDate(selectedDate)}</div>
+              <div className="font-medium text-sm text-coral-pink">{formatDate(selectedDate)}</div>
               <div className="text-xs text-slate-gray">From ${selectedDateInfo.price}</div>
             </div>
           </div>
