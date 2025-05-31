@@ -1,10 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { CruiseData } from '@/api/mockCruiseData';
 import { X, Cloud, MapPin, Info, Shield, Utensils, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import LeafletRouteMap from './LeafletRouteMap';
 
 interface EnhancedModalMapProps {
   isOpen: boolean;
@@ -27,9 +26,46 @@ interface LocationInsights {
   attractions: string[];
 }
 
+// Convert real coordinates to canvas coordinates
+const convertToCanvasCoords = (longitude: number, latitude: number, canvasWidth: number, canvasHeight: number) => {
+  // Caribbean region bounds: roughly -85 to -60 longitude, 10 to 30 latitude
+  const minLon = -85;
+  const maxLon = -60;
+  const minLat = 10;
+  const maxLat = 30;
+  
+  const x = ((longitude - minLon) / (maxLon - minLon)) * canvasWidth;
+  const y = canvasHeight - ((latitude - minLat) / (maxLat - minLat)) * canvasHeight;
+  
+  return { x, y };
+};
+
+// Helper function to create curved sea routes avoiding land
+const createSeaRoute = (start: { x: number; y: number }, end: { x: number; y: number }) => {
+  const controlPoints = [];
+  const distance = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
+  const curveDepth = distance * 0.3;
+  
+  // Create curve points
+  for (let i = 0; i <= 10; i++) {
+    const t = i / 10;
+    const x = start.x + (end.x - start.x) * t;
+    const y = start.y + (end.y - start.y) * t;
+    
+    // Add curve offset (simulate going around land)
+    const curveOffset = Math.sin(t * Math.PI) * curveDepth;
+    const curvedY = y + curveOffset;
+    
+    controlPoints.push({ x, y: curvedY });
+  }
+  
+  return controlPoints;
+};
+
 const EnhancedModalMap = ({ isOpen, onClose, cruises, selectedCruise }: EnhancedModalMapProps) => {
   const [selectedLocation, setSelectedLocation] = useState<LocationInsights | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   
   const displayCruise = selectedCruise 
     ? cruises.find(c => c.id === selectedCruise)
@@ -95,10 +131,127 @@ const EnhancedModalMap = ({ isOpen, onClose, cruises, selectedCruise }: Enhanced
     };
   };
 
-  // Handle port click from map
-  const handlePortClick = async (portName: string, port: any) => {
-    const insights = await getLocationInsights(portName);
-    setSelectedLocation(insights);
+  // Draw map on canvas
+  const drawMap = (canvas: HTMLCanvasElement) => {
+    if (!canvas || !displayCruise) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const { width, height } = canvas;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
+    
+    // Draw background (ocean)
+    const gradient = ctx.createLinearGradient(0, 0, 0, height);
+    gradient.addColorStop(0, '#e0f2fe');
+    gradient.addColorStop(1, '#0284c7');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+    
+    // Draw simplified land masses (for context)
+    ctx.fillStyle = '#10b981';
+    ctx.strokeStyle = '#065f46';
+    ctx.lineWidth = 1;
+    
+    // Draw some basic land shapes for Caribbean context
+    // Florida (top left)
+    ctx.beginPath();
+    ctx.ellipse(width * 0.15, height * 0.2, width * 0.08, height * 0.15, 0, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Cuba (center left)
+    ctx.beginPath();
+    ctx.ellipse(width * 0.25, height * 0.4, width * 0.12, height * 0.06, 0, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Jamaica (center)
+    ctx.beginPath();
+    ctx.ellipse(width * 0.35, height * 0.55, width * 0.04, height * 0.03, 0, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Puerto Rico (center right)
+    ctx.beginPath();
+    ctx.ellipse(width * 0.6, height * 0.45, width * 0.05, height * 0.02, 0, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Convert port coordinates to canvas coordinates
+    const canvasCoords = displayCruise.ports.map(port => 
+      convertToCanvasCoords(port.coordinates[0], port.coordinates[1], width, height)
+    );
+    
+    // Draw curved routes between ports
+    ctx.strokeStyle = '#ff6b35';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    
+    for (let i = 0; i < canvasCoords.length - 1; i++) {
+      const routePoints = createSeaRoute(canvasCoords[i], canvasCoords[i + 1]);
+      
+      ctx.beginPath();
+      ctx.moveTo(routePoints[0].x, routePoints[0].y);
+      
+      for (let j = 1; j < routePoints.length; j++) {
+        ctx.lineTo(routePoints[j].x, routePoints[j].y);
+      }
+      
+      ctx.stroke();
+    }
+    
+    // Draw port markers
+    canvasCoords.forEach((coord, index) => {
+      const port = displayCruise.ports[index];
+      const color = index === 0 ? '#22c55e' : index === canvasCoords.length - 1 ? '#ef4444' : '#3b82f6';
+      const radius = 12;
+      
+      // Port circle
+      ctx.fillStyle = color;
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(coord.x, coord.y, radius, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Port label
+      ctx.fillStyle = '#1f2937';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(port.name, coord.x, coord.y + radius + 15);
+      
+      // Store port info for click detection
+      (coord as any).portName = port.name;
+      (coord as any).radius = radius;
+    });
+    
+    // Store coordinates for click detection
+    (canvas as any).portCoords = canvasCoords;
+  };
+
+  // Handle canvas click
+  const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = event.currentTarget;
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    
+    const portCoords = (canvas as any).portCoords || [];
+    
+    // Check if click is on a port
+    for (const coord of portCoords) {
+      const distance = Math.sqrt(Math.pow(x - coord.x, 2) + Math.pow(y - coord.y, 2));
+      if (distance <= (coord as any).radius + 5) {
+        const portName = (coord as any).portName;
+        
+        getLocationInsights(portName).then(setSelectedLocation);
+        break;
+      }
+    }
   };
 
   // Initialize with first port
@@ -107,6 +260,13 @@ const EnhancedModalMap = ({ isOpen, onClose, cruises, selectedCruise }: Enhanced
       getLocationInsights(displayCruise.ports[0].name).then(setSelectedLocation);
     }
   }, [isOpen, displayCruise]);
+
+  // Draw on canvas when cruise changes
+  useEffect(() => {
+    if (canvasRef.current && isOpen) {
+      drawMap(canvasRef.current);
+    }
+  }, [displayCruise, isOpen]);
 
   // Handle escape key
   useEffect(() => {
@@ -195,14 +355,14 @@ const EnhancedModalMap = ({ isOpen, onClose, cruises, selectedCruise }: Enhanced
           <div className="flex-1 flex relative overflow-hidden bg-white">
             {/* Left Pane - Map */}
             <div className="flex-1 flex flex-col bg-white">
-              {displayCruise && (
-                <LeafletRouteMap
-                  cruise={displayCruise}
-                  height="100%"
-                  onPortClick={handlePortClick}
-                  className="rounded-none"
-                />
-              )}
+              <canvas 
+                ref={canvasRef}
+                width={800}
+                height={600}
+                onClick={handleCanvasClick}
+                className="w-full h-full cursor-pointer"
+                style={{ width: '100%', height: '100%' }}
+              />
             </div>
             
             {/* Right Pane - Location Information */}

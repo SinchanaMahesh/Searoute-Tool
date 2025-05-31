@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { CruiseData } from '@/api/mockCruiseData';
 import { Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import LeafletRouteMap from './LeafletRouteMap';
+import EnhancedRouteMap from './EnhancedRouteMap';
 import EnhancedModalMap from './EnhancedModalMap';
 
 interface MapLibreRouteMapProps {
@@ -30,43 +30,12 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
   return (
     <>
       <div className="h-full bg-gradient-to-br from-blue-50 to-blue-100 relative overflow-hidden">
-        {/* Compact Map Header */}
-        <div className="absolute top-0 left-0 right-0 bg-white/95 backdrop-blur-sm p-2 border-b border-border-gray z-20">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-medium text-charcoal text-xs">Route Map</h3>
-              <p className="text-xs text-slate-gray">
-                {displayCruise 
-                  ? `${displayCruise.shipName} - ${displayCruise.ports.length} ports` 
-                  : 'Click a cruise to view its route'}
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsModalOpen(true)}
-              className="text-ocean-blue border-ocean-blue hover:bg-ocean-blue hover:text-white h-6 w-6 p-0"
-            >
-              <Maximize2 className="w-3 h-3" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Map Container */}
-        <div 
-          className="absolute inset-0 pt-12 w-full h-full cursor-pointer"
-          style={{ width: '100%', height: 'calc(100% - 48px)', marginTop: '48px' }}
-          onClick={() => setIsModalOpen(true)}
-        >
-          {displayCruise && (
-            <LeafletRouteMap
-              cruise={displayCruise}
-              height="100%"
-              onPortClick={handlePortClick}
-              className="rounded-none"
-            />
-          )}
-        </div>
+        {/* Use the working EnhancedRouteMap component */}
+        <EnhancedRouteMap
+          cruises={cruises}
+          hoveredCruise={hoveredCruise}
+          selectedCruise={selectedCruise}
+        />
       </div>
 
       <EnhancedModalMap
