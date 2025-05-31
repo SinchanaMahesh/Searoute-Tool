@@ -1,8 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { CruiseData } from '@/api/mockCruiseData';
 import { X, Cloud, MapPin, Info, Shield, Utensils, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import LeafletRouteMap from './LeafletRouteMap';
 
 interface EnhancedModalMapProps {
   isOpen: boolean;
@@ -26,40 +28,12 @@ interface LocationInsights {
 }
 
 const EnhancedModalMap = ({ isOpen, onClose, cruises, selectedCruise }: EnhancedModalMapProps) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [selectedLocation, setSelectedLocation] = useState<LocationInsights | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
   const displayCruise = selectedCruise 
     ? cruises.find(c => c.id === selectedCruise)
     : cruises.length > 0 ? cruises[0] : null;
-
-  // Sample Florida/Bahamas region cruise data for better visual representation
-  const sampleCruise = {
-    id: 'sample',
-    shipName: 'Sample Cruise',
-    ports: [
-      { name: 'Miami', coordinates: [-80.1918, 25.7617] },
-      { name: 'Nassau', coordinates: [-77.3504, 25.0343] },
-      { name: 'St. Thomas', coordinates: [-64.9307, 18.3358] }
-    ],
-    polylineCoordinates: [
-      [-80.1918, 25.7617], // Miami
-      [-79.5, 25.5], // Intermediate point
-      [-78.8, 25.3], // Intermediate point
-      [-77.3504, 25.0343], // Nassau
-      [-75.5, 23.5], // Intermediate point
-      [-72.0, 21.0], // Intermediate point
-      [-68.0, 19.0], // Intermediate point
-      [-64.9307, 18.3358] // St. Thomas
-    ],
-    route: 'Caribbean',
-    duration: 7,
-    priceFrom: 899
-  };
-
-  // Use sample cruise for better visualization
-  const cruiseToDisplay = displayCruise || sampleCruise;
 
   // Mock location insights data
   const getLocationInsights = async (locationName: string): Promise<LocationInsights> => {
@@ -121,127 +95,18 @@ const EnhancedModalMap = ({ isOpen, onClose, cruises, selectedCruise }: Enhanced
     };
   };
 
-  // Convert coordinates to canvas coordinates - focused on Florida/Bahamas region
-  const convertToCanvasCoords = (longitude: number, latitude: number, canvasWidth: number, canvasHeight: number) => {
-    // Define bounds for Florida/Bahamas region
-    const minLon = -82;
-    const maxLon = -62;
-    const minLat = 17;
-    const maxLat = 28;
-    
-    const x = ((longitude - minLon) / (maxLon - minLon)) * canvasWidth;
-    const y = canvasHeight - ((latitude - minLat) / (maxLat - minLat)) * canvasHeight;
-    
-    return { x, y };
-  };
-
-  // Draw map
-  const drawMap = (canvas: HTMLCanvasElement) => {
-    if (!canvas || !cruiseToDisplay) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const { width, height } = canvas;
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, width, height);
-    
-    // Draw background (ocean with gradient for Caribbean waters)
-    const gradient = ctx.createLinearGradient(0, 0, 0, height);
-    gradient.addColorStop(0, '#87CEEB'); // Sky blue
-    gradient.addColorStop(0.3, '#4682B4'); // Steel blue
-    gradient.addColorStop(1, '#1e40af'); // Deep blue
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, width, height);
-    
-    // Draw route
-    if (cruiseToDisplay.polylineCoordinates && cruiseToDisplay.polylineCoordinates.length > 0) {
-      ctx.strokeStyle = '#ff6b35';
-      ctx.lineWidth = 4;
-      ctx.lineCap = 'round';
-      ctx.setLineDash([]);
-      
-      ctx.beginPath();
-      cruiseToDisplay.polylineCoordinates.forEach((coord, index) => {
-        const canvasCoord = convertToCanvasCoords(coord[0], coord[1], width, height);
-        if (index === 0) {
-          ctx.moveTo(canvasCoord.x, canvasCoord.y);
-        } else {
-          ctx.lineTo(canvasCoord.x, canvasCoord.y);
-        }
-      });
-      ctx.stroke();
-    }
-    
-    // Convert port coordinates and draw markers
-    const canvasCoords = cruiseToDisplay.ports.map(port => 
-      convertToCanvasCoords(port.coordinates[0], port.coordinates[1], width, height)
-    );
-    
-    // Draw port markers
-    canvasCoords.forEach((coord, index) => {
-      const port = cruiseToDisplay.ports[index];
-      const color = index === 0 ? '#22c55e' : index === canvasCoords.length - 1 ? '#ef4444' : '#3b82f6';
-      const radius = 12;
-      
-      // Port circle
-      ctx.fillStyle = color;
-      ctx.strokeStyle = 'white';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(coord.x, coord.y, radius, 0, 2 * Math.PI);
-      ctx.fill();
-      ctx.stroke();
-      
-      // Port label
-      ctx.fillStyle = '#1f2937';
-      ctx.font = 'bold 12px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(port.name, coord.x, coord.y + radius + 15);
-      
-      // Store port info for click detection
-      (coord as any).port = port;
-      (coord as any).radius = radius;
-    });
-    
-    // Store coordinates for click detection
-    (canvas as any).portCoords = canvasCoords;
-  };
-
-  // Handle canvas click
-  const handleCanvasClick = async (event: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = event.currentTarget;
-    const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    
-    const portCoords = (canvas as any).portCoords || [];
-    
-    for (const coord of portCoords) {
-      const distance = Math.sqrt(Math.pow(x - coord.x, 2) + Math.pow(y - coord.y, 2));
-      if (distance <= (coord as any).radius + 5) {
-        const port = (coord as any).port;
-        const insights = await getLocationInsights(port.name);
-        setSelectedLocation(insights);
-        break;
-      }
-    }
+  // Handle port click from map
+  const handlePortClick = async (portName: string, port: any) => {
+    const insights = await getLocationInsights(portName);
+    setSelectedLocation(insights);
   };
 
   // Initialize with first port
   useEffect(() => {
-    if (isOpen && cruiseToDisplay && cruiseToDisplay.ports.length > 0 && !selectedLocation) {
-      getLocationInsights(cruiseToDisplay.ports[0].name).then(setSelectedLocation);
+    if (isOpen && displayCruise && displayCruise.ports.length > 0 && !selectedLocation) {
+      getLocationInsights(displayCruise.ports[0].name).then(setSelectedLocation);
     }
-  }, [isOpen, cruiseToDisplay]);
-
-  // Draw map when component mounts or cruise changes
-  useEffect(() => {
-    if (canvasRef.current && isOpen) {
-      drawMap(canvasRef.current);
-    }
-  }, [cruiseToDisplay, isOpen]);
+  }, [isOpen, displayCruise]);
 
   // Handle escape key
   useEffect(() => {
@@ -330,14 +195,14 @@ const EnhancedModalMap = ({ isOpen, onClose, cruises, selectedCruise }: Enhanced
           <div className="flex-1 flex relative overflow-hidden bg-white">
             {/* Left Pane - Map */}
             <div className="flex-1 flex flex-col bg-white">
-              <canvas 
-                ref={canvasRef}
-                width={800}
-                height={600}
-                onClick={handleCanvasClick}
-                className="w-full h-full cursor-pointer bg-white"
-                style={{ width: '100%', height: '100%' }}
-              />
+              {displayCruise && (
+                <LeafletRouteMap
+                  cruise={displayCruise}
+                  height="100%"
+                  onPortClick={handlePortClick}
+                  className="rounded-none"
+                />
+              )}
             </div>
             
             {/* Right Pane - Location Information */}
@@ -451,14 +316,14 @@ const EnhancedModalMap = ({ isOpen, onClose, cruises, selectedCruise }: Enhanced
           </div>
           
           {/* Bottom Panel - Cruise Information */}
-          {cruiseToDisplay && (
+          {displayCruise && (
             <div className="border-t border-border-gray bg-light-gray p-4 relative z-10">
               <div className="flex items-center justify-between">
                 <div>
-                  <h5 className="font-medium text-charcoal">{cruiseToDisplay.shipName}</h5>
-                  <p className="text-sm text-slate-gray">{cruiseToDisplay.route} • {cruiseToDisplay.duration} days</p>
+                  <h5 className="font-medium text-charcoal">{displayCruise.shipName}</h5>
+                  <p className="text-sm text-slate-gray">{displayCruise.route} • {displayCruise.duration} days</p>
                   <div className="flex gap-2 mt-1">
-                    {cruiseToDisplay.ports.map((port, index) => (
+                    {displayCruise.ports.map((port, index) => (
                       <button
                         key={index}
                         onClick={async () => {
@@ -477,7 +342,7 @@ const EnhancedModalMap = ({ isOpen, onClose, cruises, selectedCruise }: Enhanced
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-semibold text-ocean-blue">From ${cruiseToDisplay.priceFrom}</div>
+                  <div className="font-semibold text-ocean-blue">From ${displayCruise.priceFrom}</div>
                   <div className="text-xs text-slate-gray">per person</div>
                 </div>
               </div>
