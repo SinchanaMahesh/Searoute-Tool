@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Anchor, MessageCircle, User, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import LocationSearch from '@/components/search/LocationSearch';
@@ -16,30 +17,30 @@ const Header = () => {
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <div className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2">
             <div className="w-10 h-10 bg-ocean-blue rounded-lg flex items-center justify-center">
               <Anchor className="w-6 h-6 text-white" />
             </div>
             <span className="text-xl font-bold text-charcoal">Cruise & Vacations</span>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="/destinations" className="text-slate-gray hover:text-ocean-blue transition-colors">
+            <Link to="/destinations" className="text-slate-gray hover:text-ocean-blue transition-colors">
               Destinations
-            </a>
-            <a href="/cruise-lines" className="text-slate-gray hover:text-ocean-blue transition-colors">
+            </Link>
+            <Link to="/cruise-lines" className="text-slate-gray hover:text-ocean-blue transition-colors">
               Cruise Lines
-            </a>
-            <a href="/vacations" className="text-slate-gray hover:text-ocean-blue transition-colors">
+            </Link>
+            <Link to="/vacations" className="text-slate-gray hover:text-ocean-blue transition-colors">
               Vacations
-            </a>
-            <a href="/luxury" className="text-slate-gray hover:text-ocean-blue transition-colors">
+            </Link>
+            <Link to="/luxury" className="text-slate-gray hover:text-ocean-blue transition-colors">
               Luxury
-            </a>
-            <a href="/deals" className="text-slate-gray hover:text-ocean-blue transition-colors">
+            </Link>
+            <Link to="/deals" className="text-slate-gray hover:text-ocean-blue transition-colors">
               Deals
-            </a>
+            </Link>
           </nav>
 
           {/* Location Search & Action Buttons */}
@@ -83,21 +84,21 @@ const Header = () => {
               <div className="mb-4">
                 <LocationSearch onLocationSelect={handleLocationSelect} />
               </div>
-              <a href="/destinations" className="block text-slate-gray hover:text-ocean-blue transition-colors">
+              <Link to="/destinations" className="block text-slate-gray hover:text-ocean-blue transition-colors">
                 Destinations
-              </a>
-              <a href="/cruise-lines" className="block text-slate-gray hover:text-ocean-blue transition-colors">
+              </Link>
+              <Link to="/cruise-lines" className="block text-slate-gray hover:text-ocean-blue transition-colors">
                 Cruise Lines
-              </a>
-              <a href="/vacations" className="block text-slate-gray hover:text-ocean-blue transition-colors">
+              </Link>
+              <Link to="/vacations" className="block text-slate-gray hover:text-ocean-blue transition-colors">
                 Vacations
-              </a>
-              <a href="/luxury" className="block text-slate-gray hover:text-ocean-blue transition-colors">
+              </Link>
+              <Link to="/luxury" className="block text-slate-gray hover:text-ocean-blue transition-colors">
                 Luxury
-              </a>
-              <a href="/deals" className="block text-slate-gray hover:text-ocean-blue transition-colors">
+              </Link>
+              <Link to="/deals" className="block text-slate-gray hover:text-ocean-blue transition-colors">
                 Deals
-              </a>
+              </Link>
               <div className="pt-4 space-y-2">
                 <Button variant="ghost" className="w-full justify-start text-slate-gray" aria-label="Chat with AI assistant">
                   <MessageCircle className="w-4 h-4 mr-2" />

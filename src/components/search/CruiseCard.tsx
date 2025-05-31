@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Heart, Share, Plus, Star, Calendar, MapPin, ExternalLink, Info } from 'lucide-react';
 import { CruiseData } from '@/api/mockCruiseData';
@@ -13,6 +14,7 @@ interface CruiseCardProps {
 }
 
 const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardProps) => {
+  const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -40,14 +42,6 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
       currency: 'USD',
       minimumFractionDigits: 0,
     }).format(price);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
   };
 
   // Format ports similar to list item
@@ -83,8 +77,13 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
   };
 
   const portList = formatPorts(cruise.ports);
-  const displayedPorts = portList.slice(0, 7);
-  const hasMorePorts = portList.length > 7;
+  const displayedPorts = portList.slice(0, 4);
+  const hasMorePorts = portList.length > 4;
+
+  const handleViewDetails = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/cruise/${cruise.id}`);
+  };
 
   return (
     <div 
@@ -114,6 +113,15 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
           From {formatPrice(cruise.priceFrom)}
         </div>
 
+        {/* Star Rating - Moved to bottom right of image */}
+        <div className="absolute bottom-4 right-4 flex items-center gap-2 bg-white/95 rounded-full px-3 py-2 shadow-md">
+          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" aria-hidden="true" />
+          <span className="text-sm font-medium text-charcoal">{cruise.rating}</span>
+          <span className="text-xs text-charcoal">
+            ({cruise.reviewCount.toLocaleString()})
+          </span>
+        </div>
+
         {/* Savings Badge */}
         {cruise.savings && (
           <div className="absolute top-4 left-4 bg-seafoam-green text-white px-3 py-2 rounded-full text-sm font-medium shadow-md">
@@ -130,7 +138,7 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
 
         {/* Hover icon indicator */}
         {showHoverIcon && (
-          <div className={`absolute bottom-4 right-4 transition-opacity duration-300 ${
+          <div className={`absolute bottom-4 left-4 transition-opacity duration-300 ${
             isHovered ? 'opacity-100' : 'opacity-0'
           }`}>
             <div className="w-12 h-12 bg-white/95 rounded-full flex items-center justify-center shadow-lg border border-border-gray">
@@ -141,7 +149,7 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
 
         {/* Image Navigation Dots */}
         {cruise.images.length > 1 && (
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3">
+          <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex space-x-3">
             {cruise.images.map((_, index) => (
               <button
                 key={index}
@@ -194,32 +202,40 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
           <p className="text-base text-charcoal">{cruise.cruiseLine}</p>
         </div>
 
-        {/* Duration & Route */}
-        <div className="mb-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-base text-charcoal mb-2">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-charcoal flex-shrink-0" aria-hidden="true" />
-              <span>{cruise.duration} nights</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-charcoal flex-shrink-0" aria-hidden="true" />
-              <span className="truncate">{cruise.route}</span>
-            </div>
-          </div>
-          <p className="text-base text-charcoal">
-            {portList.length} ports • Departs {formatDate(cruise.departureDate)}
-          </p>
+        {/* Ports Preview - Moved to top */}
+        <div className="text-sm text-charcoal mb-4">
+          <span className="font-medium">Ports: </span>
+          <span>{displayedPorts.join(' • ')}</span>
+          {hasMorePorts && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="ml-2 text-ocean-blue hover:text-deep-navy text-xs underline inline-flex items-center gap-1">
+                  <Info className="w-3 h-3" />
+                  +{portList.length - 4} more
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-3" align="start">
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm text-charcoal">All Ports of Call</h4>
+                  <div className="text-sm text-slate-gray">
+                    {portList.join(' • ')}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
 
-        {/* Rating & Reviews */}
-        <div className="flex items-center gap-3 mb-5">
-          <div className="flex items-center gap-2">
-            <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" aria-hidden="true" />
-            <span className="text-base font-medium text-charcoal">{cruise.rating}</span>
+        {/* Itinerary - Combined duration and route */}
+        <div className="mb-4">
+          <div className="flex items-center gap-2 text-base text-charcoal mb-2">
+            <Calendar className="w-5 h-5 text-charcoal flex-shrink-0" aria-hidden="true" />
+            <span>{cruise.duration} nights visiting {portList.length} ports</span>
           </div>
-          <span className="text-base text-charcoal">
-            ({cruise.reviewCount.toLocaleString()} reviews)
-          </span>
+          <div className="flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-charcoal flex-shrink-0" aria-hidden="true" />
+            <span className="truncate">{cruise.route}</span>
+          </div>
         </div>
 
         {/* Amenities Preview */}
@@ -239,30 +255,6 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
           )}
         </div>
 
-        {/* Ports Preview */}
-        <div className="text-sm text-charcoal mb-4">
-          <span className="font-medium">Ports: </span>
-          <span>{displayedPorts.join(' • ')}</span>
-          {hasMorePorts && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <button className="ml-2 text-ocean-blue hover:text-deep-navy text-xs underline inline-flex items-center gap-1">
-                  <Info className="w-3 h-3" />
-                  +{portList.length - 7} more
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-3" align="start">
-                <div className="space-y-2">
-                  <h4 className="font-medium text-sm text-charcoal">All Ports of Call</h4>
-                  <div className="text-sm text-slate-gray">
-                    {portList.join(' • ')}
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-          )}
-        </div>
-
         {/* Price & CTA - Push to bottom */}
         <div className="mt-auto">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
@@ -275,7 +267,10 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
               </div>
             </div>
             <div className="flex flex-col items-end gap-2">
-              <Button className="bg-ocean-blue hover:bg-deep-navy text-white">
+              <Button 
+                className="bg-ocean-blue hover:bg-deep-navy text-white"
+                onClick={handleViewDetails}
+              >
                 View Details
               </Button>
               <button
@@ -288,8 +283,8 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
                 + Compare
               </button>
               
-              {/* Sailing Dates Selector with increased spacing */}
-              <div className="mt-8">
+              {/* Sailing Dates Selector */}
+              <div className="mt-4">
                 <CompactDateSelector
                   sailingDates={sailingDates}
                   selectedDate={selectedDate}

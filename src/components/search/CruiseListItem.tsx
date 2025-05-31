@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Heart, Share, Star, Calendar, MapPin, Users, Info } from 'lucide-react';
 import { CruiseData } from '@/api/mockCruiseData';
@@ -13,6 +14,7 @@ interface CruiseListItemProps {
 }
 
 const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
+  const navigate = useNavigate();
   const [isSaved, setIsSaved] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [selectedDate, setSelectedDate] = useState(cruise.departureDate);
@@ -37,14 +39,6 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
       currency: 'USD',
       minimumFractionDigits: 0,
     }).format(price);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
   };
 
   // Fix port formatting to properly display port names
@@ -80,8 +74,13 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
   };
 
   const portList = formatPorts(cruise.ports);
-  const displayedPorts = portList.slice(0, 7);
-  const hasMorePorts = portList.length > 7;
+  const displayedPorts = portList.slice(0, 4);
+  const hasMorePorts = portList.length > 4;
+
+  const handleViewDetails = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/cruise/${cruise.id}`);
+  };
 
   return (
     <div 
@@ -118,6 +117,15 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
             )}
           </div>
 
+          {/* Star Rating - Moved to bottom right of image */}
+          <div className="absolute bottom-3 right-3 flex items-center gap-2 bg-white/95 rounded-full px-2 py-1 shadow-md">
+            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" aria-hidden="true" />
+            <span className="text-sm font-medium text-charcoal">{cruise.rating}</span>
+            <span className="text-xs text-charcoal">
+              ({cruise.reviewCount?.toLocaleString() || 0})
+            </span>
+          </div>
+
           {/* Quick Actions */}
           <div className={`absolute top-3 right-3 flex gap-2 transition-opacity duration-300 ${
             isHovered ? 'opacity-100' : 'opacity-0'
@@ -152,11 +160,35 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
                 <p className="text-sm text-charcoal">{cruise.cruiseLine}</p>
               </div>
 
-              {/* Details */}
+              {/* Ports Preview - Moved to top */}
+              <div className="text-sm text-charcoal mb-3">
+                <span className="font-medium">Ports: </span>
+                <span>{displayedPorts.join(' • ')}</span>
+                {hasMorePorts && (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="ml-2 text-ocean-blue hover:text-deep-navy text-xs underline inline-flex items-center gap-1">
+                        <Info className="w-3 h-3" />
+                        +{portList.length - 4} more
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 p-3" align="start">
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-sm text-charcoal">All Ports of Call</h4>
+                        <div className="text-sm text-slate-gray">
+                          {portList.join(' • ')}
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                )}
+              </div>
+
+              {/* Itinerary - Combined duration and route */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                 <div className="flex items-center gap-2 text-sm text-charcoal">
                   <Calendar className="w-4 h-4 text-charcoal" aria-hidden="true" />
-                  <span>{cruise.duration} nights • {formatDate(cruise.departureDate)}</span>
+                  <span>{cruise.duration} nights visiting {portList.length} ports</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-charcoal">
                   <MapPin className="w-4 h-4 text-charcoal" aria-hidden="true" />
@@ -165,13 +197,6 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
                 <div className="flex items-center gap-2 text-sm text-charcoal">
                   <Users className="w-4 h-4 text-charcoal" aria-hidden="true" />
                   <span>From {cruise.departurePort}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" aria-hidden="true" />
-                  <span className="text-sm font-medium text-charcoal">{cruise.rating}</span>
-                  <span className="text-sm text-charcoal">
-                    ({cruise.reviewCount?.toLocaleString() || 0} reviews)
-                  </span>
                 </div>
               </div>
 
@@ -191,30 +216,6 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
                   </span>
                 )}
               </div>
-
-              {/* Ports Preview */}
-              <div className="text-sm text-charcoal mb-3">
-                <span className="font-medium">Ports: </span>
-                <span>{displayedPorts.join(' • ')}</span>
-                {hasMorePorts && (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button className="ml-2 text-ocean-blue hover:text-deep-navy text-xs underline inline-flex items-center gap-1">
-                        <Info className="w-3 h-3" />
-                        +{portList.length - 7} more
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-80 p-3" align="start">
-                      <div className="space-y-2">
-                        <h4 className="font-medium text-sm text-charcoal">All Ports of Call</h4>
-                        <div className="text-sm text-slate-gray">
-                          {portList.join(' • ')}
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                )}
-              </div>
             </div>
 
             {/* Price & CTA */}
@@ -230,7 +231,10 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
               </div>
               
               <div className="flex flex-col gap-2">
-                <Button className="bg-ocean-blue hover:bg-deep-navy text-white min-w-32">
+                <Button 
+                  className="bg-ocean-blue hover:bg-deep-navy text-white min-w-32"
+                  onClick={handleViewDetails}
+                >
                   View Details
                 </Button>
                 <button
@@ -243,8 +247,8 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
                   + Compare
                 </button>
                 
-                {/* Sailing Dates Selector with increased spacing */}
-                <div className="mt-8">
+                {/* Sailing Dates Selector */}
+                <div className="mt-4">
                   <CompactDateSelector
                     sailingDates={sailingDates}
                     selectedDate={selectedDate}

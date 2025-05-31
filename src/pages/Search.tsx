@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { ArrowLeft, Home, ChevronRight } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import MapLibreRouteMap from '@/components/search/MapLibreRouteMap';
 import CruiseResults from '@/components/search/CruiseResults';
@@ -15,6 +16,7 @@ import { mockCruiseData, CruiseData } from '@/api/mockCruiseData';
 
 const Search = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedCruiseId, setSelectedCruiseId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
@@ -100,9 +102,33 @@ const Search = () => {
     <div className="min-h-screen bg-light-gray">
       <Header />
       
-      <div className="pt-20 h-screen flex">
+      {/* Breadcrumb Navigation */}
+      <div className="pt-20 bg-white border-b border-border-gray">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center gap-2 text-sm">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => navigate(-1)}
+              className="text-slate-gray hover:text-ocean-blue p-1"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Back
+            </Button>
+            <ChevronRight className="w-4 h-4 text-slate-gray" />
+            <Link to="/" className="text-slate-gray hover:text-ocean-blue flex items-center gap-1">
+              <Home className="w-4 h-4" />
+              Home
+            </Link>
+            <ChevronRight className="w-4 h-4 text-slate-gray" />
+            <span className="text-charcoal font-medium">Search Results</span>
+          </div>
+        </div>
+      </div>
+      
+      <div className="h-screen flex">
         {/* Desktop Left Pane - Hidden on mobile */}
-        <div className="hidden md:flex w-[35%] border-r border-border-gray bg-white flex-col fixed h-full top-20 left-0" style={{ position: 'fixed' }}>
+        <div className="hidden md:flex w-[35%] border-r border-border-gray bg-white flex-col fixed h-full top-32 left-0" style={{ position: 'fixed' }}>
           {/* Map Section - Fixed height (35%) */}
           <div className="h-[35%] border-b border-border-gray flex-shrink-0">
             <MapLibreRouteMap 
@@ -140,7 +166,7 @@ const Search = () => {
         {/* Right Pane - Flexible width (65% desktop, 100% mobile) */}
         <div className="flex-1 flex flex-col md:ml-[35%]">
           {/* Results Header with Controls */}
-          <div className="bg-white border-b border-border-gray p-2 sticky top-20 z-10" style={{ position: 'sticky' }}>
+          <div className="bg-white border-b border-border-gray p-2 sticky top-32 z-10" style={{ position: 'sticky' }}>
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-sm font-semibold text-charcoal">

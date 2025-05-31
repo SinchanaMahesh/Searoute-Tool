@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Search from "./pages/Search";
 import BookingFlow from "./pages/BookingFlow";
 import Destination from "./pages/Destination";
+import CruiseDetails from "./pages/CruiseDetails";
 import SeaRouteConfiguration from "./pages/SeaRouteConfiguration";
 import NotFound from "./pages/NotFound";
 
@@ -24,6 +25,7 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/search" element={<Search />} />
+            <Route path="/cruise/:cruiseId" element={<CruiseDetails />} />
             <Route path="/cruise/:cruiseId/book" element={<BookingFlow />} />
             <Route path="/destination/:destinationId" element={<Destination />} />
             <Route path="/configuration/searoutemap" element={<SeaRouteConfiguration />} />
