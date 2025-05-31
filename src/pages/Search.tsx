@@ -7,13 +7,15 @@ import CruiseResults from '@/components/search/CruiseResults';
 import FilterDrawer from '@/components/search/FilterDrawer';
 import SearchResultsChat from '@/components/search/SearchResultsChat';
 import { Button } from '@/components/ui/button';
-import { Filter } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Filter, Grid, List } from 'lucide-react';
 import { mockCruiseData, CruiseData } from '@/api/mockCruiseData';
 
 const Search = () => {
   const [searchParams] = useSearchParams();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedCruiseId, setSelectedCruiseId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   
   // Simplified filters - start with wide ranges to show results
   const [filters, setFilters] = useState({
@@ -110,7 +112,7 @@ const Search = () => {
 
         {/* Right Pane - Flexible width (65%) */}
         <div className="flex-1 flex flex-col ml-[35%]">
-          {/* Results Header - Aligned height with map header */}
+          {/* Results Header with Controls */}
           <div className="bg-white border-b border-border-gray p-2 sticky top-20 z-10">
             <div className="flex items-center justify-between">
               <div>
@@ -121,14 +123,52 @@ const Search = () => {
                   {query ? `Search results for: "${query}"` : 'All available cruises'}
                 </p>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsFilterOpen(true)}
-                className="text-ocean-blue border-ocean-blue hover:bg-ocean-blue hover:text-white h-6 w-6 p-0"
-              >
-                <Filter className="w-3 h-3" />
-              </Button>
+              
+              {/* Controls Group */}
+              <div className="flex items-center gap-2">
+                {/* Sort Dropdown */}
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-28 h-6 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="price">Price</SelectItem>
+                    <SelectItem value="duration">Duration</SelectItem>
+                    <SelectItem value="rating">Rating</SelectItem>
+                    <SelectItem value="departure">Departure</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {/* View Toggle */}
+                <div className="flex items-center bg-light-gray rounded-lg p-1">
+                  <Button
+                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('grid')}
+                    className="rounded-md h-6 w-6 p-0"
+                  >
+                    <Grid className="w-3 h-3" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'list' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('list')}
+                    className="rounded-md h-6 w-6 p-0"
+                  >
+                    <List className="w-3 h-3" />
+                  </Button>
+                </div>
+                
+                {/* Filter Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsFilterOpen(true)}
+                  className="text-ocean-blue border-ocean-blue hover:bg-ocean-blue hover:text-white h-6 w-6 p-0"
+                >
+                  <Filter className="w-3 h-3" />
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -142,6 +182,8 @@ const Search = () => {
               selectedCruiseId={selectedCruiseId}
               sortBy={sortBy}
               onSortChange={setSortBy}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
             />
           </div>
         </div>

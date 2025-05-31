@@ -3,11 +3,7 @@ import React, { useState } from 'react';
 import { CruiseData } from '@/api/mockCruiseData';
 import CruiseCard from './CruiseCard';
 import CruiseListItem from './CruiseListItem';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Grid, List } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import CompactDateSelector from './CompactDateSelector';
-import { getImageWithFallback } from '@/utils/imageUtils';
 
 interface CruiseResultsProps {
   cruises: CruiseData[];
@@ -17,6 +13,8 @@ interface CruiseResultsProps {
   selectedCruiseId?: string | null;
   sortBy: string;
   onSortChange: (value: string) => void;
+  viewMode: 'grid' | 'list';
+  onViewModeChange: (mode: 'grid' | 'list') => void;
 }
 
 const CruiseResults = ({ 
@@ -25,10 +23,8 @@ const CruiseResults = ({
   onCruiseHover, 
   onCruiseSelect, 
   selectedCruiseId, 
-  sortBy, 
-  onSortChange 
+  viewMode
 }: CruiseResultsProps) => {
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [selectedDates, setSelectedDates] = useState<Record<string, string>>({});
 
   const handleDateSelect = (cruiseId: string, date: string) => {
@@ -49,43 +45,7 @@ const CruiseResults = ({
 
   return (
     <div className="h-full flex flex-col">
-      {/* Controls Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border-gray bg-white">
-        <div className="flex items-center gap-4">
-          <Select value={sortBy} onValueChange={onSortChange}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="price">Price</SelectItem>
-              <SelectItem value="duration">Duration</SelectItem>
-              <SelectItem value="rating">Rating</SelectItem>
-              <SelectItem value="departure">Departure</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="flex items-center bg-light-gray rounded-lg p-1">
-          <Button
-            variant={viewMode === 'grid' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('grid')}
-            className="rounded-md h-8 w-8 p-0"
-          >
-            <Grid className="w-4 h-4" />
-          </Button>
-          <Button
-            variant={viewMode === 'list' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('list')}
-            className="rounded-md h-8 w-8 p-0"
-          >
-            <List className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Results */}
+      {/* Results - No controls header anymore */}
       <div className="flex-1 overflow-y-auto p-4">
         {viewMode === 'grid' ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">

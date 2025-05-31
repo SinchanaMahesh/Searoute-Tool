@@ -1,9 +1,9 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { CruiseData } from '@/api/mockCruiseData';
-import { Maximize2, X } from 'lucide-react';
+import { Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import LocationInsightsModal from './LocationInsightsModal';
+import EnhancedModalMap from './EnhancedModalMap';
 
 interface MapLibreRouteMapProps {
   cruises: CruiseData[];
@@ -14,42 +14,12 @@ interface MapLibreRouteMapProps {
 
 const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise, onLocationClick }: MapLibreRouteMapProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const largeCanvasRef = useRef<HTMLCanvasElement>(null);
-  const [isLargeView, setIsLargeView] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState<any>(null);
-  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Use selectedCruise as primary, fallback to first cruise if none selected
   const displayCruise = selectedCruise 
     ? cruises.find(c => c.id === selectedCruise)
     : cruises.length > 0 ? cruises[0] : null;
-
-  // Handle escape key for large view
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (isLargeView) {
-          setIsLargeView(false);
-        }
-        if (isLocationModalOpen) {
-          setIsLocationModalOpen(false);
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    
-    if (isLargeView) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
-    };
-  }, [isLargeView, isLocationModalOpen]);
 
   // Convert real coordinates to canvas coordinates
   const convertToCanvasCoords = (longitude: number, latitude: number, canvasWidth: number, canvasHeight: number) => {
@@ -72,8 +42,8 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
     return { x, y };
   };
 
-  // Draw map on canvas with polyline support
-  const drawMap = (canvas: HTMLCanvasElement, isLarge: boolean = false) => {
+  // Draw map on canvas
+  const drawMap = (canvas: HTMLCanvasElement) => {
     if (!canvas || !displayCruise) return;
 
     const ctx = canvas.getContext('2d');
@@ -94,7 +64,7 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
     // Draw route using polyline coordinates if available
     if (displayCruise.polylineCoordinates && displayCruise.polylineCoordinates.length > 0) {
       ctx.strokeStyle = '#ff6b35';
-      ctx.lineWidth = isLarge ? 4 : 3;
+      ctx.lineWidth = 3;
       ctx.lineCap = 'round';
       
       ctx.beginPath();
@@ -121,7 +91,7 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
     canvasCoords.forEach((coord, index) => {
       const port = displayCruise.ports[index];
       const color = index === 0 ? '#22c55e' : index === canvasCoords.length - 1 ? '#ef4444' : '#3b82f6';
-      const radius = isLarge ? 12 : 8;
+      const radius = 8;
       
       // Port circle
       ctx.fillStyle = color;
@@ -131,56 +101,7 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
       ctx.arc(coord.x, coord.y, radius, 0, 2 * Math.PI);
       ctx.fill();
       ctx.stroke();
-      
-      // Port label (only on large view)
-      if (isLarge) {
-        ctx.fillStyle = '#1f2937';
-        ctx.font = '12px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(port.name, coord.x, coord.y + radius + 15);
-      }
-      
-      // Store port info for click detection
-      (coord as any).port = port;
-      (coord as any).radius = radius;
     });
-    
-    // Store coordinates for click detection
-    (canvas as any).portCoords = canvasCoords;
-  };
-
-  // Handle canvas click for location insights
-  const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isLargeView) return;
-    
-    const canvas = event.currentTarget;
-    const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    
-    const portCoords = (canvas as any).portCoords || [];
-    
-    // Check if click is on a port
-    for (const coord of portCoords) {
-      const distance = Math.sqrt(Math.pow(x - coord.x, 2) + Math.pow(y - coord.y, 2));
-      if (distance <= (coord as any).radius + 5) {
-        const port = (coord as any).port;
-        
-        if (port.insights) {
-          setSelectedLocation({
-            name: port.name,
-            insights: port.insights
-          });
-          setIsLocationModalOpen(true);
-          
-          // Call the optional callback
-          if (onLocationClick) {
-            onLocationClick(port.name, port.insights);
-          }
-        }
-        break;
-      }
-    }
   };
 
   // Draw on canvas when cruise changes
@@ -189,12 +110,6 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
       drawMap(canvasRef.current);
     }
   }, [displayCruise]);
-
-  useEffect(() => {
-    if (largeCanvasRef.current && isLargeView) {
-      drawMap(largeCanvasRef.current, true);
-    }
-  }, [displayCruise, isLargeView]);
 
   return (
     <>
@@ -213,7 +128,7 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setIsLargeView(true)}
+              onClick={() => setIsModalOpen(true)}
               className="text-ocean-blue border-ocean-blue hover:bg-ocean-blue hover:text-white h-6 w-6 p-0"
             >
               <Maximize2 className="w-3 h-3" />
@@ -227,68 +142,15 @@ const MapLibreRouteMap = ({ cruises, hoveredCruise, selectedCruise, onLocationCl
           height={280}
           className="absolute inset-0 pt-12 w-full h-full cursor-pointer"
           style={{ width: '100%', height: 'calc(100% - 48px)', marginTop: '48px' }}
+          onClick={() => setIsModalOpen(true)}
         />
       </div>
 
-      {/* Large View Modal */}
-      {isLargeView && (
-        <>
-          <div 
-            className="fixed inset-0 bg-black/50 z-[999998]" 
-            onClick={() => setIsLargeView(false)}
-          />
-          
-          <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 pointer-events-none">
-            <div className="bg-white rounded-lg w-full h-full max-w-7xl max-h-[95vh] flex flex-col relative pointer-events-auto shadow-2xl">
-              <div className="p-4 border-b border-border-gray flex justify-between items-center bg-white relative z-[1000000]">
-                <div>
-                  <h3 className="font-semibold text-charcoal">Interactive Route Map</h3>
-                  <p className="text-sm text-slate-gray mt-1">Click on ports to view location insights</p>
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsLargeView(false)}
-                  className="text-slate-gray h-8 w-8 p-0"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-              
-              <div className="flex-1 relative overflow-hidden">
-                <canvas 
-                  ref={largeCanvasRef}
-                  width={800}
-                  height={600}
-                  onClick={handleCanvasClick}
-                  className="w-full h-full cursor-pointer"
-                  style={{ width: '100%', height: '100%' }}
-                />
-              </div>
-              
-              {displayCruise && (
-                <div className="border-t border-border-gray bg-light-gray p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h5 className="font-medium text-charcoal">{displayCruise.shipName}</h5>
-                      <p className="text-sm text-slate-gray">{displayCruise.route} • {displayCruise.duration} days</p>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-semibold text-ocean-blue">From ${displayCruise.priceFrom}</div>
-                      <div className="text-xs text-slate-gray">per person</div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </>
-      )}
-
-      <LocationInsightsModal
-        isOpen={isLocationModalOpen}
-        onClose={() => setIsLocationModalOpen(false)}
-        locationName={selectedLocation?.name || ''}
-        insights={selectedLocation?.insights || null}
+      <EnhancedModalMap
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        cruises={cruises}
+        selectedCruise={selectedCruise}
       />
     </>
   );
