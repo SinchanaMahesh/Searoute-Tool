@@ -95,13 +95,12 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
       style={{ position: 'relative' }}
     >
       <div className="flex flex-col md:flex-row h-full">
-        {/* Image */}
-        <div className="relative md:w-80 h-48 md:h-full overflow-hidden flex-shrink-0">
+        {/* Image - Increased width */}
+        <div className="relative md:w-96 h-48 md:h-full overflow-hidden flex-shrink-0">
           <img
             src={getImageWithFallback(cruise.images?.[0], 'cruise')}
             alt={`${cruise.shipName} cruise ship`}
             className="w-full h-full object-cover"
-            style={{ maxHeight: '192px' }}
             onError={(e) => handleImageError(e, 'cruise')}
           />
           
@@ -244,15 +243,15 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
                   + Compare
                 </button>
                 
-                {/* Sailing Dates Selector with improved spacing */}
-                <div className="mt-4">
+                {/* Sailing Dates Selector with increased spacing */}
+                <div className="mt-8">
                   <CompactDateSelector
                     sailingDates={sailingDates}
                     selectedDate={selectedDate}
                     onDateSelect={setSelectedDate}
                     shipName={cruise.shipName}
                   />
-                  <div className="text-xs text-slate-gray mt-1 text-center">
+                  <div className="text-xs text-slate-gray mt-2 text-center">
                     {sailingDates.length - 1} more sailing dates available
                   </div>
                 </div>

@@ -88,7 +88,7 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
 
   return (
     <div 
-      className={`bg-white rounded-xl border border-border-gray overflow-hidden transition-all duration-300 cursor-pointer h-[800px] flex flex-col ${
+      className={`bg-white rounded-xl border border-border-gray overflow-hidden transition-all duration-300 cursor-pointer h-[820px] flex flex-col ${
         isHovered ? 'shadow-level-3' : 'shadow-level-1'
       }`}
       onMouseEnter={() => setIsHovered(true)}
@@ -97,13 +97,12 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
       aria-labelledby={`cruise-${cruise.shipName}`}
       style={{ position: 'relative' }}
     >
-      {/* Image Gallery */}
-      <div className="relative h-64 overflow-hidden flex-shrink-0">
+      {/* Image Gallery - Increased height */}
+      <div className="relative h-72 overflow-hidden flex-shrink-0">
         <img
           src={cruise.images[currentImageIndex] || defaultImage}
           alt={`${cruise.shipName} cruise ship`}
           className="w-full h-full object-cover transition-all duration-300"
-          style={{ maxHeight: '256px' }}
           onError={(e) => {
             const target = e.target as HTMLImageElement;
             target.src = defaultImage;
@@ -289,15 +288,15 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
                 + Compare
               </button>
               
-              {/* Sailing Dates Selector with improved spacing */}
-              <div className="mt-4">
+              {/* Sailing Dates Selector with increased spacing */}
+              <div className="mt-8">
                 <CompactDateSelector
                   sailingDates={sailingDates}
                   selectedDate={selectedDate}
                   onDateSelect={setSelectedDate}
                   shipName={cruise.shipName}
                 />
-                <div className="text-xs text-slate-gray mt-1 text-center">
+                <div className="text-xs text-slate-gray mt-2 text-center">
                   {sailingDates.length - 1} more sailing dates available
                 </div>
               </div>
