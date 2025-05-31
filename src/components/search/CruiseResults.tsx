@@ -15,6 +15,7 @@ interface CruiseResultsProps {
   viewMode: 'grid' | 'list';
   onViewModeChange: (mode: 'grid' | 'list') => void;
   onCompareAdd: (cruise: CruiseData) => void;
+  searchParams?: URLSearchParams;
 }
 
 const CruiseResults = ({ 
@@ -24,7 +25,8 @@ const CruiseResults = ({
   onCruiseSelect, 
   selectedCruiseId, 
   viewMode,
-  onCompareAdd
+  onCompareAdd,
+  searchParams
 }: CruiseResultsProps) => {
   const handleCruiseClick = (cruiseId: string) => {
     onCruiseSelect(cruiseId);
@@ -54,7 +56,7 @@ const CruiseResults = ({
                     : 'hover:shadow-md'
                 }`}
               >
-                <CruiseCard cruise={cruise} onCompareAdd={onCompareAdd} />
+                <CruiseCard cruise={cruise} onCompareAdd={onCompareAdd} searchParams={searchParams} />
               </div>
             ))}
           </div>
@@ -71,7 +73,7 @@ const CruiseResults = ({
                 }`}
               >
                 <div className="p-4">
-                  <CruiseListItem cruise={cruise} onCompareAdd={onCompareAdd} />
+                  <CruiseListItem cruise={cruise} onCompareAdd={onCompareAdd} searchParams={searchParams} />
                 </div>
               </div>
             ))}
