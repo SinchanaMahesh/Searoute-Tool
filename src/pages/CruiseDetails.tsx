@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, Share, MapPin, Calendar, Users, Star, Clock, Wifi, Car, Utensils } from 'lucide-react';
@@ -566,7 +565,7 @@ const CruiseDetails = () => {
           isOpen={showMap}
           onClose={() => setShowMap(false)}
           cruises={[cruise]}
-          selectedCruiseId={cruise.id}
+          selectedCruise={cruise.id}
         />
       )}
     </div>
