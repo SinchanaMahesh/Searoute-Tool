@@ -14,6 +14,7 @@ interface CruiseResultsProps {
   onSortChange: (value: string) => void;
   viewMode: 'grid' | 'list';
   onViewModeChange: (mode: 'grid' | 'list') => void;
+  onCompareAdd: (cruise: CruiseData) => void;
 }
 
 const CruiseResults = ({ 
@@ -22,7 +23,8 @@ const CruiseResults = ({
   onCruiseHover, 
   onCruiseSelect, 
   selectedCruiseId, 
-  viewMode
+  viewMode,
+  onCompareAdd
 }: CruiseResultsProps) => {
   const handleCruiseClick = (cruiseId: string) => {
     onCruiseSelect(cruiseId);
@@ -48,11 +50,11 @@ const CruiseResults = ({
                 onClick={() => handleCruiseClick(cruise.id)}
                 className={`cursor-pointer transition-all duration-200 ${
                   selectedCruiseId === cruise.id 
-                    ? 'ring-2 ring-ocean-blue shadow-lg transform scale-105' 
+                    ? 'ring-2 ring-ocean-blue shadow-lg' 
                     : 'hover:shadow-md'
                 }`}
               >
-                <CruiseCard cruise={cruise} />
+                <CruiseCard cruise={cruise} onCompareAdd={onCompareAdd} />
               </div>
             ))}
           </div>
@@ -69,7 +71,7 @@ const CruiseResults = ({
                 }`}
               >
                 <div className="p-4">
-                  <CruiseListItem cruise={cruise} />
+                  <CruiseListItem cruise={cruise} onCompareAdd={onCompareAdd} />
                 </div>
               </div>
             ))}

@@ -3,18 +3,35 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Heart, Share, Plus, Star, Calendar, MapPin, ExternalLink } from 'lucide-react';
 import { CruiseData } from '@/api/mockCruiseData';
+import CompactDateSelector from './CompactDateSelector';
 
 interface CruiseCardProps {
   cruise: CruiseData;
   showHoverIcon?: boolean;
+  onCompareAdd?: (cruise: CruiseData) => void;
 }
 
-const CruiseCard = ({ cruise, showHoverIcon = true }: CruiseCardProps) => {
+const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(cruise.departureDate);
 
   const defaultImage = "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=400";
+
+  // Generate sailing dates for this cruise
+  const generateSailingDates = () => {
+    const dates = [];
+    const baseDate = new Date(cruise.departureDate);
+    for (let i = 0; i < 6; i++) {
+      const date = new Date(baseDate);
+      date.setDate(baseDate.getDate() + (i * 14)); // Every 2 weeks
+      dates.push(date.toISOString().split('T')[0]);
+    }
+    return dates;
+  };
+
+  const sailingDates = generateSailingDates();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -35,45 +52,45 @@ const CruiseCard = ({ cruise, showHoverIcon = true }: CruiseCardProps) => {
   return (
     <div 
       className={`bg-white rounded-xl border border-border-gray overflow-hidden transition-all duration-300 cursor-pointer ${
-        isHovered ? 'shadow-level-3 -translate-y-1' : 'shadow-level-1'
+        isHovered ? 'shadow-level-3' : 'shadow-level-1'
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       role="article"
       aria-labelledby={`cruise-${cruise.shipName}`}
     >
-      {/* Image Gallery - increased height from aspect-video to custom height */}
+      {/* Image Gallery */}
       <div className="relative h-64 overflow-hidden">
         <img
           src={cruise.images[currentImageIndex] || defaultImage}
           alt={`${cruise.shipName} cruise ship`}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          className="w-full h-full object-cover transition-all duration-300"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
             target.src = defaultImage;
           }}
         />
         
-        {/* Price Badge - increased padding and font size */}
+        {/* Price Badge */}
         <div className="absolute top-4 right-4 bg-ocean-blue text-white px-4 py-2 rounded-full text-base font-semibold shadow-md">
           From {formatPrice(cruise.priceFrom)}
         </div>
 
-        {/* Savings Badge - increased padding */}
+        {/* Savings Badge */}
         {cruise.savings && (
           <div className="absolute top-4 left-4 bg-seafoam-green text-white px-3 py-2 rounded-full text-sm font-medium shadow-md">
             Save ${cruise.savings}
           </div>
         )}
 
-        {/* Popular Badge - increased padding and positioning */}
+        {/* Popular Badge */}
         {cruise.isPopular && (
           <div className="absolute top-16 left-4 bg-sunset-orange text-white px-3 py-2 rounded-full text-sm font-medium shadow-md">
             Popular
           </div>
         )}
 
-        {/* Hover icon indicator - increased size */}
+        {/* Hover icon indicator */}
         {showHoverIcon && (
           <div className={`absolute bottom-4 right-4 transition-opacity duration-300 ${
             isHovered ? 'opacity-100' : 'opacity-0'
@@ -84,7 +101,7 @@ const CruiseCard = ({ cruise, showHoverIcon = true }: CruiseCardProps) => {
           </div>
         )}
 
-        {/* Image Navigation Dots - increased size */}
+        {/* Image Navigation Dots */}
         {cruise.images.length > 1 && (
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3">
             {cruise.images.map((_, index) => (
@@ -103,7 +120,7 @@ const CruiseCard = ({ cruise, showHoverIcon = true }: CruiseCardProps) => {
           </div>
         )}
 
-        {/* Quick Actions - increased button size */}
+        {/* Quick Actions */}
         <div className={`absolute top-4 left-4 flex flex-col gap-3 transition-opacity ${
           isHovered ? 'opacity-100' : 'opacity-0'
         }`}>
@@ -128,27 +145,18 @@ const CruiseCard = ({ cruise, showHoverIcon = true }: CruiseCardProps) => {
           >
             <Share className="w-6 h-6 text-charcoal" />
           </Button>
-          <Button
-            size="icon"
-            variant="secondary"
-            className="w-12 h-12 bg-white/95 hover:bg-white border border-border-gray shadow-md min-w-[52px] min-h-[52px]"
-            onClick={(e) => e.stopPropagation()}
-            aria-label="Add to comparison"
-          >
-            <Plus className="w-6 h-6 text-charcoal" />
-          </Button>
         </div>
       </div>
 
-      {/* Card Content - increased padding */}
+      {/* Card Content */}
       <div className="p-5">
-        {/* Ship & Cruise Line - increased font sizes */}
+        {/* Ship & Cruise Line */}
         <div className="mb-3">
           <h3 id={`cruise-${cruise.shipName}`} className="text-xl font-semibold text-charcoal mb-1">{cruise.shipName}</h3>
           <p className="text-base text-charcoal">{cruise.cruiseLine}</p>
         </div>
 
-        {/* Duration & Route - increased spacing and font size */}
+        {/* Duration & Route */}
         <div className="mb-4">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-base text-charcoal mb-2">
             <div className="flex items-center gap-2">
@@ -165,7 +173,7 @@ const CruiseCard = ({ cruise, showHoverIcon = true }: CruiseCardProps) => {
           </p>
         </div>
 
-        {/* Rating & Reviews - increased font size and spacing */}
+        {/* Rating & Reviews */}
         <div className="flex items-center gap-3 mb-5">
           <div className="flex items-center gap-2">
             <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" aria-hidden="true" />
@@ -176,7 +184,7 @@ const CruiseCard = ({ cruise, showHoverIcon = true }: CruiseCardProps) => {
           </span>
         </div>
 
-        {/* Amenities Preview - increased padding and font size */}
+        {/* Amenities Preview */}
         <div className="flex flex-wrap gap-2 mb-5">
           {cruise.amenities.slice(0, 3).map((amenity) => (
             <span
@@ -193,7 +201,17 @@ const CruiseCard = ({ cruise, showHoverIcon = true }: CruiseCardProps) => {
           )}
         </div>
 
-        {/* Price & CTA - increased font sizes */}
+        {/* Sailing Dates Selector */}
+        <div className="mb-5">
+          <CompactDateSelector
+            sailingDates={sailingDates}
+            selectedDate={selectedDate}
+            onDateSelect={setSelectedDate}
+            shipName={cruise.shipName}
+          />
+        </div>
+
+        {/* Price & CTA */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="text-2xl font-bold text-charcoal">
@@ -203,13 +221,22 @@ const CruiseCard = ({ cruise, showHoverIcon = true }: CruiseCardProps) => {
               ${Math.round(cruise.priceFrom / cruise.duration)} per night
             </div>
           </div>
+          <div className="flex items-center gap-2">
+            <Button className="bg-ocean-blue hover:bg-deep-navy text-white">
+              View Details
+            </Button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onCompareAdd?.(cruise);
+              }}
+              className="text-ocean-blue hover:text-deep-navy text-sm underline"
+            >
+              + Compare
+            </button>
+          </div>
         </div>
       </div>
-
-      {/* Hover overlay */}
-      <div className={`absolute inset-0 bg-ocean-blue/5 transition-opacity duration-300 rounded-xl pointer-events-none ${
-        isHovered ? 'opacity-100' : 'opacity-0'
-      }`}></div>
     </div>
   );
 };

@@ -1,17 +1,34 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Heart, Share, Plus, Star, Calendar, MapPin, Users, ExternalLink } from 'lucide-react';
+import { Heart, Share, Star, Calendar, MapPin, Users } from 'lucide-react';
 import { CruiseData } from '@/api/mockCruiseData';
 import { getImageWithFallback, handleImageError } from '@/utils/imageUtils';
+import CompactDateSelector from './CompactDateSelector';
 
 interface CruiseListItemProps {
   cruise: CruiseData;
+  onCompareAdd?: (cruise: CruiseData) => void;
 }
 
-const CruiseListItem = ({ cruise }: CruiseListItemProps) => {
+const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
   const [isSaved, setIsSaved] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(cruise.departureDate);
+
+  // Generate sailing dates for this cruise
+  const generateSailingDates = () => {
+    const dates = [];
+    const baseDate = new Date(cruise.departureDate);
+    for (let i = 0; i < 6; i++) {
+      const date = new Date(baseDate);
+      date.setDate(baseDate.getDate() + (i * 14)); // Every 2 weeks
+      dates.push(date.toISOString().split('T')[0]);
+    }
+    return dates;
+  };
+
+  const sailingDates = generateSailingDates();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -31,8 +48,6 @@ const CruiseListItem = ({ cruise }: CruiseListItemProps) => {
 
   // Fix port formatting to properly display port names
   const formatPorts = (ports: any) => {
-    console.log('Formatting ports:', ports);
-    
     if (!ports) return 'No ports available';
     
     if (typeof ports === 'string') {
@@ -66,7 +81,7 @@ const CruiseListItem = ({ cruise }: CruiseListItemProps) => {
   return (
     <div 
       className={`bg-white rounded-lg border border-border-gray overflow-hidden transition-all duration-300 relative ${
-        isHovered ? 'shadow-level-2 scale-[1.02]' : 'shadow-level-1'
+        isHovered ? 'shadow-level-2' : 'shadow-level-1'
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -171,10 +186,20 @@ const CruiseListItem = ({ cruise }: CruiseListItemProps) => {
                 )}
               </div>
 
-              {/* Ports Preview - Fixed formatting */}
-              <div className="text-sm text-charcoal">
+              {/* Ports Preview */}
+              <div className="text-sm text-charcoal mb-3">
                 <span className="font-medium">Ports: </span>
                 <span>{formatPorts(cruise.ports)}</span>
+              </div>
+
+              {/* Sailing Dates Selector */}
+              <div className="mb-3">
+                <CompactDateSelector
+                  sailingDates={sailingDates}
+                  selectedDate={selectedDate}
+                  onDateSelect={setSelectedDate}
+                  shipName={cruise.shipName}
+                />
               </div>
             </div>
 
@@ -194,10 +219,15 @@ const CruiseListItem = ({ cruise }: CruiseListItemProps) => {
                 <Button className="bg-ocean-blue hover:bg-deep-navy text-white min-w-32">
                   View Details
                 </Button>
-                <Button variant="outline" size="sm" className="border-ocean-blue text-ocean-blue hover:bg-ocean-blue hover:text-white">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Compare
-                </Button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCompareAdd?.(cruise);
+                  }}
+                  className="text-ocean-blue hover:text-deep-navy text-sm underline text-center"
+                >
+                  + Compare
+                </button>
               </div>
             </div>
           </div>

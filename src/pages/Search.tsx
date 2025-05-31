@@ -7,6 +7,7 @@ import CruiseResults from '@/components/search/CruiseResults';
 import FilterDrawer from '@/components/search/FilterDrawer';
 import SearchResultsChat from '@/components/search/SearchResultsChat';
 import MobileControls from '@/components/search/MobileControls';
+import ComparisonTray from '@/components/search/ComparisonTray';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Filter, Grid, List } from 'lucide-react';
@@ -17,6 +18,8 @@ const Search = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedCruiseId, setSelectedCruiseId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [comparisonCruises, setComparisonCruises] = useState<CruiseData[]>([]);
+  const [isComparisonTrayOpen, setIsComparisonTrayOpen] = useState(false);
   
   // Simplified filters - start with wide ranges to show results
   const [filters, setFilters] = useState({
@@ -42,10 +45,6 @@ const Search = () => {
       setSelectedCruiseId(filteredCruises[0].id);
     }
   }, [filteredCruises, selectedCruiseId]);
-
-  console.log('Available Cruises:', mockCruiseData.length);
-  console.log('Showing Cruises:', filteredCruises.length);
-  console.log('Selected Cruise ID:', selectedCruiseId);
 
   // Generate context-based quick filters
   const getQuickFilters = () => {
@@ -78,7 +77,23 @@ const Search = () => {
 
   const handleCruiseSelect = (cruiseId: string) => {
     setSelectedCruiseId(cruiseId);
-    console.log('Cruise selected:', cruiseId);
+  };
+
+  const handleCompareAdd = (cruise: CruiseData) => {
+    if (comparisonCruises.length < 4 && !comparisonCruises.find(c => c.id === cruise.id)) {
+      setComparisonCruises(prev => [...prev, cruise]);
+      setIsComparisonTrayOpen(true);
+    }
+  };
+
+  const handleRemoveFromComparison = (cruiseId: string) => {
+    setComparisonCruises(prev => prev.filter(c => c.id !== cruiseId));
+  };
+
+  const handleCompare = () => {
+    // TODO: Navigate to comparison page or open comparison modal
+    console.log('Compare cruises:', comparisonCruises);
+    setIsComparisonTrayOpen(false);
   };
 
   return (
@@ -196,6 +211,7 @@ const Search = () => {
               onSortChange={setSortBy}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
+              onCompareAdd={handleCompareAdd}
             />
           </div>
         </div>
@@ -208,6 +224,15 @@ const Search = () => {
         onClose={() => setIsFilterOpen(false)}
         cruises={mockCruiseData}
         isOpen={isFilterOpen}
+      />
+
+      {/* Comparison Tray */}
+      <ComparisonTray
+        isOpen={isComparisonTrayOpen}
+        onClose={() => setIsComparisonTrayOpen(false)}
+        selectedCruises={comparisonCruises}
+        onRemoveCruise={handleRemoveFromComparison}
+        onCompare={handleCompare}
       />
     </div>
   );
