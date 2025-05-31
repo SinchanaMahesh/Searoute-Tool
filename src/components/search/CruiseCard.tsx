@@ -2,10 +2,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Heart, Share, Plus, Star, Calendar, MapPin, ExternalLink, Info } from 'lucide-react';
+import { Heart, Share, Calendar, MapPin, ExternalLink } from 'lucide-react';
 import { CruiseData } from '@/api/mockCruiseData';
 import CompactDateSelector from './CompactDateSelector';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import StarRating from '@/components/shared/StarRating';
+import PriceDisplay from '@/components/shared/PriceDisplay';
+import PortsList from '@/components/shared/PortsList';
 
 interface CruiseCardProps {
   cruise: CruiseData;
@@ -22,63 +24,18 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
 
   const defaultImage = "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=400";
 
-  // Generate sailing dates for this cruise
   const generateSailingDates = () => {
     const dates = [];
     const baseDate = new Date(cruise.departureDate);
     for (let i = 0; i < 6; i++) {
       const date = new Date(baseDate);
-      date.setDate(baseDate.getDate() + (i * 14)); // Every 2 weeks
+      date.setDate(baseDate.getDate() + (i * 14));
       dates.push(date.toISOString().split('T')[0]);
     }
     return dates;
   };
 
   const sailingDates = generateSailingDates();
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
-
-  // Format ports similar to list item
-  const formatPorts = (ports: any) => {
-    if (!ports) return [];
-    
-    if (typeof ports === 'string') {
-      return ports.split(',').map(p => p.trim()).filter(Boolean);
-    }
-    
-    if (Array.isArray(ports)) {
-      const validPorts = ports.filter(port => {
-        if (typeof port === 'string') return port;
-        if (typeof port === 'object' && port !== null) {
-          return port.name || port.port || port.location;
-        }
-        return false;
-      });
-      
-      const portNames = validPorts.map(port => {
-        if (typeof port === 'string') return port;
-        return port.name || port.port || port.location || 'Unknown Port';
-      });
-      
-      return portNames;
-    }
-    
-    if (typeof ports === 'object' && ports !== null) {
-      return [ports.name || ports.port || ports.location || 'Port details available'];
-    }
-    
-    return ['Port information available'];
-  };
-
-  const portList = formatPorts(cruise.ports);
-  const displayedPorts = portList.slice(0, 4);
-  const hasMorePorts = portList.length > 4;
 
   const handleViewDetails = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -94,9 +51,8 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
       onMouseLeave={() => setIsHovered(false)}
       role="article"
       aria-labelledby={`cruise-${cruise.shipName}`}
-      style={{ position: 'relative' }}
     >
-      {/* Image Gallery - Increased height */}
+      {/* Image Gallery */}
       <div className="relative h-72 overflow-hidden flex-shrink-0">
         <img
           src={cruise.images[currentImageIndex] || defaultImage}
@@ -110,7 +66,7 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
         
         {/* Price Badge */}
         <div className="absolute top-4 right-4 bg-ocean-blue text-white px-4 py-2 rounded-full text-base font-semibold shadow-md">
-          From {formatPrice(cruise.priceFrom)}
+          From <PriceDisplay price={cruise.priceFrom} duration={cruise.duration} showPerNight={false} className="inline" />
         </div>
 
         {/* Savings Badge */}
@@ -193,35 +149,16 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
           <p className="text-base text-charcoal">{cruise.cruiseLine}</p>
         </div>
 
-        {/* Ports Preview - Moved to top */}
-        <div className="text-sm text-charcoal mb-4">
-          <span className="font-medium text-charcoal">Ports: </span>
-          <span>{displayedPorts.join(' • ')}</span>
-          {hasMorePorts && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <button className="ml-2 text-ocean-blue hover:text-deep-navy text-xs underline inline-flex items-center gap-1">
-                  <Info className="w-3 h-3" />
-                  +{portList.length - 4} more
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-3" align="start">
-                <div className="space-y-2">
-                  <h4 className="font-medium text-sm text-charcoal">All Ports of Call</h4>
-                  <div className="text-sm text-slate-gray">
-                    {portList.join(' • ')}
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-          )}
+        {/* Ports Preview */}
+        <div className="mb-4">
+          <PortsList ports={cruise.ports} maxDisplay={4} />
         </div>
 
-        {/* Itinerary - Combined duration and route */}
+        {/* Itinerary */}
         <div className="mb-4">
           <div className="flex items-center gap-2 text-base text-charcoal mb-2">
             <Calendar className="w-5 h-5 text-charcoal flex-shrink-0" aria-hidden="true" />
-            <span>{cruise.duration} nights visiting {portList.length} ports</span>
+            <span>{cruise.duration} nights visiting {cruise.ports ? Object.keys(cruise.ports).length : 0} ports</span>
           </div>
           <div className="flex items-center gap-2">
             <MapPin className="w-5 h-5 text-charcoal flex-shrink-0" aria-hidden="true" />
@@ -246,26 +183,14 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
           )}
         </div>
 
-        {/* Star Rating - Moved below amenities */}
-        <div className="flex items-center gap-2 mb-5">
-          <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" aria-hidden="true" />
-          <span className="text-base font-medium text-charcoal">{cruise.rating}</span>
-          <span className="text-sm text-charcoal">
-            ({cruise.reviewCount.toLocaleString()})
-          </span>
-        </div>
-
         {/* Price & CTA - Push to bottom */}
         <div className="mt-auto">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-            <div className="flex-1">
-              <div className="text-2xl font-bold text-charcoal">
-                {formatPrice(cruise.priceFrom)}
-              </div>
-              <div className="text-sm text-charcoal">
-                ${Math.round(cruise.priceFrom / cruise.duration)} per night
-              </div>
-            </div>
+            <PriceDisplay 
+              price={cruise.priceFrom} 
+              duration={cruise.duration} 
+              className="flex-1"
+            />
             <div className="flex flex-col items-end gap-2">
               <Button 
                 className="bg-ocean-blue hover:bg-deep-navy text-white"
@@ -282,6 +207,14 @@ const CruiseCard = ({ cruise, showHoverIcon = true, onCompareAdd }: CruiseCardPr
               >
                 + Compare
               </button>
+              
+              {/* Star Rating - Aligned with date selector */}
+              <div className="mb-6">
+                <StarRating 
+                  rating={cruise.rating} 
+                  reviewCount={cruise.reviewCount}
+                />
+              </div>
               
               {/* Sailing Dates Selector */}
               <div className="mt-1">

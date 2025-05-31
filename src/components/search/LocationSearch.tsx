@@ -56,7 +56,6 @@ const LocationSearch = ({ onLocationSelect }: LocationSearchProps) => {
       const results = await response.json();
       setSuggestions(results);
     } catch (error) {
-      console.error('Location search error:', error);
       setSuggestions([]);
     } finally {
       setIsLoading(false);

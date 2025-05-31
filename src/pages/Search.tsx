@@ -16,14 +16,12 @@ import { mockCruiseData, CruiseData } from '@/api/mockCruiseData';
 
 const Search = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedCruiseId, setSelectedCruiseId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [comparisonCruises, setComparisonCruises] = useState<CruiseData[]>([]);
   const [isComparisonTrayOpen, setIsComparisonTrayOpen] = useState(false);
   
-  // Simplified filters - start with wide ranges to show results
   const [filters, setFilters] = useState({
     priceRange: [0, 15000],
     duration: [] as number[],
@@ -37,18 +35,14 @@ const Search = () => {
 
   const query = searchParams.get('q') || '';
   const searchType = searchParams.get('type') || 'chat';
-
-  // Use all mock data without filtering for now
   const filteredCruises: CruiseData[] = mockCruiseData;
 
-  // Set initial selected cruise
   useEffect(() => {
     if (filteredCruises.length > 0 && !selectedCruiseId) {
       setSelectedCruiseId(filteredCruises[0].id);
     }
   }, [filteredCruises, selectedCruiseId]);
 
-  // Generate context-based quick filters
   const getQuickFilters = () => {
     const baseFilters = [
       { label: 'Best Deals', action: () => setSortBy('price') },
@@ -93,8 +87,6 @@ const Search = () => {
   };
 
   const handleCompare = () => {
-    // TODO: Navigate to comparison page or open comparison modal
-    console.log('Compare cruises:', comparisonCruises);
     setIsComparisonTrayOpen(false);
   };
 
@@ -102,7 +94,7 @@ const Search = () => {
     <div className="min-h-screen bg-light-gray">
       <Header />
       
-      {/* Breadcrumb Navigation - Removed Back button */}
+      {/* Breadcrumb Navigation */}
       <div className="pt-16 bg-white border-b border-border-gray">
         <div className="container mx-auto px-4 py-1">
           <div className="flex items-center gap-2 text-sm">
@@ -117,21 +109,19 @@ const Search = () => {
       </div>
       
       <div className="h-screen flex">
-        {/* Desktop Left Pane - Hidden on mobile */}
-        <div className="hidden md:flex w-[35%] border-r border-border-gray bg-white flex-col fixed h-full top-20 left-0" style={{ position: 'fixed' }}>
-          {/* Map Section - Fixed height (35%) */}
+        {/* Desktop Left Pane */}
+        <div className="hidden md:flex w-[35%] border-r border-border-gray bg-white flex-col fixed h-full top-16 left-0">
           <div className="h-[35%] border-b border-border-gray flex-shrink-0">
             <MapLibreRouteMap 
               cruises={filteredCruises}
               hoveredCruise={hoveredCruise}
               selectedCruise={selectedCruiseId}
               onLocationClick={(locationName, insights) => {
-                console.log('Location clicked:', locationName, insights);
+                // Location click handler
               }}
             />
           </div>
           
-          {/* Chat Interface Section - Flexible height (65%) with proper overflow */}
           <div className="flex-1 min-h-0 flex flex-col">
             <SearchResultsChat 
               initialQuery={query}
@@ -153,10 +143,9 @@ const Search = () => {
           quickFilters={getQuickFilters()}
         />
 
-        {/* Right Pane - Flexible width (65% desktop, 100% mobile) */}
+        {/* Right Pane */}
         <div className="flex-1 flex flex-col md:ml-[35%]">
-          {/* Results Header with Controls */}
-          <div className="bg-white border-b border-border-gray p-2 sticky top-20 z-40" style={{ position: 'sticky' }}>
+          <div className="bg-white border-b border-border-gray p-2 sticky top-16 z-40">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-sm font-semibold text-charcoal">
@@ -167,9 +156,7 @@ const Search = () => {
                 </p>
               </div>
               
-              {/* Controls Group */}
               <div className="flex items-center gap-2">
-                {/* Sort Dropdown */}
                 <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger className="w-28 h-6 text-xs">
                     <SelectValue />
@@ -182,7 +169,6 @@ const Search = () => {
                   </SelectContent>
                 </Select>
                 
-                {/* View Toggle */}
                 <div className="flex items-center bg-light-gray rounded-lg p-1">
                   <Button
                     variant={viewMode === 'grid' ? 'default' : 'ghost'}
@@ -202,7 +188,6 @@ const Search = () => {
                   </Button>
                 </div>
                 
-                {/* Filter Button */}
                 <Button
                   variant="outline"
                   size="sm"
@@ -215,7 +200,6 @@ const Search = () => {
             </div>
           </div>
 
-          {/* Search Results */}
           <div className="flex-1 overflow-hidden">
             <CruiseResults 
               cruises={filteredCruises}
@@ -233,7 +217,6 @@ const Search = () => {
         </div>
       </div>
 
-      {/* Filter Drawer */}
       <FilterDrawer
         filters={filters}
         onFiltersChange={setFilters}
@@ -242,7 +225,6 @@ const Search = () => {
         isOpen={isFilterOpen}
       />
 
-      {/* Comparison Tray */}
       <ComparisonTray
         isOpen={isComparisonTrayOpen}
         onClose={() => setIsComparisonTrayOpen(false)}

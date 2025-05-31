@@ -2,11 +2,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Heart, Share, Star, Calendar, MapPin, Users, Info } from 'lucide-react';
+import { Heart, Share, Calendar, MapPin, Users } from 'lucide-react';
 import { CruiseData } from '@/api/mockCruiseData';
 import { getImageWithFallback, handleImageError } from '@/utils/imageUtils';
 import CompactDateSelector from './CompactDateSelector';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import StarRating from '@/components/shared/StarRating';
+import PriceDisplay from '@/components/shared/PriceDisplay';
+import PortsList from '@/components/shared/PortsList';
 
 interface CruiseListItemProps {
   cruise: CruiseData;
@@ -19,63 +21,18 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [selectedDate, setSelectedDate] = useState(cruise.departureDate);
 
-  // Generate sailing dates for this cruise
   const generateSailingDates = () => {
     const dates = [];
     const baseDate = new Date(cruise.departureDate);
     for (let i = 0; i < 6; i++) {
       const date = new Date(baseDate);
-      date.setDate(baseDate.getDate() + (i * 14)); // Every 2 weeks
+      date.setDate(baseDate.getDate() + (i * 14));
       dates.push(date.toISOString().split('T')[0]);
     }
     return dates;
   };
 
   const sailingDates = generateSailingDates();
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
-
-  // Fix port formatting to properly display port names
-  const formatPorts = (ports: any) => {
-    if (!ports) return [];
-    
-    if (typeof ports === 'string') {
-      return ports.split(',').map(p => p.trim()).filter(Boolean);
-    }
-    
-    if (Array.isArray(ports)) {
-      const validPorts = ports.filter(port => {
-        if (typeof port === 'string') return port;
-        if (typeof port === 'object' && port !== null) {
-          return port.name || port.port || port.location;
-        }
-        return false;
-      });
-      
-      const portNames = validPorts.map(port => {
-        if (typeof port === 'string') return port;
-        return port.name || port.port || port.location || 'Unknown Port';
-      });
-      
-      return portNames;
-    }
-    
-    if (typeof ports === 'object' && ports !== null) {
-      return [ports.name || ports.port || ports.location || 'Port details available'];
-    }
-    
-    return ['Port information available'];
-  };
-
-  const portList = formatPorts(cruise.ports);
-  const displayedPorts = portList.slice(0, 4);
-  const hasMorePorts = portList.length > 4;
 
   const handleViewDetails = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -91,10 +48,9 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
       onMouseLeave={() => setIsHovered(false)}
       role="article"
       aria-labelledby={`cruise-list-${cruise.shipName}`}
-      style={{ position: 'relative' }}
     >
       <div className="flex flex-col md:flex-row h-full">
-        {/* Image - Increased width */}
+        {/* Image */}
         <div className="relative md:w-96 h-48 md:h-full overflow-hidden flex-shrink-0">
           <img
             src={getImageWithFallback(cruise.images?.[0], 'cruise')}
@@ -151,35 +107,16 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
                 <p className="text-sm text-charcoal">{cruise.cruiseLine}</p>
               </div>
 
-              {/* Ports Preview - Moved to top */}
-              <div className="text-sm text-charcoal mb-3">
-                <span className="font-medium text-charcoal">Ports: </span>
-                <span>{displayedPorts.join(' • ')}</span>
-                {hasMorePorts && (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button className="ml-2 text-ocean-blue hover:text-deep-navy text-xs underline inline-flex items-center gap-1">
-                        <Info className="w-3 h-3" />
-                        +{portList.length - 4} more
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-80 p-3" align="start">
-                      <div className="space-y-2">
-                        <h4 className="font-medium text-sm text-charcoal">All Ports of Call</h4>
-                        <div className="text-sm text-slate-gray">
-                          {portList.join(' • ')}
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                )}
+              {/* Ports Preview */}
+              <div className="mb-3">
+                <PortsList ports={cruise.ports} maxDisplay={4} />
               </div>
 
-              {/* Itinerary - Combined duration and route */}
+              {/* Itinerary */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                 <div className="flex items-center gap-2 text-sm text-charcoal">
                   <Calendar className="w-4 h-4 text-charcoal" aria-hidden="true" />
-                  <span>{cruise.duration} nights visiting {portList.length} ports</span>
+                  <span>{cruise.duration} nights visiting {cruise.ports ? Object.keys(cruise.ports).length : 0} ports</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-charcoal">
                   <MapPin className="w-4 h-4 text-charcoal" aria-hidden="true" />
@@ -207,30 +144,17 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
                   </span>
                 )}
               </div>
-
-              {/* Star Rating - Moved below amenities */}
-              <div className="flex items-center gap-2 mb-3">
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" aria-hidden="true" />
-                <span className="text-sm font-medium text-charcoal">{cruise.rating}</span>
-                <span className="text-xs text-charcoal">
-                  ({cruise.reviewCount?.toLocaleString() || 0})
-                </span>
-              </div>
             </div>
 
             {/* Price & CTA */}
             <div className="flex md:flex-col items-end md:items-end justify-between md:justify-start mt-4 md:mt-0 md:ml-6 flex-shrink-0">
-              <div className="text-right mb-3">
-                <div className="text-xl font-bold text-charcoal">
-                  {formatPrice(cruise.priceFrom)}
-                </div>
-                <div className="text-sm text-charcoal mb-1">
-                  from ${Math.round(cruise.priceFrom / cruise.duration)} per night
-                </div>
-                <div className="text-xs text-charcoal">per person</div>
-              </div>
+              <PriceDisplay 
+                price={cruise.priceFrom} 
+                duration={cruise.duration} 
+                className="mb-3"
+              />
               
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 items-end">
                 <Button 
                   className="bg-ocean-blue hover:bg-deep-navy text-white min-w-32"
                   onClick={handleViewDetails}
@@ -246,6 +170,14 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
                 >
                   + Compare
                 </button>
+                
+                {/* Star Rating - Moved below amenities, aligned with date selector */}
+                <div className="mb-6">
+                  <StarRating 
+                    rating={cruise.rating} 
+                    reviewCount={cruise.reviewCount}
+                  />
+                </div>
                 
                 {/* Sailing Dates Selector */}
                 <div className="mt-1">
