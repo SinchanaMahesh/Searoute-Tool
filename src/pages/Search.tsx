@@ -6,6 +6,7 @@ import MapLibreRouteMap from '@/components/search/MapLibreRouteMap';
 import CruiseResults from '@/components/search/CruiseResults';
 import FilterDrawer from '@/components/search/FilterDrawer';
 import SearchResultsChat from '@/components/search/SearchResultsChat';
+import MobileControls from '@/components/search/MobileControls';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Filter, Grid, List } from 'lucide-react';
@@ -85,8 +86,8 @@ const Search = () => {
       <Header />
       
       <div className="pt-20 h-screen flex">
-        {/* Left Pane - Fixed width (35%) with proper flex layout */}
-        <div className="w-[35%] border-r border-border-gray bg-white flex flex-col fixed h-full top-20 left-0">
+        {/* Desktop Left Pane - Hidden on mobile */}
+        <div className="hidden md:flex w-[35%] border-r border-border-gray bg-white flex-col fixed h-full top-20 left-0">
           {/* Map Section - Fixed height (35%) */}
           <div className="h-[35%] border-b border-border-gray flex-shrink-0">
             <MapLibreRouteMap 
@@ -110,8 +111,19 @@ const Search = () => {
           </div>
         </div>
 
-        {/* Right Pane - Flexible width (65%) */}
-        <div className="flex-1 flex flex-col ml-[35%]">
+        {/* Mobile Floating Controls */}
+        <MobileControls
+          cruises={filteredCruises}
+          selectedCruise={selectedCruiseId}
+          hoveredCruise={hoveredCruise}
+          initialQuery={query}
+          searchType={searchType}
+          resultCount={filteredCruises.length}
+          quickFilters={getQuickFilters()}
+        />
+
+        {/* Right Pane - Flexible width (65% desktop, 100% mobile) */}
+        <div className="flex-1 flex flex-col md:ml-[35%]">
           {/* Results Header with Controls */}
           <div className="bg-white border-b border-border-gray p-2 sticky top-20 z-10">
             <div className="flex items-center justify-between">

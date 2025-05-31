@@ -1,9 +1,8 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { CruiseData } from '@/api/mockCruiseData';
 import CruiseCard from './CruiseCard';
 import CruiseListItem from './CruiseListItem';
-import CompactDateSelector from './CompactDateSelector';
 
 interface CruiseResultsProps {
   cruises: CruiseData[];
@@ -25,12 +24,6 @@ const CruiseResults = ({
   selectedCruiseId, 
   viewMode
 }: CruiseResultsProps) => {
-  const [selectedDates, setSelectedDates] = useState<Record<string, string>>({});
-
-  const handleDateSelect = (cruiseId: string, date: string) => {
-    setSelectedDates(prev => ({ ...prev, [cruiseId]: date }));
-  };
-
   const handleCruiseClick = (cruiseId: string) => {
     onCruiseSelect(cruiseId);
   };
@@ -45,7 +38,7 @@ const CruiseResults = ({
 
   return (
     <div className="h-full flex flex-col">
-      {/* Results - No controls header anymore */}
+      {/* Results */}
       <div className="flex-1 overflow-y-auto p-4">
         {viewMode === 'grid' ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -60,14 +53,6 @@ const CruiseResults = ({
                 }`}
               >
                 <CruiseCard cruise={cruise} />
-                <div className="mt-2 px-4">
-                  <CompactDateSelector
-                    sailingDates={cruise.sailingDates}
-                    selectedDate={selectedDates[cruise.id] || cruise.sailingDates[0]}
-                    onDateSelect={(date) => handleDateSelect(cruise.id, date)}
-                    shipName={cruise.shipName}
-                  />
-                </div>
               </div>
             ))}
           </div>
@@ -85,14 +70,6 @@ const CruiseResults = ({
               >
                 <div className="p-4">
                   <CruiseListItem cruise={cruise} />
-                  <div className="mt-3 flex justify-end">
-                    <CompactDateSelector
-                      sailingDates={cruise.sailingDates}
-                      selectedDate={selectedDates[cruise.id] || cruise.sailingDates[0]}
-                      onDateSelect={(date) => handleDateSelect(cruise.id, date)}
-                      shipName={cruise.shipName}
-                    />
-                  </div>
                 </div>
               </div>
             ))}

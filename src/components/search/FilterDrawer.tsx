@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
-import { X, RotateCcw } from 'lucide-react';
+import { X, RotateCcw, MessageCircle, Sparkles } from 'lucide-react';
 import { CruiseData } from '@/api/mockCruiseData';
 
 interface FilterDrawerProps {
@@ -68,6 +68,50 @@ const FilterDrawer = ({ filters, onFiltersChange, onClose, cruises, isOpen }: Fi
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="w-4 h-4" />
             </Button>
+          </div>
+        </div>
+
+        {/* AI Assistant Suggestion */}
+        <div className="p-4 bg-gradient-to-r from-ocean-blue/10 to-seafoam-green/10 border-b border-border-gray">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-ocean-blue/20 rounded-full">
+              <Sparkles className="w-4 h-4 text-ocean-blue" />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-medium text-charcoal mb-1">Try AI-Powered Search</h4>
+              <p className="text-sm text-slate-gray mb-3">
+                Use natural language to find exactly what you're looking for!
+              </p>
+              <div className="space-y-2 text-xs text-slate-gray mb-3">
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="w-3 h-3 text-ocean-blue" />
+                  <span>"Show me luxury Caribbean cruises under $3000"</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="w-3 h-3 text-ocean-blue" />
+                  <span>"Find family-friendly cruises with kids clubs"</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="w-3 h-3 text-ocean-blue" />
+                  <span>"7-day Mediterranean cruises departing from Miami"</span>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                className="w-full bg-ocean-blue hover:bg-deep-navy text-white"
+                onClick={() => {
+                  // Focus on chat interface - in mobile this would open the chat drawer
+                  onClose();
+                  const chatInput = document.querySelector('input[placeholder*="chat"], textarea[placeholder*="chat"]') as HTMLElement;
+                  if (chatInput) {
+                    chatInput.focus();
+                  }
+                }}
+              >
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Use AI Chat
+              </Button>
+            </div>
           </div>
         </div>
 
