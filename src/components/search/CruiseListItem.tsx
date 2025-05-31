@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Heart, Share, Star, Calendar, MapPin, Users } from 'lucide-react';
+import { Heart, Share, Star, Calendar, MapPin, Users, Info } from 'lucide-react';
 import { CruiseData } from '@/api/mockCruiseData';
 import { getImageWithFallback, handleImageError } from '@/utils/imageUtils';
 import CompactDateSelector from './CompactDateSelector';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface CruiseListItemProps {
   cruise: CruiseData;
@@ -48,10 +49,10 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
 
   // Fix port formatting to properly display port names
   const formatPorts = (ports: any) => {
-    if (!ports) return 'No ports available';
+    if (!ports) return [];
     
     if (typeof ports === 'string') {
-      return ports;
+      return ports.split(',').map(p => p.trim()).filter(Boolean);
     }
     
     if (Array.isArray(ports)) {
@@ -68,15 +69,19 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
         return port.name || port.port || port.location || 'Unknown Port';
       });
       
-      return portNames.length > 0 ? portNames.join(' • ') : 'No ports available';
+      return portNames;
     }
     
     if (typeof ports === 'object' && ports !== null) {
-      return ports.name || ports.port || ports.location || 'Port details available';
+      return [ports.name || ports.port || ports.location || 'Port details available'];
     }
     
-    return 'Port information available';
+    return ['Port information available'];
   };
+
+  const portList = formatPorts(cruise.ports);
+  const displayedPorts = portList.slice(0, 7);
+  const hasMorePorts = portList.length > 7;
 
   return (
     <div 
@@ -87,6 +92,7 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
       onMouseLeave={() => setIsHovered(false)}
       role="article"
       aria-labelledby={`cruise-list-${cruise.shipName}`}
+      style={{ position: 'relative' }}
     >
       <div className="flex flex-col md:flex-row">
         {/* Image */}
@@ -189,17 +195,25 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
               {/* Ports Preview */}
               <div className="text-sm text-charcoal mb-3">
                 <span className="font-medium">Ports: </span>
-                <span>{formatPorts(cruise.ports)}</span>
-              </div>
-
-              {/* Sailing Dates Selector */}
-              <div className="mb-3">
-                <CompactDateSelector
-                  sailingDates={sailingDates}
-                  selectedDate={selectedDate}
-                  onDateSelect={setSelectedDate}
-                  shipName={cruise.shipName}
-                />
+                <span>{displayedPorts.join(' • ')}</span>
+                {hasMorePorts && (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="ml-2 text-ocean-blue hover:text-deep-navy text-xs underline inline-flex items-center gap-1">
+                        <Info className="w-3 h-3" />
+                        +{portList.length - 7} more
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 p-3" align="start">
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-sm text-charcoal">All Ports of Call</h4>
+                        <div className="text-sm text-slate-gray">
+                          {portList.join(' • ')}
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                )}
               </div>
             </div>
 
@@ -228,6 +242,16 @@ const CruiseListItem = ({ cruise, onCompareAdd }: CruiseListItemProps) => {
                 >
                   + Compare
                 </button>
+                
+                {/* Sailing Dates Selector moved here */}
+                <div className="mt-2">
+                  <CompactDateSelector
+                    sailingDates={sailingDates}
+                    selectedDate={selectedDate}
+                    onDateSelect={setSelectedDate}
+                    shipName={cruise.shipName}
+                  />
+                </div>
               </div>
             </div>
           </div>

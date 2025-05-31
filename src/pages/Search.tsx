@@ -102,7 +102,7 @@ const Search = () => {
       
       <div className="pt-20 h-screen flex">
         {/* Desktop Left Pane - Hidden on mobile */}
-        <div className="hidden md:flex w-[35%] border-r border-border-gray bg-white flex-col fixed h-full top-20 left-0">
+        <div className="hidden md:flex w-[35%] border-r border-border-gray bg-white flex-col fixed h-full top-20 left-0" style={{ position: 'fixed' }}>
           {/* Map Section - Fixed height (35%) */}
           <div className="h-[35%] border-b border-border-gray flex-shrink-0">
             <MapLibreRouteMap 
@@ -140,7 +140,7 @@ const Search = () => {
         {/* Right Pane - Flexible width (65% desktop, 100% mobile) */}
         <div className="flex-1 flex flex-col md:ml-[35%]">
           {/* Results Header with Controls */}
-          <div className="bg-white border-b border-border-gray p-2 sticky top-20 z-10">
+          <div className="bg-white border-b border-border-gray p-2 sticky top-20 z-10" style={{ position: 'sticky' }}>
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-sm font-semibold text-charcoal">

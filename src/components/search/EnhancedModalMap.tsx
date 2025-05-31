@@ -1,5 +1,5 @@
-
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { CruiseData } from '@/api/mockCruiseData';
 import { X, Cloud, MapPin, Info, Shield, Utensils, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -263,17 +263,54 @@ const EnhancedModalMap = ({ isOpen, onClose, cruises, selectedCruise }: Enhanced
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-[99999]" style={{ isolation: 'isolate' }}>
+  // Use createPortal to render directly to body, avoiding stacking context issues
+  return createPortal(
+    <div 
+      className="fixed inset-0 z-[99999]" 
+      style={{ 
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 99999,
+        isolation: 'isolate'
+      }}
+    >
       {/* Backdrop overlay */}
       <div 
         className="absolute inset-0 bg-black/60" 
         onClick={onClose}
+        style={{ position: 'absolute', inset: 0 }}
       />
       
-      {/* Modal content with transform3d for new stacking context */}
-      <div className="absolute inset-0 flex items-center justify-center p-4" style={{ transform: 'translate3d(0,0,0)' }}>
-        <div className="bg-white rounded-lg w-full h-full max-w-7xl max-h-[95vh] flex flex-col relative shadow-2xl">
+      {/* Modal content */}
+      <div 
+        className="absolute inset-0 flex items-center justify-center p-4" 
+        style={{ 
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1rem'
+        }}
+      >
+        <div 
+          className="bg-white rounded-lg w-full h-full max-w-7xl max-h-[95vh] flex flex-col relative shadow-2xl"
+          style={{
+            backgroundColor: 'white',
+            borderRadius: '0.5rem',
+            width: '100%',
+            height: '100%',
+            maxWidth: '80rem',
+            maxHeight: '95vh',
+            display: 'flex',
+            flexDirection: 'column',
+            position: 'relative',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+          }}
+        >
           {/* Header */}
           <div className="p-4 border-b border-border-gray flex justify-between items-center bg-white relative z-10">
             <div>
@@ -448,7 +485,8 @@ const EnhancedModalMap = ({ isOpen, onClose, cruises, selectedCruise }: Enhanced
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
