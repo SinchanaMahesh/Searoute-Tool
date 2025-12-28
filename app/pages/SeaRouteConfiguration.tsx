@@ -996,7 +996,7 @@ const SeaRouteConfiguration = () => {
     } finally {
       setIsSaving(false);
     }
-  }, [selectedOriginPortId, selectedDestinationPortId, currentDrawnPolylineLatLngs, originPorts, destinationPorts, routeType, routeCreatedAt]);
+  }, [selectedOriginPortId, selectedDestinationPortId, currentDrawnPolylineLatLngs, originPorts, destinationPorts, routeType, routeCreatedAt, setSavedRoutes]);
 
   // Final save to database - saves segment to ClickHouse
   const finalSaveSegment = useCallback(async () => {
@@ -1581,7 +1581,6 @@ const SeaRouteConfiguration = () => {
       // Default view if no ports selected
       mapRef.current.setView([25.0, -80.0], 6);
     }
-
   }, [isLeafletLoaded, originPorts, destinationPorts, selectedOriginPortId, selectedDestinationPortId, savedRoutes, isCtrlPressed, routeCreatedAt, updateRouteState]);
 
   return (
