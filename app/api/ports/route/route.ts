@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // Dynamic import for searoute-js to avoid webpack bundling issues
 // This is loaded at runtime on the server, not bundled
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 let searouteModule: any = null;
 
 const getSearoute = async () => {

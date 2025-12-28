@@ -1755,7 +1755,6 @@ const SeaRouteConfiguration = () => {
           <CardTitle className="text-charcoal">Instructions</CardTitle>
         </CardHeader>
         <CardContent>
-          {/* eslint-disable-next-line react/no-unescaped-entities */}
           <ol className="list-decimal list-inside space-y-2 text-slate-gray">
             <li>Select an Origin Port and Destination Port from the dropdowns</li>
             <li>Click &quot;Generate SeaRoute&quot; to auto-generate a route, or use the polyline drawing tool to draw manually</li>
