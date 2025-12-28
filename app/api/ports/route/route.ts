@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Use CommonJS require for searoute-js to avoid webpack bundling issues
+// Dynamic import for searoute-js to avoid webpack bundling issues
 // This is loaded at runtime on the server, not bundled
-// eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-extraneous-dependencies
-const searoute = require('searoute-js');
+let searouteModule: any = null;
+
+const getSearoute = async () => {
+  if (!searouteModule) {
+    searouteModule = await import('searoute-js');
+  }
+  return searouteModule.default || searouteModule;
+};
 
 type RouteRequestBody = {
   origin: { lat: number; lng: number };
@@ -47,9 +53,8 @@ export async function POST(request: NextRequest) {
     };
 
     // Call searoute-js function
-    // Handle both default export and named export
-    const searouteFn = searoute.default || searoute;
-    const routeFeature = searouteFn(originFeature, destinationFeature, units);
+    const searoute = await getSearoute();
+    const routeFeature = searoute(originFeature, destinationFeature, units);
 
     if (
       !routeFeature ||

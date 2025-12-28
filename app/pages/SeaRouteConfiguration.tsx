@@ -783,7 +783,8 @@ const SeaRouteConfiguration = () => {
     selectedDestinationPortId,
     originPorts,
     destinationPorts,
-    setCurrentDrawnPolylineLatLngs,
+    updateRouteState,
+    routeCreatedAt,
   ]);
 
   // Enhanced curve smoothing function with iterative improvement
@@ -887,7 +888,7 @@ const SeaRouteConfiguration = () => {
       console.error('Error smoothing curve:', error);
       toast.error('Failed to smooth curve. Please try again.');
     }
-  }, [currentDrawnPolylineLatLngs]);
+  }, [currentDrawnPolylineLatLngs, updateRouteState]);
 
   // Keyboard event handlers for modifier keys
   useEffect(() => {
@@ -994,7 +995,7 @@ const SeaRouteConfiguration = () => {
     } finally {
       setIsSaving(false);
     }
-  }, [selectedOriginPortId, selectedDestinationPortId, currentDrawnPolylineLatLngs, originPorts, destinationPorts, routeType]);
+  }, [selectedOriginPortId, selectedDestinationPortId, currentDrawnPolylineLatLngs, originPorts, destinationPorts, routeType, routeCreatedAt]);
 
   // Final save to database - saves segment to ClickHouse
   const finalSaveSegment = useCallback(async () => {
@@ -1088,7 +1089,7 @@ const SeaRouteConfiguration = () => {
     } finally {
       setIsSaving(false);
     }
-  }, [selectedOriginPortId, selectedDestinationPortId, currentDrawnPolylineLatLngs, originPorts, destinationPorts, routeType, setSavedRoutes]);
+  }, [selectedOriginPortId, selectedDestinationPortId, currentDrawnPolylineLatLngs, originPorts, destinationPorts, routeType, setSavedRoutes, routeCreatedAt]);
 
   // Clear drawn route
   const clearRoute = useCallback(() => {
@@ -1580,7 +1581,7 @@ const SeaRouteConfiguration = () => {
       mapRef.current.setView([25.0, -80.0], 6);
     }
 
-  }, [isLeafletLoaded, originPorts, destinationPorts, selectedOriginPortId, selectedDestinationPortId, savedRoutes, isCtrlPressed]);
+  }, [isLeafletLoaded, originPorts, destinationPorts, selectedOriginPortId, selectedDestinationPortId, savedRoutes, isCtrlPressed, routeCreatedAt, updateRouteState]);
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-ocean-blue/5 to-deep-blue/10 p-4 md:p-6">
@@ -1755,14 +1756,14 @@ const SeaRouteConfiguration = () => {
         <CardContent>
           <ol className="list-decimal list-inside space-y-2 text-slate-gray">
             <li>Select an Origin Port and Destination Port from the dropdowns</li>
-            <li>Click "Generate SeaRoute" to auto-generate a route, or use the polyline drawing tool to draw manually</li>
+            <li>Click &quot;Generate SeaRoute&quot; to auto-generate a route, or use the polyline drawing tool to draw manually</li>
             <li>Click points on the map to create your route path</li>
             <li>Double-click to finish drawing the route</li>
             <li>Use the edit tool (pencil icon) to modify vertices and smooth curves manually</li>
-            <li><strong>Click "Smooth Curve" repeatedly to progressively refine the curve until satisfied</strong></li>
+            <li><strong>Click &quot;Smooth Curve&quot; repeatedly to progressively refine the curve until satisfied</strong></li>
             <li><strong>Hold Ctrl (or Cmd on Mac) while editing to move the map</strong></li>
-            <li>Click "Save Route" to temporarily save the route (local storage)</li>
-            <li>Click "Final Save" below to permanently save the route segment to database</li>
+            <li>Click &quot;Save Route&quot; to temporarily save the route (local storage)</li>
+            <li>Click &quot;Final Save&quot; below to permanently save the route segment to database</li>
             <li>Existing routes will appear as gray dashed lines</li>
             <li>Green markers show origin ports, red markers show destinations</li>
           </ol>
