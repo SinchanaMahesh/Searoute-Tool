@@ -4,6 +4,7 @@ import { getRedisClient, CACHE_TTL, POPULAR_SEARCHES } from '@/config/redis';
 
 // Force dynamic rendering for this route (uses searchParams)
 export const dynamic = 'force-dynamic';
+export const revalidate = 0; // Disable caching
 
 export async function GET(request: NextRequest) {
   try {

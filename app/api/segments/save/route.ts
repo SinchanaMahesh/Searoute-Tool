@@ -3,6 +3,10 @@ import { clickhouseClient } from '@/config/clickhouse';
 import { getRedisClient } from '@/config/redis';
 import { getUSTimeISOString, getUSTimeForClickHouse, convertToClickHouseDateTime } from '@/lib/utils/dateUtils';
 
+// Force dynamic rendering for this route (POST endpoint with dynamic data)
+export const dynamic = 'force-dynamic';
+export const revalidate = 0; // Disable caching
+
 interface SegmentSaveRequest {
   originPortId: string;
   destinationPortId: string;

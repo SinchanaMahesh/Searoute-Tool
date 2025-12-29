@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Force dynamic rendering for this route (POST endpoint with dynamic data)
+export const dynamic = 'force-dynamic';
+export const revalidate = 0; // Disable caching
+
 // Dynamic import for searoute-js to avoid webpack bundling issues
 // This is loaded at runtime on the server, not bundled
 let searouteModule: any = null;
