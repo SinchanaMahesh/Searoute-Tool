@@ -1,30 +1,25 @@
 import { createClient } from '@clickhouse/client';
 
+function getEnv(name: string, fallback: string): string {
+  const value = process.env[name];
+  if (!value && process.env.VERCEL) {
+    throw new Error(`Missing required env variable: ${name}`);
+  }
+  return value || fallback;
+}
 
+const CLICKHOUSE_HOST = getEnv('CLICKHOUSE_HOST', 'localhost');
+const CLICKHOUSE_PORT = getEnv('CLICKHOUSE_PORT', '8123');
+const CLICKHOUSE_USERNAME = getEnv('CLICKHOUSE_USERNAME', 'default');
+const CLICKHOUSE_PASSWORD = getEnv('CLICKHOUSE_PASSWORD', '');
+const CLICKHOUSE_DATABASE = getEnv('CLICKHOUSE_DATABASE', 'cruise_master');
 
-// ClickHouse Configuration
 export const clickhouseClient = createClient({
-  host: `https://${process.env.CLICKHOUSE_HOST}:${process.env.CLICKHOUSE_PORT}`,
-  username: process.env.CLICKHOUSE_USERNAME,
-  password: process.env.CLICKHOUSE_PASSWORD,
-  database: process.env.CLICKHOUSE_DATABASE,
+  host: `https://${CLICKHOUSE_HOST}:${CLICKHOUSE_PORT}`,
+  username: CLICKHOUSE_USERNAME,
+  password: CLICKHOUSE_PASSWORD,
+  database: CLICKHOUSE_DATABASE,
 });
-
-if (!process.env.CLICKHOUSE_HOST) {
-  throw new Error("CLICKHOUSE_HOST not set")
-}
-if (!process.env.CLICKHOUSE_PORT) {
-  throw new Error("CLICKHOUSE_PORT not set")
-}
-if (!process.env.CLICKHOUSE_USERNAME) {
-  throw new Error("CLICKHOUSE_USERNAME not set")
-}
-if (!process.env.CLICKHOUSE_PASSWORD) {
-  throw new Error("CLICKHOUSE_PASSWORD not set")
-}
-if (!process.env.CLICKHOUSE_DATABASE) {
-  throw new Error("CLICKHOUSE_DATABASE not set")
-}
 
 // Test ClickHouse connection
 export const testClickHouseConnection = async (): Promise<boolean> => {
