@@ -1,5 +1,4 @@
 import { createClient, ClickHouseClient } from "@clickhouse/client";
-import "dotenv/config";
 
 const isCI = process.env.CI === "true";
 const enableClickhouse =
