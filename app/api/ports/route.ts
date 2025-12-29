@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { clickhouseClient } from '@/config/clickhouse';
 import { getRedisClient, CACHE_TTL, POPULAR_SEARCHES } from '@/config/redis';
 
+// Force dynamic rendering for this route (uses searchParams)
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;

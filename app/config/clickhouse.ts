@@ -1,6 +1,7 @@
 import { createClient } from '@clickhouse/client';
 
 
+
 // ClickHouse Configuration
 export const clickhouseClient = createClient({
   host: `https://${process.env.CLICKHOUSE_HOST}:${process.env.CLICKHOUSE_PORT}`,
@@ -9,7 +10,6 @@ export const clickhouseClient = createClient({
   database: process.env.CLICKHOUSE_DATABASE,
 });
 
-console.log(clickhouseClient);
 if (!process.env.CLICKHOUSE_HOST) {
   throw new Error("CLICKHOUSE_HOST not set")
 }
@@ -25,7 +25,6 @@ if (!process.env.CLICKHOUSE_PASSWORD) {
 if (!process.env.CLICKHOUSE_DATABASE) {
   throw new Error("CLICKHOUSE_DATABASE not set")
 }
-
 
 // Test ClickHouse connection
 export const testClickHouseConnection = async (): Promise<boolean> => {
